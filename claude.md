@@ -14,23 +14,32 @@ The tool compares previous and current versions of VRS Excel files to:
 
 ## Key Concepts
 
-### 1. **Triple-Key Validation System**
-The tool uses a 3-key matching system for robust change detection:
+### 1. **Quadruple-Key Validation System (4-Tier)**
+The tool uses a 4-key matching system for robust change detection:
 
 ```
 Key 1 (CW): (SequenceName, EventName)
 Key 2 (CG): (SequenceName, StrOrigin)
 Key 3 (ES): (EventName, StrOrigin)
+Key 4 (CS): (CastingKey, SequenceName)
 ```
 
-**Why 3 keys?**
-- Handles EventName changes (Key 2 catches it)
-- Handles SequenceName changes (Key 3 catches it)
-- Handles both changing simultaneously (validates with all 3)
-- Prevents false positives on deletions
+**Why 4 keys?**
+- **Key 1**: Handles direct matches (same sequence + event)
+- **Key 2**: Catches EventName changes (same sequence + dialogue)
+- **Key 3**: Catches SequenceName changes (same event + dialogue)
+- **Key 4**: Prevents duplicate StrOrigin false matches (unique character identification)
+- Prevents false positives when common phrases appear across multiple characters
+- Example: "안녕하세요" (Hello) spoken by 100 different characters
 
-**NEW ROW Detection**: ALL 3 keys missing from TARGET
-**DELETED ROW Detection**: ALL 3 keys missing from SOURCE
+**NEW ROW Detection**: ALL 4 keys missing from TARGET
+**DELETED ROW Detection**: ALL 4 keys missing from SOURCE
+
+**Why CastingKey?**
+- CastingKey = `{CharacterKey}_{DialogVoice}_{GroupKey}_{DialogType}`
+- Unique per character within a sequence
+- Differentiates speakers even with identical dialogue
+- Critical for handling common dialogue phrases
 
 ### 2. **Importance Levels**
 - **High**: Critical content that requires updates and tracking
@@ -248,12 +257,21 @@ Examples:
 
 ## Current Version
 
-**Version**: 1114
-**Features**:
+**Version**: 1114v2 (Stable) / 1114v3 (In Development)
+
+**v1114v2 Features**:
 - 3-Key System (SequenceName + EventName + StrOrigin)
 - SequenceName Change Detection
+- Master File LOW importance logic fix
 - Multi-language support (KR/EN/CN)
 - Update history tracking
 - Intelligent import logic
 - Color-coded change visualization
 - Word count statistics
+
+**v1114v3 (Planned)**:
+- 4-Tier Key System (adds CastingKey + SequenceName)
+- Duplicate StrOrigin handling for common phrases
+- Enhanced NEW/DELETED row detection
+- Character Change detection
+- All features from v1114v2
