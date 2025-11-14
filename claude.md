@@ -37,9 +37,57 @@ Key 4 (CS): (CastingKey, SequenceName)
 
 **Why CastingKey?**
 - CastingKey = `{CharacterKey}_{DialogVoice}_{GroupKey}_{DialogType}`
-- Unique per character within a sequence
+- **Unique per character** within a sequence
 - Differentiates speakers even with identical dialogue
 - Critical for handling common dialogue phrases
+- **Purpose**: Verification helper for Key 2 (not a standalone identifier)
+
+**Staged Matching Logic (4-Tier System):**
+
+The system uses a cascading match strategy:
+
+```
+Stage 1: Direct match (Key 1)
+  ↓ If match → Compare fields for changes
+  ↓ If no match → Continue to Stage 2
+
+Stage 2: StrOrigin+Sequence match (Key 2) → VERIFY with Key 4
+  ↓ If Key 2 matches AND Key 4 matches:
+      → Same character → EventName Change
+  ↓ If Key 2 matches BUT Key 4 doesn't match:
+      → Different character → New Row (duplicate StrOrigin case)
+  ↓ If Key 2 doesn't match → Continue to Stage 3
+
+Stage 3: EventName+StrOrigin match (Key 3)
+  ↓ If match → SequenceName Change
+  ↓ If no match → Continue to Stage 4
+
+Stage 4: No keys match
+  → New Row
+```
+
+**Critical Innovation - Stage 2 Verification:**
+
+The 4th key (CastingKey + SequenceName) is used exclusively in Stage 2 to verify character identity:
+
+- **Scenario**: 100 different characters all say "안녕하세요" (Hello) in the same scene
+- **Without Key 4** (v1114v2): All marked as "EventName Change" ❌
+- **With Key 4** (v1114v3): Correctly marked as "New Row" ✅
+
+**Example:**
+```
+PREVIOUS:
+  Row A: Seq="Scene1", Event="E123", StrOrigin="Hello", CastingKey="Hero_Male_A"
+
+CURRENT:
+  Row B: Seq="Scene1", Event="E456", StrOrigin="Hello", CastingKey="NPC_Female_B"
+
+Matching Process:
+  Stage 1: Key1 (Scene1, E123) vs (Scene1, E456) → NO MATCH
+  Stage 2: Key2 (Scene1, Hello) → MATCH!
+           Key4 (Hero_Male_A, Scene1) vs (NPC_Female_B, Scene1) → NO MATCH
+           → Different character → NEW ROW ✅
+```
 
 ### 2. **Importance Levels**
 - **High**: Critical content that requires updates and tracking
@@ -257,9 +305,22 @@ Examples:
 
 ## Current Version
 
-**Version**: 1114v2 (Stable) / 1114v3 (In Development)
+**Version**: 1114v3 (Latest) / 1114v2 (Stable)
 
-**v1114v2 Features**:
+**v1114v3 Features** (CURRENT):
+- ✅ **4-Tier Key System** (CW, CG, ES, CS)
+- ✅ **Stage 2 Verification** with Key 4 (CastingKey-based)
+- ✅ **Duplicate StrOrigin handling** for common phrases
+- ✅ **Enhanced NEW/DELETED row detection** (all 4 keys)
+- ✅ **Character identity verification** in all processes
+- ✅ Multi-language support (KR/EN/CN)
+- ✅ Master File LOW importance logic fix
+- ✅ Update history tracking
+- ✅ Intelligent import logic
+- ✅ Color-coded change visualization
+- ✅ Word count statistics
+
+**v1114v2 Features** (Previous Stable):
 - 3-Key System (SequenceName + EventName + StrOrigin)
 - SequenceName Change Detection
 - Master File LOW importance logic fix
@@ -269,9 +330,8 @@ Examples:
 - Color-coded change visualization
 - Word count statistics
 
-**v1114v3 (Planned)**:
-- 4-Tier Key System (adds CastingKey + SequenceName)
-- Duplicate StrOrigin handling for common phrases
-- Enhanced NEW/DELETED row detection
-- Character Change detection
-- All features from v1114v2
+**Migration from v1114v2 to v1114v3:**
+- No data migration required
+- Backward compatible with v1114v2 output files
+- All processes enhanced with 4-tier key system
+- Improved accuracy for duplicate dialogue detection
