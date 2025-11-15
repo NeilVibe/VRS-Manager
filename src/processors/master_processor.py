@@ -347,15 +347,15 @@ class MasterProcessor(BaseProcessor):
 
             # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
             elif key_cg in target_lookup_cg:
+                old_eventname = target_lookup_cg[key_cg]
+                target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
+
                 if key_cs in target_lookup_cs:
                     # Same character → EventName Change
                     change_type = safe_str(source_row.get("CHANGES", "Edited"))
-                    old_eventname = target_lookup_cg[key_cg]
-                    target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
                 else:
-                    # Different character → New Row
-                    change_type = "New Row"
-                    target_row = None
+                    # Different character → CastingKey Change
+                    change_type = "CastingKey Change"
 
             # Stage 3: SequenceName changed
             elif key_es in target_lookup_es:
@@ -404,15 +404,15 @@ class MasterProcessor(BaseProcessor):
 
             # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
             elif key_cg in target_lookup_cg:
+                old_eventname = target_lookup_cg[key_cg]
+                target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
+
                 if key_cs in target_lookup_cs:
                     # Same character → EventName Change
                     change_type = safe_str(source_row.get("CHANGES", "Edited"))
-                    old_eventname = target_lookup_cg[key_cg]
-                    target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
                 else:
-                    # Different character → New Row
-                    change_type = "New Row"
-                    target_row = None
+                    # Different character → CastingKey Change
+                    change_type = "CastingKey Change"
 
             # Stage 3: SequenceName changed
             elif key_es in target_lookup_es:

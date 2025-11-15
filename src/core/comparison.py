@@ -132,51 +132,47 @@ def compare_rows(df_curr, prev_lookup_cw, prev_lookup_cg, prev_lookup_es, prev_l
 
         # Stage 2: StrOrigin + Sequence match - VERIFY with Key 4 (4-Tier System)
         elif key_cg in prev_lookup_cg:
-            # Check if same character (Key 4 verification)
-            if key_cs in prev_lookup_cs:
-                # Same character → EventName Change
-                old_eventname = prev_lookup_cg[key_cg]
-                prev_row = prev_lookup_cw.get((curr_row[col_idx[COL_SEQUENCE]], old_eventname))
+            old_eventname = prev_lookup_cg[key_cg]
+            prev_row = prev_lookup_cw.get((curr_row[col_idx[COL_SEQUENCE]], old_eventname))
 
-                if prev_row:
-                    prev_strorigin = safe_str(prev_row[col_idx[COL_STRORIGIN]])
+            if prev_row:
+                prev_strorigin = safe_str(prev_row[col_idx[COL_STRORIGIN]])
 
-                    differences = [
-                        col for col in df_curr.columns
-                        if safe_str(curr_row[col_idx[col]]) != safe_str(prev_row[col_idx[col]])
-                    ]
+                differences = [
+                    col for col in df_curr.columns
+                    if safe_str(curr_row[col_idx[col]]) != safe_str(prev_row[col_idx[col]])
+                ]
 
-                    important_changes = []
-                    if COL_STRORIGIN in differences:
-                        important_changes.append("StrOrigin")
-                    if COL_DESC in differences:
-                        important_changes.append("Desc")
-                    if COL_STARTFRAME in differences:
-                        important_changes.append("TimeFrame")
+                important_changes = []
+                if COL_STRORIGIN in differences:
+                    important_changes.append("StrOrigin")
+                if COL_DESC in differences:
+                    important_changes.append("Desc")
+                if COL_STARTFRAME in differences:
+                    important_changes.append("TimeFrame")
 
-                    existing_char_cols = [col for col in CHAR_GROUP_COLS if col in col_idx]
-                    char_group_diffs = [col for col in differences if col in existing_char_cols]
+                existing_char_cols = [col for col in CHAR_GROUP_COLS if col in col_idx]
+                char_group_diffs = [col for col in differences if col in existing_char_cols]
 
-                    if char_group_diffs:
-                        change_label = "Character Group Change"
-                        changed_char_cols = char_group_diffs
-                    elif not important_changes:
-                        if contains_korean(curr_row[col_idx[COL_STRORIGIN]]):
-                            change_label = "EventName Change"
-                        else:
-                            change_label = "No Relevant Change"
-                        changed_char_cols = []
+                # Check if CastingKey changed
+                if key_cs not in prev_lookup_cs:
+                    # Different character → CastingKey Change
+                    change_label = "CastingKey Change"
+                    changed_char_cols = []
+                elif char_group_diffs:
+                    change_label = "Character Group Change"
+                    changed_char_cols = char_group_diffs
+                elif not important_changes:
+                    if contains_korean(curr_row[col_idx[COL_STRORIGIN]]):
+                        change_label = "EventName Change"
                     else:
-                        important_changes.insert(0, "EventName")
-                        change_label = "+".join(important_changes) + " Change"
-                        changed_char_cols = []
+                        change_label = "No Relevant Change"
+                    changed_char_cols = []
                 else:
-                    change_label = "New Row"
-                    prev_row = None
-                    prev_strorigin = ""
+                    important_changes.insert(0, "EventName")
+                    change_label = "+".join(important_changes) + " Change"
                     changed_char_cols = []
             else:
-                # Different character → New Row (duplicate StrOrigin case)
                 change_label = "New Row"
                 prev_row = None
                 prev_strorigin = ""
