@@ -17,11 +17,18 @@ def log(msg):
 
 
 def get_script_dir():
-    """Get the directory where the script is running from"""
+    """
+    Get the directory where the script is running from.
+
+    When running as PyInstaller executable: returns directory containing .exe
+    When running as script: returns project root directory
+    """
     if getattr(sys, 'frozen', False):
+        # Running as compiled executable - return exe directory
         return os.path.dirname(sys.executable)
     else:
-        return os.path.dirname(os.path.abspath(__file__))
+        # Running as script - return project root (2 levels up from src/utils/)
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def find_status_column(columns):

@@ -51,15 +51,26 @@ The tool compares previous and current versions of VRS Excel files to detect and
 
 ## Installation
 
-### Prerequisites
+### Option 1: Use Pre-Built Executable (Recommended)
 
+**No Python installation required!**
+
+1. **Download** the latest release from GitHub Releases
+2. **Extract** the executable
+3. **Run** `VRSManager.exe` (Windows) or `./VRSManager` (Linux/macOS)
+
+All files (history JSON, Excel outputs) are created in the same folder as the executable.
+
+### Option 2: Run from Source
+
+**Prerequisites:**
 - **Python 3.7+**
 - **Required packages:**
   ```bash
   pip install -r requirements.txt
   ```
 
-### Quick Start
+**Steps:**
 
 1. **Clone the repository:**
    ```bash
@@ -76,6 +87,22 @@ The tool compares previous and current versions of VRS Excel files to detect and
    ```bash
    python main.py
    ```
+
+### Option 3: Build Your Own Executable
+
+See **[BUILD.md](BUILD.md)** for detailed build instructions.
+
+**Quick build:**
+```bash
+# Linux/macOS
+chmod +x build_executable.sh
+./build_executable.sh
+
+# Windows
+python -m PyInstaller VRSManager.spec --clean --noconfirm
+```
+
+Executable will be in `dist/` folder.
 
 ---
 
