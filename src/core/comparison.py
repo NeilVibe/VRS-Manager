@@ -306,12 +306,13 @@ def classify_alllang_change(curr_row, prev_row, prev_lookup_cg, prev_lookup_cs):
 
 def find_deleted_rows(df_prev, df_curr):
     """
-    Find deleted rows using 3-key system for raw VRS check.
+    Find deleted rows using 4-key system for raw VRS check.
 
-    A row is only considered deleted if ALL three keys are missing from current file:
+    A row is only considered deleted if ALL four keys are missing from current file:
     - (SequenceName, EventName)
     - (SequenceName, StrOrigin)
     - (EventName, StrOrigin)
+    - (CastingKey, SequenceName)
 
     Args:
         df_prev: Previous DataFrame
@@ -320,21 +321,24 @@ def find_deleted_rows(df_prev, df_curr):
     Returns:
         DataFrame: Deleted rows
     """
-    # Build all 3 key types from current
+    # Build all 4 key types from current
     curr_keys_cw = set((row[COL_SEQUENCE], row[COL_EVENTNAME]) for row in df_curr.to_dict("records"))
     curr_keys_cg = set((row[COL_SEQUENCE], row[COL_STRORIGIN]) for row in df_curr.to_dict("records"))
     curr_keys_es = set((row[COL_EVENTNAME], row[COL_STRORIGIN]) for row in df_curr.to_dict("records"))
+    curr_keys_cs = set((row[COL_CASTINGKEY], row[COL_SEQUENCE]) for row in df_curr.to_dict("records"))
 
     deleted_mask = []
     for row in df_prev.to_dict("records"):
         key_cw = (row[COL_SEQUENCE], row[COL_EVENTNAME])
         key_cg = (row[COL_SEQUENCE], row[COL_STRORIGIN])
         key_es = (row[COL_EVENTNAME], row[COL_STRORIGIN])
+        key_cs = (row[COL_CASTINGKEY], row[COL_SEQUENCE])
 
-        # Only mark as deleted if ALL 3 keys are missing
+        # Only mark as deleted if ALL 4 keys are missing
         is_deleted = (key_cw not in curr_keys_cw) and \
                      (key_cg not in curr_keys_cg) and \
-                     (key_es not in curr_keys_es)
+                     (key_es not in curr_keys_es) and \
+                     (key_cs not in curr_keys_cs)
         deleted_mask.append(is_deleted)
 
     return df_prev[deleted_mask].copy()
