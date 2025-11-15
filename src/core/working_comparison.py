@@ -11,9 +11,9 @@ from src.config import (
     COL_TEXT, COL_STATUS, COL_FREEMEMO, COL_PREVIOUSDATA, COL_MAINLINE_TRANSLATION,
     COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY, COL_DESC, COL_STARTFRAME
 )
-from src.utils.helpers import safe_str, contains_korean, log
+from src.utils.helpers import safe_str, contains_korean, log, generate_previous_data
 from src.utils.progress import print_progress, finalize_progress
-from src.core.casting import generate_casting_key, generate_previous_data
+from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
 
 

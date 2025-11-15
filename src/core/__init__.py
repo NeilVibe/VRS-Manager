@@ -2,7 +2,7 @@
 Core VRS Manager processing modules.
 """
 
-from src.core.casting import generate_casting_key, generate_previous_data
+from src.core.casting import generate_casting_key
 from src.core.lookups import build_lookups, build_working_lookups
 from src.core.comparison import (
     compare_rows,
@@ -29,7 +29,6 @@ from src.core.working_helpers import (
 
 __all__ = [
     'generate_casting_key',
-    'generate_previous_data',
     'build_lookups',
     'build_working_lookups',
     'compare_rows',

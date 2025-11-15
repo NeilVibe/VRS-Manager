@@ -12,11 +12,11 @@ from src.config import (
     COL_TEXT, COL_STATUS, COL_FREEMEMO, COL_CHARACTERNAME, COL_CHARACTERKEY,
     COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY, COL_STARTFRAME
 )
-from src.utils.helpers import safe_str, contains_korean, log, get_script_dir
+from src.utils.helpers import safe_str, contains_korean, log, get_script_dir, generate_previous_data
 from src.utils.progress import print_progress, finalize_progress
 from src.io.excel_reader import safe_read_excel
 from src.utils.data_processing import normalize_dataframe_status
-from src.core.casting import generate_casting_key, generate_previous_data
+from src.core.casting import generate_casting_key
 from src.core.import_logic import is_after_recording_status
 
 
