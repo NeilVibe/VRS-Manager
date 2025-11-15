@@ -62,18 +62,46 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
             char_group_col_indices[cell.value] = idx
 
     changes_fills = {
+        # Pure changes
         "StrOrigin Change": PatternFill(start_color="FFD580", fill_type="solid"),
         "Desc Change": PatternFill(start_color="E1D5FF", fill_type="solid"),
         "TimeFrame Change": PatternFill(start_color="FF9999", fill_type="solid"),
         "EventName Change": PatternFill(start_color="FFFF99", fill_type="solid"),
         "SequenceName Change": PatternFill(start_color="B3E5FC", fill_type="solid"),
+        "CastingKey Change": PatternFill(start_color="FFB347", fill_type="solid"),  # Orange
+
+        # Stage 1 composites (without EventName/SequenceName)
         "StrOrigin+Desc Change": PatternFill(start_color="FFA07A", fill_type="solid"),
         "StrOrigin+TimeFrame Change": PatternFill(start_color="FFB6C1", fill_type="solid"),
         "Desc+TimeFrame Change": PatternFill(start_color="DDA0DD", fill_type="solid"),
         "StrOrigin+Desc+TimeFrame Change": PatternFill(start_color="F08080", fill_type="solid"),
+        "CastingKey+StrOrigin Change": PatternFill(start_color="FFAA7F", fill_type="solid"),
+        "CastingKey+Desc Change": PatternFill(start_color="F0C8FF", fill_type="solid"),
+        "CastingKey+TimeFrame Change": PatternFill(start_color="FFB3CC", fill_type="solid"),
+        "CastingKey+StrOrigin+Desc Change": PatternFill(start_color="FF9F8F", fill_type="solid"),
+        "CastingKey+StrOrigin+TimeFrame Change": PatternFill(start_color="FFC0CB", fill_type="solid"),
+        "CastingKey+Desc+TimeFrame Change": PatternFill(start_color="E6C3E6", fill_type="solid"),
+        "CastingKey+StrOrigin+Desc+TimeFrame Change": PatternFill(start_color="FF9999", fill_type="solid"),
+
+        # EventName composites (Stage 2)
         "EventName+Desc Change": PatternFill(start_color="F0E68C", fill_type="solid"),
         "EventName+TimeFrame Change": PatternFill(start_color="FFDAB9", fill_type="solid"),
         "EventName+Desc+TimeFrame Change": PatternFill(start_color="FFD8A8", fill_type="solid"),
+        "EventName+CastingKey Change": PatternFill(start_color="FFD966", fill_type="solid"),  # Yellow-orange
+        "EventName+CastingKey+Desc Change": PatternFill(start_color="FFCC66", fill_type="solid"),
+        "EventName+CastingKey+TimeFrame Change": PatternFill(start_color="FFC966", fill_type="solid"),
+        "EventName+CastingKey+Desc+TimeFrame Change": PatternFill(start_color="FFB84D", fill_type="solid"),
+
+        # SequenceName composites (Stage 3)
+        "SequenceName+CastingKey Change": PatternFill(start_color="A0D9FF", fill_type="solid"),  # Light blue
+        "SequenceName+Desc Change": PatternFill(start_color="C4E5FF", fill_type="solid"),
+        "SequenceName+TimeFrame Change": PatternFill(start_color="B3D9FF", fill_type="solid"),
+        "SequenceName+CastingKey+Desc Change": PatternFill(start_color="99D6FF", fill_type="solid"),
+        "SequenceName+CastingKey+TimeFrame Change": PatternFill(start_color="8CD3FF", fill_type="solid"),
+        "SequenceName+Desc+TimeFrame Change": PatternFill(start_color="B8DBFF", fill_type="solid"),
+        "SequenceName+CastingKey+Desc+TimeFrame Change": PatternFill(start_color="7FCCFF", fill_type="solid"),
+
+        # Special cases
         "Character Group Change": PatternFill(start_color="87CEFA", fill_type="solid"),
         "New Row": PatternFill(start_color="90EE90", fill_type="solid"),
         "No Relevant Change": PatternFill(start_color="D3D3D3", fill_type="solid"),
@@ -132,6 +160,13 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
                             col_idx = char_group_col_indices[col_name]
                             char_cell = ws.cell(row=row_idx + 2, column=col_idx)
                             char_cell.fill = char_group_change_fill
+            elif cell_value and str(cell_value).strip() and "Change" in str(cell_value):
+                # Fallback: Auto-generate color for unlisted composite changes
+                cell.fill = PatternFill(
+                    start_color=generate_color_for_value(cell_value),
+                    fill_type="solid"
+                )
+                colored_count += 1
 
         ws.column_dimensions[get_column_letter(changes_col_idx)].width = 40
 

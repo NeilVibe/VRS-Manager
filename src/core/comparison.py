@@ -116,7 +116,10 @@ def compare_rows(df_curr, prev_lookup_cw, prev_lookup_cg, prev_lookup_es, prev_l
                     change_label = "Character Group Change"
                     changed_char_cols = char_group_diffs
                 else:
+                    # Build composite change list
                     important_changes = []
+                    if COL_CASTINGKEY in differences:
+                        important_changes.append("CastingKey")
                     if COL_STRORIGIN in differences:
                         important_changes.append("StrOrigin")
                     if COL_DESC in differences:
@@ -130,7 +133,7 @@ def compare_rows(df_curr, prev_lookup_cw, prev_lookup_cg, prev_lookup_es, prev_l
                         change_label = "No Relevant Change"
                     changed_char_cols = []
 
-        # Stage 2: StrOrigin + Sequence match - VERIFY with Key 4 (4-Tier System)
+        # Stage 2: StrOrigin + Sequence match - EventName changed
         elif key_cg in prev_lookup_cg:
             old_eventname = prev_lookup_cg[key_cg]
             prev_row = prev_lookup_cw.get((curr_row[col_idx[COL_SEQUENCE]], old_eventname))
@@ -143,34 +146,31 @@ def compare_rows(df_curr, prev_lookup_cw, prev_lookup_cg, prev_lookup_es, prev_l
                     if safe_str(curr_row[col_idx[col]]) != safe_str(prev_row[col_idx[col]])
                 ]
 
-                important_changes = []
-                if COL_STRORIGIN in differences:
-                    important_changes.append("StrOrigin")
-                if COL_DESC in differences:
-                    important_changes.append("Desc")
-                if COL_STARTFRAME in differences:
-                    important_changes.append("TimeFrame")
-
                 existing_char_cols = [col for col in CHAR_GROUP_COLS if col in col_idx]
                 char_group_diffs = [col for col in differences if col in existing_char_cols]
 
-                # Check if CastingKey changed
-                if key_cs not in prev_lookup_cs:
-                    # Different character → CastingKey Change
-                    change_label = "CastingKey Change"
-                    changed_char_cols = []
-                elif char_group_diffs:
+                if char_group_diffs:
                     change_label = "Character Group Change"
                     changed_char_cols = char_group_diffs
-                elif not important_changes:
-                    if contains_korean(curr_row[col_idx[COL_STRORIGIN]]):
-                        change_label = "EventName Change"
-                    else:
-                        change_label = "No Relevant Change"
-                    changed_char_cols = []
                 else:
-                    important_changes.insert(0, "EventName")
-                    change_label = "+".join(important_changes) + " Change"
+                    # EventName always changed in Stage 2 - build composite
+                    important_changes = ["EventName"]
+
+                    # Check for additional changes
+                    if key_cs not in prev_lookup_cs:
+                        important_changes.append("CastingKey")
+                    if COL_DESC in differences:
+                        important_changes.append("Desc")
+                    if COL_STARTFRAME in differences:
+                        important_changes.append("TimeFrame")
+
+                    # Only label as EventName Change if Korean content and no other changes
+                    if len(important_changes) == 1 and contains_korean(curr_row[col_idx[COL_STRORIGIN]]):
+                        change_label = "EventName Change"
+                    elif len(important_changes) == 1:
+                        change_label = "No Relevant Change"
+                    else:
+                        change_label = "+".join(important_changes) + " Change"
                     changed_char_cols = []
             else:
                 change_label = "New Row"
@@ -183,8 +183,26 @@ def compare_rows(df_curr, prev_lookup_cw, prev_lookup_cg, prev_lookup_es, prev_l
             prev_row = prev_lookup_es[key_es]
             prev_strorigin = safe_str(prev_row[col_idx[COL_STRORIGIN]])
 
-            # Same content but different sequence
-            change_label = "SequenceName Change"
+            differences = [
+                col for col in df_curr.columns
+                if safe_str(curr_row[col_idx[col]]) != safe_str(prev_row[col_idx[col]])
+            ]
+
+            # SequenceName always changed in Stage 3 - build composite
+            important_changes = ["SequenceName"]
+
+            # Check for additional changes
+            if key_cs not in prev_lookup_cs:
+                important_changes.append("CastingKey")
+            if COL_DESC in differences:
+                important_changes.append("Desc")
+            if COL_STARTFRAME in differences:
+                important_changes.append("TimeFrame")
+
+            if len(important_changes) == 1:
+                change_label = "SequenceName Change"
+            else:
+                change_label = "+".join(important_changes) + " Change"
             changed_char_cols = []
 
         # Stage 4: Truly new row

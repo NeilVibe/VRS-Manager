@@ -61,7 +61,10 @@ def process_working_comparison(df_curr, prev_lookup_cw, prev_lookup_cg, prev_loo
             if not differences:
                 change_type = "No Change"
             else:
+                # Build composite change list
                 important_changes = []
+                if COL_CASTINGKEY in differences:
+                    important_changes.append("CastingKey")
                 if COL_STRORIGIN in differences:
                     important_changes.append("StrOrigin")
                 if COL_DESC in differences:
@@ -74,7 +77,7 @@ def process_working_comparison(df_curr, prev_lookup_cw, prev_lookup_cg, prev_loo
                 else:
                     change_type = "No Relevant Change"
 
-        # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
+        # Stage 2: StrOrigin+Sequence match - EventName changed
         elif key_cg in prev_lookup_cg:
             old_eventname = prev_lookup_cg[key_cg]
             prev_row = prev_lookup_cw.get((curr_row[COL_SEQUENCE], old_eventname))
@@ -82,25 +85,23 @@ def process_working_comparison(df_curr, prev_lookup_cw, prev_lookup_cg, prev_loo
             if prev_row:
                 differences = [col for col in curr_dict.keys() if col in prev_row and curr_dict[col] != prev_row[col]]
 
-                important_changes = []
-                if COL_STRORIGIN in differences:
-                    important_changes.append("StrOrigin")
+                # EventName always changed in Stage 2 - build composite
+                important_changes = ["EventName"]
+
+                # Check for additional changes
+                if key_cs not in prev_lookup_cs:
+                    important_changes.append("CastingKey")
                 if COL_DESC in differences:
                     important_changes.append("Desc")
                 if COL_STARTFRAME in differences:
                     important_changes.append("TimeFrame")
 
-                # Check if CastingKey changed
-                if key_cs not in prev_lookup_cs:
-                    # Different character → CastingKey Change
-                    change_type = "CastingKey Change"
-                elif not important_changes:
-                    if contains_korean(curr_row[COL_STRORIGIN]):
-                        change_type = "EventName Change"
-                    else:
-                        change_type = "No Relevant Change"
+                # Only label as EventName Change if Korean content and no other changes
+                if len(important_changes) == 1 and contains_korean(curr_row[COL_STRORIGIN]):
+                    change_type = "EventName Change"
+                elif len(important_changes) == 1:
+                    change_type = "No Relevant Change"
                 else:
-                    important_changes.insert(0, "EventName")
                     change_type = "+".join(important_changes) + " Change"
             else:
                 change_type = "New Row"
@@ -109,7 +110,24 @@ def process_working_comparison(df_curr, prev_lookup_cw, prev_lookup_cg, prev_loo
         # Stage 3: SequenceName changed (EventName + StrOrigin match)
         elif key_es in prev_lookup_es:
             prev_row = prev_lookup_es[key_es]
-            change_type = "SequenceName Change"
+
+            differences = [col for col in curr_dict.keys() if col in prev_row and curr_dict[col] != prev_row[col]]
+
+            # SequenceName always changed in Stage 3 - build composite
+            important_changes = ["SequenceName"]
+
+            # Check for additional changes
+            if key_cs not in prev_lookup_cs:
+                important_changes.append("CastingKey")
+            if COL_DESC in differences:
+                important_changes.append("Desc")
+            if COL_STARTFRAME in differences:
+                important_changes.append("TimeFrame")
+
+            if len(important_changes) == 1:
+                change_type = "SequenceName Change"
+            else:
+                change_type = "+".join(important_changes) + " Change"
 
         # Stage 4: Truly new (no keys match)
         else:

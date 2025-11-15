@@ -345,22 +345,51 @@ class MasterProcessor(BaseProcessor):
                 change_type = safe_str(source_row.get("CHANGES", "Edited"))
                 target_row = target_lookup[key_cw]
 
-            # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
+            # Stage 2: StrOrigin+Sequence match - EventName changed
             elif key_cg in target_lookup_cg:
                 old_eventname = target_lookup_cg[key_cg]
                 target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
 
-                if key_cs in target_lookup_cs:
-                    # Same character → EventName Change
-                    change_type = safe_str(source_row.get("CHANGES", "Edited"))
+                # EventName always changed in Stage 2 - build composite
+                important_changes = ["EventName"]
+
+                if target_row:
+                    # Check for additional changes
+                    if key_cs not in target_lookup_cs:
+                        important_changes.append("CastingKey")
+                    if COL_DESC in source_row.index and COL_DESC in target_row:
+                        if safe_str(source_row[COL_DESC]) != safe_str(target_row[COL_DESC]):
+                            important_changes.append("Desc")
+                    if COL_STARTFRAME in source_row.index and COL_STARTFRAME in target_row:
+                        if safe_str(source_row[COL_STARTFRAME]) != safe_str(target_row[COL_STARTFRAME]):
+                            important_changes.append("TimeFrame")
+
+                if len(important_changes) == 1:
+                    change_type = "EventName Change"
                 else:
-                    # Different character → CastingKey Change
-                    change_type = "CastingKey Change"
+                    change_type = "+".join(important_changes) + " Change"
 
             # Stage 3: SequenceName changed
             elif key_es in target_lookup_es:
-                change_type = "SequenceName Change"
                 target_row = target_lookup_es[key_es]
+
+                # SequenceName always changed in Stage 3 - build composite
+                important_changes = ["SequenceName"]
+
+                # Check for additional changes
+                if key_cs not in target_lookup_cs:
+                    important_changes.append("CastingKey")
+                if COL_DESC in source_row.index and COL_DESC in target_row:
+                    if safe_str(source_row[COL_DESC]) != safe_str(target_row[COL_DESC]):
+                        important_changes.append("Desc")
+                if COL_STARTFRAME in source_row.index and COL_STARTFRAME in target_row:
+                    if safe_str(source_row[COL_STARTFRAME]) != safe_str(target_row[COL_STARTFRAME]):
+                        important_changes.append("TimeFrame")
+
+                if len(important_changes) == 1:
+                    change_type = "SequenceName Change"
+                else:
+                    change_type = "+".join(important_changes) + " Change"
 
             # Stage 4: New row
             else:
@@ -402,22 +431,51 @@ class MasterProcessor(BaseProcessor):
                 change_type = safe_str(source_row.get("CHANGES", "Edited"))
                 target_row = target_lookup[key_cw]
 
-            # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
+            # Stage 2: StrOrigin+Sequence match - EventName changed
             elif key_cg in target_lookup_cg:
                 old_eventname = target_lookup_cg[key_cg]
                 target_row = target_lookup.get((source_row[COL_SEQUENCE], old_eventname))
 
-                if key_cs in target_lookup_cs:
-                    # Same character → EventName Change
-                    change_type = safe_str(source_row.get("CHANGES", "Edited"))
+                # EventName always changed in Stage 2 - build composite
+                important_changes = ["EventName"]
+
+                if target_row:
+                    # Check for additional changes
+                    if key_cs not in target_lookup_cs:
+                        important_changes.append("CastingKey")
+                    if COL_DESC in source_row.index and COL_DESC in target_row:
+                        if safe_str(source_row[COL_DESC]) != safe_str(target_row[COL_DESC]):
+                            important_changes.append("Desc")
+                    if COL_STARTFRAME in source_row.index and COL_STARTFRAME in target_row:
+                        if safe_str(source_row[COL_STARTFRAME]) != safe_str(target_row[COL_STARTFRAME]):
+                            important_changes.append("TimeFrame")
+
+                if len(important_changes) == 1:
+                    change_type = "EventName Change"
                 else:
-                    # Different character → CastingKey Change
-                    change_type = "CastingKey Change"
+                    change_type = "+".join(important_changes) + " Change"
 
             # Stage 3: SequenceName changed
             elif key_es in target_lookup_es:
-                change_type = "SequenceName Change"
                 target_row = target_lookup_es[key_es]
+
+                # SequenceName always changed in Stage 3 - build composite
+                important_changes = ["SequenceName"]
+
+                # Check for additional changes
+                if key_cs not in target_lookup_cs:
+                    important_changes.append("CastingKey")
+                if COL_DESC in source_row.index and COL_DESC in target_row:
+                    if safe_str(source_row[COL_DESC]) != safe_str(target_row[COL_DESC]):
+                        important_changes.append("Desc")
+                if COL_STARTFRAME in source_row.index and COL_STARTFRAME in target_row:
+                    if safe_str(source_row[COL_STARTFRAME]) != safe_str(target_row[COL_STARTFRAME]):
+                        important_changes.append("TimeFrame")
+
+                if len(important_changes) == 1:
+                    change_type = "SequenceName Change"
+                else:
+                    change_type = "+".join(important_changes) + " Change"
 
             # Stage 4: New row
             else:
