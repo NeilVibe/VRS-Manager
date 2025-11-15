@@ -55,7 +55,8 @@ jobs:
 
     - name: Create release folder
       run: |
-        mkdir -p release
+        mkdir -p release/Previous
+        mkdir -p release/Current
       shell: bash
 
     - name: Copy executable to release folder (Windows)
