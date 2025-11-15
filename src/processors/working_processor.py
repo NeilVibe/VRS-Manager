@@ -16,8 +16,10 @@ from src.utils.data_processing import normalize_dataframe_status, filter_output_
 from src.utils.helpers import log, get_script_dir
 from src.core.working_helpers import build_working_lookups, find_working_deleted_rows
 from src.core.working_comparison import process_working_comparison
+from src.core.casting import generate_casting_key
 from src.io.summary import create_working_summary, create_working_update_history_sheet
 from src.history.history_manager import add_working_update_record
+from src.config import COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
 
 
 class WorkingProcessor(BaseProcessor):
@@ -68,6 +70,32 @@ class WorkingProcessor(BaseProcessor):
             self.df_prev = normalize_dataframe_status(self.df_prev)
             self.df_curr = normalize_dataframe_status(self.df_curr)
             log("  → STATUS columns normalized")
+
+            log("Generating CastingKey column for PREVIOUS...")
+            casting_keys_prev = []
+            for idx, row in self.df_prev.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_prev.append(casting_key)
+            self.df_prev[COL_CASTINGKEY] = casting_keys_prev
+            log(f"  → Generated CastingKey for {len(casting_keys_prev):,} previous rows")
+
+            log("Generating CastingKey column for CURRENT...")
+            casting_keys_curr = []
+            for idx, row in self.df_curr.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_curr.append(casting_key)
+            self.df_curr[COL_CASTINGKEY] = casting_keys_curr
+            log(f"  → Generated CastingKey for {len(casting_keys_curr):,} current rows")
 
             return True
 

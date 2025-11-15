@@ -75,6 +75,32 @@ class RawProcessor(BaseProcessor):
             self.df_prev = normalize_dataframe_status(self.df_prev)
             self.df_curr = normalize_dataframe_status(self.df_curr)
 
+            log("Generating CastingKey column for PREVIOUS...")
+            casting_keys_prev = []
+            for idx, row in self.df_prev.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_prev.append(casting_key)
+            self.df_prev[COL_CASTINGKEY] = casting_keys_prev
+            log(f"  → Generated CastingKey for {len(casting_keys_prev):,} previous rows")
+
+            log("Generating CastingKey column for CURRENT...")
+            casting_keys_curr = []
+            for idx, row in self.df_curr.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_curr.append(casting_key)
+            self.df_curr[COL_CASTINGKEY] = casting_keys_curr
+            log(f"  → Generated CastingKey for {len(casting_keys_curr):,} current rows")
+
             return True
 
         except Exception as e:
@@ -99,23 +125,10 @@ class RawProcessor(BaseProcessor):
             self.counter["Deleted Rows"] = len(self.df_deleted)
             log(f"  → Found {len(self.df_deleted):,} deleted rows")
 
-            # Build result dataframe
+            # Build result dataframe (CastingKey already exists from read_files)
             self.df_result = self.df_curr.copy()
             self.df_result["CHANGES"] = changes
             self.df_result[COL_PREVIOUS_STRORIGIN] = previous_strorigins
-
-            log("Generating CastingKey column...")
-            casting_keys = []
-            for idx, row in self.df_result.iterrows():
-                casting_key = generate_casting_key(
-                    row.get(COL_CHARACTERKEY, ""),
-                    row.get(COL_DIALOGVOICE, ""),
-                    row.get(COL_SPEAKER_GROUPKEY, ""),
-                    row.get("DialogType", "")
-                )
-                casting_keys.append(casting_key)
-            self.df_result[COL_CASTINGKEY] = casting_keys
-            log(f"  → Generated CastingKey for {len(casting_keys):,} rows")
 
             log("Filtering output columns...")
             self.df_result = filter_output_columns(self.df_result, OUTPUT_COLUMNS_RAW)

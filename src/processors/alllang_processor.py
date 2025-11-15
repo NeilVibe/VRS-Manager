@@ -15,13 +15,14 @@ from src.io.excel_reader import safe_read_excel
 from src.io.formatters import apply_direct_coloring, widen_summary_columns, format_update_history_sheet
 from src.utils.data_processing import normalize_dataframe_status, filter_output_columns
 from src.utils.helpers import log, get_script_dir
-from src.config import OUTPUT_COLUMNS_MASTER
+from src.config import OUTPUT_COLUMNS_MASTER, COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
 from src.core.alllang_helpers import (
     find_alllang_files,
     merge_current_files,
     process_alllang_comparison
 )
 from src.core.working_helpers import build_working_lookups, find_working_deleted_rows
+from src.core.casting import generate_casting_key
 from src.io.summary import create_alllang_summary, create_alllang_update_history_sheet
 from src.history.history_manager import add_alllang_update_record
 
@@ -97,6 +98,17 @@ class AllLangProcessor(BaseProcessor):
                 df_kr = safe_read_excel(self.prev_kr, header=0, dtype=str)
                 df_kr = normalize_dataframe_status(df_kr)
                 log(f"  → {len(df_kr):,} rows")
+                log("  → Generating CastingKey for KR Previous...")
+                casting_keys_kr = []
+                for idx, row in df_kr.iterrows():
+                    casting_key = generate_casting_key(
+                        row.get(COL_CHARACTERKEY, ""),
+                        row.get(COL_DIALOGVOICE, ""),
+                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        row.get("DialogType", "")
+                    )
+                    casting_keys_kr.append(casting_key)
+                df_kr[COL_CASTINGKEY] = casting_keys_kr
                 self.lookup_kr, self.lookup_cg_kr, self.lookup_es_kr, self.lookup_cs_kr = \
                     build_working_lookups(df_kr, "KR PREVIOUS")
 
@@ -105,6 +117,17 @@ class AllLangProcessor(BaseProcessor):
                 df_en = safe_read_excel(self.prev_en, header=0, dtype=str)
                 df_en = normalize_dataframe_status(df_en)
                 log(f"  → {len(df_en):,} rows")
+                log("  → Generating CastingKey for EN Previous...")
+                casting_keys_en = []
+                for idx, row in df_en.iterrows():
+                    casting_key = generate_casting_key(
+                        row.get(COL_CHARACTERKEY, ""),
+                        row.get(COL_DIALOGVOICE, ""),
+                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        row.get("DialogType", "")
+                    )
+                    casting_keys_en.append(casting_key)
+                df_en[COL_CASTINGKEY] = casting_keys_en
                 self.lookup_en, _, _, _ = build_working_lookups(df_en, "EN PREVIOUS")
 
             if self.has_cn:
@@ -112,6 +135,17 @@ class AllLangProcessor(BaseProcessor):
                 df_cn = safe_read_excel(self.prev_cn, header=0, dtype=str)
                 df_cn = normalize_dataframe_status(df_cn)
                 log(f"  → {len(df_cn):,} rows")
+                log("  → Generating CastingKey for CN Previous...")
+                casting_keys_cn = []
+                for idx, row in df_cn.iterrows():
+                    casting_key = generate_casting_key(
+                        row.get(COL_CHARACTERKEY, ""),
+                        row.get(COL_DIALOGVOICE, ""),
+                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        row.get("DialogType", "")
+                    )
+                    casting_keys_cn.append(casting_key)
+                df_cn[COL_CASTINGKEY] = casting_keys_cn
                 self.lookup_cn, _, _, _ = build_working_lookups(df_cn, "CN PREVIOUS")
 
             return True
@@ -142,6 +176,17 @@ class AllLangProcessor(BaseProcessor):
             # Find deleted rows (only if KR was updated)
             if self.has_kr:
                 df_kr_full = safe_read_excel(self.prev_kr, header=0, dtype=str)
+                # Generate CastingKey for deleted rows check
+                casting_keys_full = []
+                for idx, row in df_kr_full.iterrows():
+                    casting_key = generate_casting_key(
+                        row.get(COL_CHARACTERKEY, ""),
+                        row.get(COL_DIALOGVOICE, ""),
+                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        row.get("DialogType", "")
+                    )
+                    casting_keys_full.append(casting_key)
+                df_kr_full[COL_CASTINGKEY] = casting_keys_full
                 self.df_deleted = find_working_deleted_rows(df_kr_full, self.df_curr)
                 if not self.df_deleted.empty:
                     self.counter["Deleted Rows"] = len(self.df_deleted)

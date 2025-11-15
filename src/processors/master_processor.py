@@ -20,8 +20,10 @@ from src.utils.data_processing import normalize_dataframe_status
 from src.utils.helpers import log, get_script_dir, safe_str
 from src.config import (
     COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY,
-    COL_IMPORTANCE, COL_STARTFRAME, COL_ENDFRAME
+    COL_IMPORTANCE, COL_STARTFRAME, COL_ENDFRAME,
+    COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
 )
+from src.core.casting import generate_casting_key
 from src.io.summary import create_master_file_update_history_sheet
 from src.history.history_manager import add_master_file_update_record
 
@@ -100,6 +102,32 @@ class MasterProcessor(BaseProcessor):
             if COL_IMPORTANCE not in self.df_source.columns:
                 log("Warning: SOURCE has no 'Importance' column - treating all rows as High")
                 self.df_source[COL_IMPORTANCE] = "High"
+
+            log("Generating CastingKey column for SOURCE...")
+            casting_keys_source = []
+            for idx, row in self.df_source.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_source.append(casting_key)
+            self.df_source[COL_CASTINGKEY] = casting_keys_source
+            log(f"  → Generated CastingKey for {len(casting_keys_source):,} source rows")
+
+            log("Generating CastingKey column for TARGET...")
+            casting_keys_target = []
+            for idx, row in self.df_target.iterrows():
+                casting_key = generate_casting_key(
+                    row.get(COL_CHARACTERKEY, ""),
+                    row.get(COL_DIALOGVOICE, ""),
+                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    row.get("DialogType", "")
+                )
+                casting_keys_target.append(casting_key)
+            self.df_target[COL_CASTINGKEY] = casting_keys_target
+            log(f"  → Generated CastingKey for {len(casting_keys_target):,} target rows")
 
             return True
 
