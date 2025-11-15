@@ -109,6 +109,20 @@ def merge_current_files(curr_kr_path, curr_en_path, curr_cn_path):
     df_cn = normalize_dataframe_status(df_cn)
     log(f"  → {len(df_cn):,} rows")
 
+    log("Generating CastingKey for current files...")
+    for df in [df_kr, df_en, df_cn]:
+        casting_keys = []
+        for idx, row in df.iterrows():
+            casting_key = generate_casting_key(
+                row.get(COL_CHARACTERKEY, ""),
+                row.get(COL_DIALOGVOICE, ""),
+                row.get(COL_SPEAKER_GROUPKEY, ""),
+                row.get("DialogType", "")
+            )
+            casting_keys.append(casting_key)
+        df[COL_CASTINGKEY] = casting_keys
+    log(f"  → Generated CastingKey for KR/EN/CN current files")
+
     log("Building EN/CN lookup dictionaries...")
     lookup_en = {}
     lookup_cn = {}
