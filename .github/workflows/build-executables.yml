@@ -1,0 +1,116 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            output_name: VRSManager.exe
+            artifact_name: VRSManager-Windows
+          - os: ubuntu-latest
+            output_name: VRSManager
+            artifact_name: VRSManager-Linux
+          - os: macos-latest
+            output_name: VRSManager
+            artifact_name: VRSManager-macOS
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        python -m PyInstaller VRSManager.spec --clean --noconfirm
+      shell: cmd
+
+    - name: Build executable (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        python -m PyInstaller VRSManager.spec --clean --noconfirm
+
+    - name: Create release folder
+      run: |
+        mkdir -p release
+      shell: bash
+
+    - name: Copy executable to release folder (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        copy dist\VRSManager.exe release\VRSManager.exe
+        copy README.md release\README.md
+        copy BUILD.md release\BUILD.md
+      shell: cmd
+
+    - name: Copy executable to release folder (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cp dist/VRSManager release/VRSManager
+        cp README.md release/README.md
+        cp BUILD.md release/BUILD.md
+        chmod +x release/VRSManager
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: release/
+        retention-days: 30
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+
+    - name: Create ZIP archives
+      run: |
+        cd artifacts
+        for dir in */; do
+          dirname="${dir%/}"
+          zip -r "${dirname}.zip" "$dirname"
+        done
+        ls -lh *.zip
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/*.zip
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

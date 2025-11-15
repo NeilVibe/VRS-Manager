@@ -4,6 +4,10 @@
 **Author:** Neil Schmitt
 **Status:** Production Ready (Modular Architecture)
 
+[![Build Executables](https://github.com/NeilVibe/VRS-Manager/actions/workflows/build-executables.yml/badge.svg)](https://github.com/NeilVibe/VRS-Manager/actions/workflows/build-executables.yml)
+[![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/NeilVibe/VRS-Manager/releases)
+
 ---
 
 ## Overview
@@ -55,9 +59,18 @@ The tool compares previous and current versions of VRS Excel files to detect and
 
 **No Python installation required!**
 
-1. **Download** the latest release from GitHub Releases
-2. **Extract** the executable
-3. **Run** `VRSManager.exe` (Windows) or `./VRSManager` (Linux/macOS)
+#### Download from GitHub Actions (Latest Build)
+1. Go to [Actions tab](https://github.com/NeilVibe/VRS-Manager/actions)
+2. Click latest "Build Executables" workflow
+3. Download artifact for your platform:
+   - **Windows**: `VRSManager-Windows.zip` → Extract → Run `VRSManager.exe`
+   - **Linux**: `VRSManager-Linux.zip` → Extract → `chmod +x VRSManager` → `./VRSManager`
+   - **macOS**: `VRSManager-macOS.zip` → Extract → `chmod +x VRSManager` → `./VRSManager`
+
+#### Download from Releases (Stable)
+1. Go to [Releases page](https://github.com/NeilVibe/VRS-Manager/releases)
+2. Download latest release for your platform
+3. Extract and run!
 
 All files (history JSON, Excel outputs) are created in the same folder as the executable.
 

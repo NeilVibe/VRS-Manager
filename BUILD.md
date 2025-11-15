@@ -4,7 +4,40 @@ This guide explains how to compile VRS Manager into a standalone executable.
 
 ---
 
-## Prerequisites
+## ⚡ Automated Builds (Recommended)
+
+**GitHub Actions automatically builds executables for all platforms!**
+
+### Get Pre-Built Executables
+
+**Option 1: Latest Builds**
+1. Go to [Actions tab](https://github.com/NeilVibe/VRS-Manager/actions)
+2. Click latest successful "Build Executables" run
+3. Download artifacts:
+   - `VRSManager-Windows.zip` (Windows .exe with icon)
+   - `VRSManager-Linux.zip` (Linux executable)
+   - `VRSManager-macOS.zip` (macOS executable)
+
+**Option 2: Tagged Releases**
+1. Create a tag: `git tag v1.0.0 && git push origin v1.0.0`
+2. Go to [Releases page](https://github.com/NeilVibe/VRS-Manager/releases)
+3. Download release for your platform
+
+### What Gets Built Automatically
+- ✅ Windows executable with icon (`VRSManager.exe`)
+- ✅ Linux executable (`VRSManager`)
+- ✅ macOS executable (`VRSManager`)
+- ✅ All packaged with README and BUILD.md
+- ✅ Triggered on every push to main
+- ✅ Creates releases for version tags
+
+---
+
+## 🔧 Manual Build (Local)
+
+If you prefer to build locally:
+
+### Prerequisites
 
 - Python 3.7+
 - PyInstaller installed: `pip install pyinstaller`
