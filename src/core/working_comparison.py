@@ -76,36 +76,33 @@ def process_working_comparison(df_curr, prev_lookup_cw, prev_lookup_cg, prev_loo
 
         # Stage 2: StrOrigin+Sequence match - VERIFY with Key 4
         elif key_cg in prev_lookup_cg:
-            # Check if same character (Key 4 verification)
-            if key_cs in prev_lookup_cs:
-                # Same character → EventName Change
-                old_eventname = prev_lookup_cg[key_cg]
-                prev_row = prev_lookup_cw.get((curr_row[COL_SEQUENCE], old_eventname))
+            old_eventname = prev_lookup_cg[key_cg]
+            prev_row = prev_lookup_cw.get((curr_row[COL_SEQUENCE], old_eventname))
 
-                if prev_row:
-                    differences = [col for col in curr_dict.keys() if col in prev_row and curr_dict[col] != prev_row[col]]
+            if prev_row:
+                differences = [col for col in curr_dict.keys() if col in prev_row and curr_dict[col] != prev_row[col]]
 
-                    important_changes = []
-                    if COL_STRORIGIN in differences:
-                        important_changes.append("StrOrigin")
-                    if COL_DESC in differences:
-                        important_changes.append("Desc")
-                    if COL_STARTFRAME in differences:
-                        important_changes.append("TimeFrame")
+                important_changes = []
+                if COL_STRORIGIN in differences:
+                    important_changes.append("StrOrigin")
+                if COL_DESC in differences:
+                    important_changes.append("Desc")
+                if COL_STARTFRAME in differences:
+                    important_changes.append("TimeFrame")
 
-                    if not important_changes:
-                        if contains_korean(curr_row[COL_STRORIGIN]):
-                            change_type = "EventName Change"
-                        else:
-                            change_type = "No Relevant Change"
+                # Check if CastingKey changed
+                if key_cs not in prev_lookup_cs:
+                    # Different character → CastingKey Change
+                    change_type = "CastingKey Change"
+                elif not important_changes:
+                    if contains_korean(curr_row[COL_STRORIGIN]):
+                        change_type = "EventName Change"
                     else:
-                        important_changes.insert(0, "EventName")
-                        change_type = "+".join(important_changes) + " Change"
+                        change_type = "No Relevant Change"
                 else:
-                    change_type = "New Row"
-                    prev_row = None
+                    important_changes.insert(0, "EventName")
+                    change_type = "+".join(important_changes) + " Change"
             else:
-                # Different character → New Row (duplicate StrOrigin case)
                 change_type = "New Row"
                 prev_row = None
 
