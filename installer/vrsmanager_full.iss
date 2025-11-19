@@ -67,8 +67,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Full application (includes BERT + PyTorch)
-Source: "..\dist_full\VRSManager.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist_full\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist_full\VRSManager\VRSManager.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist_full\VRSManager\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Documentation
 Source: "..\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs

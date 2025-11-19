@@ -67,8 +67,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Core application (LIGHT version - no BERT)
-Source: "..\dist_light\VRSManager.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist_light\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist_light\VRSManager\VRSManager.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist_light\VRSManager\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Documentation
 Source: "..\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
