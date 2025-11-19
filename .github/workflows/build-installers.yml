@@ -101,13 +101,33 @@ jobs:
 
       - name: Verify BERT model
         run: |
+          Write-Host "Checking for model directory..."
           if (!(Test-Path "models\kr-sbert")) {
-            Write-Error "BERT model download failed"
+            Write-Error "❌ BERT model directory not found at: models\kr-sbert"
+            Write-Host "Current directory: $PWD"
+            Write-Host "Listing current directory:"
+            Get-ChildItem -Force
+            if (Test-Path "models") {
+              Write-Host "`nListing models directory:"
+              Get-ChildItem "models" -Force
+            }
             exit 1
           }
-          Write-Host "✓ BERT model downloaded successfully"
+          Write-Host "✓ BERT model directory exists"
+
+          # Verify critical files
+          $requiredFiles = @("config.json", "pytorch_model.bin")
+          foreach ($file in $requiredFiles) {
+            $filePath = "models\kr-sbert\$file"
+            if (!(Test-Path $filePath)) {
+              Write-Error "❌ Missing required file: $file"
+              exit 1
+            }
+            Write-Host "  ✓ Found: $file"
+          }
+
           $size = (Get-ChildItem "models\kr-sbert" -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
-          Write-Host "  Size: $([math]::Round($size, 1)) MB"
+          Write-Host "  Total size: $([math]::Round($size, 1)) MB"
         shell: pwsh
 
       - name: Build FULL .exe

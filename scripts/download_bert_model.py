@@ -11,20 +11,26 @@ def download_model():
     """Download and save the Korean BERT model locally"""
 
     print("=" * 60)
-    print("Downloading Korean BERT Model for Phase 2.3")
+    print("Downloading Korean BERT Model for Phase 3.0")
     print("=" * 60)
     print()
 
     model_name = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
     local_model_path = './models/kr-sbert'
+    abs_path = os.path.abspath(local_model_path)
 
     print(f"Model: {model_name}")
-    print(f"Destination: {local_model_path}")
+    print(f"Destination: {abs_path}")
     print(f"Size: ~500MB (this will take a few minutes)")
     print()
 
     # Create directory if it doesn't exist
-    os.makedirs(local_model_path, exist_ok=True)
+    try:
+        os.makedirs(local_model_path, exist_ok=True)
+        print(f"✓ Created directory: {abs_path}")
+    except Exception as e:
+        print(f"❌ Failed to create directory: {e}")
+        return False
 
     print("📥 Downloading model from Hugging Face...")
     print("(This requires internet connection - first time only)")
@@ -32,17 +38,31 @@ def download_model():
 
     try:
         # Download and load model
+        print("  → Downloading model...")
         model = SentenceTransformer(model_name)
+        print("  ✓ Model downloaded")
 
         print("💾 Saving model locally...")
         model.save(local_model_path)
+        print(f"  ✓ Model saved to: {abs_path}")
+
+        # CRITICAL: Verify the model was actually saved
+        required_files = ['config.json', 'pytorch_model.bin']
+        for req_file in required_files:
+            file_path = os.path.join(local_model_path, req_file)
+            if not os.path.exists(file_path):
+                print(f"❌ CRITICAL: Missing required file: {req_file}")
+                print(f"   Expected at: {os.path.abspath(file_path)}")
+                return False
+
+        print("  ✓ Verified required model files exist")
 
         print()
         print("=" * 60)
         print("✅ MODEL DOWNLOAD COMPLETE!")
         print("=" * 60)
         print()
-        print(f"Model saved to: {os.path.abspath(local_model_path)}")
+        print(f"Model saved to: {abs_path}")
         print()
         print("📂 Model files:")
         for root, dirs, files in os.walk(local_model_path):
@@ -56,10 +76,7 @@ def download_model():
                 print(f"{subindent}... and {len(files) - 5} more files")
 
         print()
-        print("🎯 Next steps:")
-        print("  1. Model is ready for Phase 2.3 implementation")
-        print("  2. VRS Manager will now work OFFLINE (no internet needed)")
-        print("  3. Run git add models/ to track the model in git")
+        print("🎯 Model is ready for FULL version build!")
         print()
 
     except Exception as e:
@@ -69,6 +86,9 @@ def download_model():
         print("=" * 60)
         print()
         print(f"Error: {e}")
+        print(f"Type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         print()
         print("Common issues:")
         print("  - No internet connection")
