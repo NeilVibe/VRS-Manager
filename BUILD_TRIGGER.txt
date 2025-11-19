@@ -4,32 +4,37 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Last build: v1.120.0 (Failed - model not in repo)
-Current build: v1.120.0 (FIXED - model now in git via LFS!)
+Build v1.120.0 - Phase 3.0 Professional Installer System
+---------------------------------------------------------
 
-Build v1.120.0 - Phase 3.0 Professional Installer System (FINAL FIX)
----------------------------------------------------------------------
+ALL FIXES APPLIED:
+✅ BERT model in git via LFS (no download failures)
+✅ PyInstaller creates folder structure (not monolith)
+✅ Inno Setup scripts match new folder structure
+✅ Artifact actions upgraded to v4
+✅ Model loads from bundled path first (offline priority)
 
-CRITICAL FIX APPLIED:
-✅ BERT model now stored in git repo using Git LFS
-✅ Model included when repo is cloned
-✅ No more download failures
-✅ PyInstaller will find model immediately
+This build creates TWO professional Windows installers:
 
-Git LFS Setup:
-- models/kr-sbert/model.safetensors (467MB) tracked via LFS
-- Model available in every build automatically
-- No internet dependency for model download
+1. LIGHT Version Installer (~150MB)
+   Installs to: C:\Program Files\VRS Manager\
+   - VRSManager.exe
+   - _internal\ (core dependencies)
+   - No BERT model
+   - Shows "Content Change" for StrOrigin
 
-This build creates TWO installers:
-
-1. LIGHT Version (~150MB)
-   - Core VRS Check features
-   - No BERT model needed
-
-2. FULL Version (~2.6GB)
-   - Everything in LIGHT
-   - BERT model bundled from repo (via LFS)
+2. FULL Version Installer (~2.6GB)
+   Installs to: C:\Program Files\VRS Manager\
+   - VRSManager.exe
+   - _internal\ (all dependencies + BERT model)
+   - Shows "XX.X% similar" for StrOrigin
    - 100% offline operation
 
-PROBLEM SOLVED: "Unable to find models/kr-sbert" error fixed!
+Build Process:
+1. Clone repo → Model included (via LFS) ✅
+2. PyInstaller → Creates folder structure ✅
+3. Inno Setup → Finds files correctly ✅
+4. Upload installers ✅
+5. Create GitHub Release ✅
+
+Ready to build!
