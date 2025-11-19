@@ -86,7 +86,124 @@ Add "StrOrigin Analysis" column in Working Process output to show:
 
 ---
 
-### 2. AllLang Process StrOrigin Analysis ⚠️ NEEDS DISCUSSION
+### 2. Progress Tracking for Similarity Comparison ✅ RECOMMENDED
+
+**Problem:**
+BERT similarity calculation can take time with large files. Users don't know how long it will take or if it's still running.
+
+**Solution:**
+Add progress tracking that updates every 10 rows processed:
+
+```python
+total_rows = len(df_strorigin_changes)
+for idx, (index, row) in enumerate(df_strorigin_changes.iterrows(), start=1):
+    # ... analyze row ...
+
+    # Progress update every 10 rows
+    if idx % 10 == 0 or idx == total_rows:
+        percent = (idx / total_rows) * 100
+        print(f"  → Progress: {idx}/{total_rows} rows ({percent:.1f}%)")
+```
+
+**Output Example:**
+```
+→ Found 127 rows with StrOrigin changes
+→ Running FULL analysis (Punctuation + BERT similarity)...
+  → Progress: 10/127 rows (7.9%)
+  → Progress: 20/127 rows (15.7%)
+  → Progress: 30/127 rows (23.6%)
+  ...
+  → Progress: 127/127 rows (100.0%)
+✓ StrOrigin analysis complete
+```
+
+**Benefits:**
+- User knows process is working
+- Estimate remaining time
+- Better UX for large files
+
+**Implementation Complexity:** LOW
+- Simple counter in analysis loop
+- Print statement every 10 rows
+
+---
+
+### 3. Enhanced StrOrigin Analysis Sheet Columns ✅ RECOMMENDED
+
+**Current Column Layout:**
+- Only shows "StrOrigin Analysis" result
+
+**Problem:**
+Users can't easily see WHAT changed - they need to look back at the original data columns to compare.
+
+**Proposed Column Layout:**
+```
+Current StrOrigin | Previous StrOrigin | CHANGES | StrOrigin Change Analysis
+```
+
+**Benefits:**
+- Side-by-side comparison
+- See both versions without scrolling
+- Understand the analysis result in context
+- Easier manual review
+
+**Implementation:**
+When creating the StrOrigin Analysis sheet, include these columns in this order:
+1. **Current StrOrigin** - The new StrOrigin value from current file
+2. **Previous StrOrigin** - The old StrOrigin value from previous file
+3. **CHANGES** - What changed (from original comparison)
+4. **StrOrigin Change Analysis** - "Punctuation/Space Change" or "XX.X% similar"
+
+Plus any other relevant columns (StringID, TimeFrame, Translation, etc.)
+
+**Example Output:**
+
+| StringID | Current StrOrigin | Previous StrOrigin | CHANGES | StrOrigin Change Analysis |
+|----------|-------------------|-------------------|---------|---------------------------|
+| STR_001 | Hello, world! | Hello world | StrOrigin | Punctuation/Space Change |
+| STR_002 | Welcome home | Welcome back | StrOrigin | 67.3% similar |
+| STR_003 | New text | Old text | StrOrigin | 12.5% similar |
+
+**Implementation Complexity:** LOW
+- Reorder columns when creating sheet
+- Extract Previous StrOrigin from PreviousData column (already doing this)
+- Add columns in desired order
+
+---
+
+### 4. Model & FAISS Verification ⚠️ TODO
+
+**Current Implementation (VRS Manager):**
+- **Model:** `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (Korean SBERT)
+- **Method:** Simple cosine similarity using numpy
+  ```python
+  dot_product = np.dot(embedding1, embedding2)
+  norm1 = np.linalg.norm(embedding1)
+  norm2 = np.linalg.norm(embedding2)
+  similarity = dot_product / (norm1 * norm2)
+  ```
+- **NOT using FAISS** - Direct numpy calculation
+
+**xlstransfer Implementation:**
+- **Model:** ??? (NEEDS VERIFICATION)
+- **Method:** ??? (FAISS? Simple cosine? NEEDS VERIFICATION)
+
+**Action Required:**
+1. ✅ Check xlstransfer source code to confirm model name
+2. ✅ Check xlstransfer similarity calculation method
+3. ⚠️ **If different:** Align VRS Manager to use same model/method as xlstransfer
+4. ⚠️ **If using FAISS:** Update VRS Manager to use FAISS for consistency and performance
+
+**Why This Matters:**
+- Consistency across projects
+- xlstransfer may have better optimized approach (FAISS is faster for large datasets)
+- Results should match between projects for same inputs
+
+**Status:** PENDING VERIFICATION
+
+---
+
+### 5. AllLang Process StrOrigin Analysis ⚠️ NEEDS DISCUSSION
 
 **Why This is Tricky:**
 
