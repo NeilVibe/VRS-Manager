@@ -4,7 +4,7 @@
 **Current Version:** v1118.6
 **Status:** Production Ready - All critical bugs fixed
 **Last Major Fix:** Dict error in Working VRS Check
-**Next Priority:** Phase 2.2.1 (Super Group Analysis Improvements) - see roadmap.md
+**Next Priority:** Phase 2.3 (StrOrigin Change Analysis) - see roadmap.md
 
 ## BUILD ("build it", "trigger build")
 ```bash
@@ -60,7 +60,7 @@ git commit -m "Update Excel guides to v1118.X"
 **Key Sections:**
 - **Current Status** - What version we're at
 - **Version Checklist** - Files to update for new versions
-- **Current Priority** - What to work on next (Phase 2.2.1)
+- **Current Priority** - What to work on next (Phase 2.3)
 - **Version History** - What each version added
 - **Future Considerations** - Planned features
 
