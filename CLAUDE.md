@@ -17,21 +17,29 @@ git push origin main
 Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actions
 
 ## VERSION UNIFICATION (CRITICAL!)
+
+**WHY CRITICAL:** Version inconsistencies cause confusion for users, documentation mismatches, and make debugging difficult. When building releases, ALL documentation must match the actual code version. User trust depends on accurate version reporting across all files.
+
 **Current Version: 1118.6** - Update ALL these files together:
 ```bash
 # 1. src/config.py - VERSION and VERSION_FOOTER
 # 2. main.py - Docstring (line 5) and print statements (lines 12-15)
 # 3. README.md - Version (line 3)
-# 4. README_KR.md - Version (line 3)
-# 5. roadmap.md - Current Status header + Version History
-# 6. update_excel_guides.py - VERSION, VERSION_TEXT_EN/KR, content
-# 7. WIKI_CONFLUENCE.md - Version references
+# 4. README_EN.md - Version (line 3)
+# 5. README_KR.md - Version (line 3)
+# 6. roadmap.md - Current Status header + Version History
+# 7. update_excel_guides.py - VERSION, VERSION_TEXT_EN/KR, content
+# 8. WIKI_CONFLUENCE.md - Version references
+# 9. CLAUDE.md - Current Version (line 4 and line 23)
+# 10. src/processors/master_processor.py - Version comment (line 5)
 ```
 
 **Check version consistency:**
 ```bash
 grep -r "1118\." --include="*.py" --include="*.md" | grep -v test | grep -v ".git"
 ```
+
+**VERIFY:** All 10 files listed above MUST show the same version. Any mismatch means incomplete update!
 
 ## UPDATE EXCEL GUIDES
 **Script:** `update_excel_guides.py`
