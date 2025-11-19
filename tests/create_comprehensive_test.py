@@ -22,16 +22,30 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.config import (
     COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY,
     COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
-    COL_TEXT, COL_STATUS, COL_STARTFRAME, COL_ENDFRAME
+    COL_TEXT, COL_STATUS, COL_STARTFRAME, COL_ENDFRAME,
+    COL_DIALOGTYPE, COL_GROUP
 )
 from src.core.casting import generate_casting_key
 
 
-def create_row(seq_num, event_num, origin_text, char_key, dialog_voice, speaker_group, text, status="NEW"):
+def create_row(seq_num, event_num, origin_text, char_key, dialog_voice, speaker_group, text, status="NEW", dialog_type=None, group=None):
     """Create a single row dictionary."""
-    casting_key = generate_casting_key(char_key, dialog_voice, speaker_group, "")
+    casting_key = generate_casting_key(char_key, dialog_voice, speaker_group, dialog_type or "")
+
+    # Default DialogType and Group if not provided
+    if dialog_type is None:
+        # Vary dialog types for testing
+        types = ["questdialog", "aidialog", "normaldialog", "cutscenedialog"]
+        dialog_type = types[seq_num % len(types)]
+
+    if group is None:
+        # Vary groups for testing
+        groups = ["Chapter1", "Chapter2", "Chapter3", "Faction_01", "Police", "Shop"]
+        group = groups[seq_num % len(groups)]
 
     return {
+        COL_DIALOGTYPE: dialog_type,
+        COL_GROUP: group,
         COL_SEQUENCE: f"SEQ{seq_num:04d}",
         COL_EVENTNAME: f"Event{event_num:04d}",
         COL_STRORIGIN: origin_text,
