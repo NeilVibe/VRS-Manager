@@ -2,17 +2,17 @@
 """
 VRS Manager - Main Entry Point
 
-Version: 1118.6
+Version: 1119.0
 Author: Neil Schmitt
 
 This is the main entry point for the VRS Manager application.
 It launches the GUI interface for processing VRS files.
 """
 
-print("- VRS Manager - Version : 1118.6 - By Neil Schmitt -")
-print("- VRS Manager - Version : 1118.6 - By Neil Schmitt -")
-print("- VRS Manager - Version : 1118.6 - By Neil Schmitt -")
-print("- VRS Manager - Version : 1118.6 - By Neil Schmitt -")
+print("- VRS Manager - Version : 1119.0 - By Neil Schmitt -")
+print("- VRS Manager - Version : 1119.0 - By Neil Schmitt -")
+print("- VRS Manager - Version : 1119.0 - By Neil Schmitt -")
+print("- VRS Manager - Version : 1119.0 - By Neil Schmitt -")
 
 from src.ui.main_window import create_gui
 

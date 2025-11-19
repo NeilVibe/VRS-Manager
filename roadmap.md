@@ -15,7 +15,7 @@
 
 ---
 
-## 🎯 Current Status: v1118.6 Production Ready
+## 🎯 Current Status: v1119.0 Production Ready
 
 ### ✅ Completed Phases
 - **Phase 1.0-2.2**: All core functionality implemented and tested ✅
@@ -392,7 +392,7 @@ Add "DialogType Change" and "Group Change" markers to the CHANGES column to trac
 
 ---
 
-### **Phase 2.3: StrOrigin Change Detail Analysis** 🎯 **IN PLANNING**
+### **Phase 2.3: StrOrigin Change Detail Analysis** ✅ **COMPLETED**
 
 #### Overview
 Create a dedicated analysis sheet to help analysts understand the nature of StrOrigin changes. This feature creates a new Excel sheet called **"StrOrigin Change Analysis"** that filters and analyzes all rows where CHANGES contains "StrOrigin".
@@ -734,7 +734,20 @@ print("✓ Offline operation ready!")
 
 ## Version History
 
-### v1118.6 (Current - Production Ready)
+### v1119.0 (Current - Production Ready)
+- **Phase 2.3 COMPLETED**: StrOrigin Change Analysis
+  - NEW: "StrOrigin Change Analysis" sheet in Working VRS Check output
+  - NEW: Punctuation/Space-only change detection (normalize + compare)
+  - NEW: BERT-based semantic similarity analysis (Korean SBERT model)
+  - NEW: Automatic classification: "Punctuation/Space Change" or "XX.X% similar"
+  - OFFLINE: Korean BERT model (447MB) runs locally - no internet needed
+  - ANALYSIS: Helps analysts identify trivial vs substantial StrOrigin changes
+- **FILES ADDED**:
+  - src/utils/strorigin_analysis.py: Text normalization + BERT similarity
+  - download_bert_model.py: One-time model download script
+  - models/kr-sbert/: Korean BERT model files (not in git - too large)
+
+### v1118.6
 - **CRITICAL BUG FIXES**:
   - Fixed TypeError 'unhashable type: dict' in Working VRS Check
   - Fixed lookup dictionaries storing dict objects instead of indices (src/core/working_helpers.py)

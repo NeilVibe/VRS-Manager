@@ -13,13 +13,24 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # CONFIGURATION - EDIT THIS SECTION FOR EACH UPDATE
 # ============================================================================
 
-VERSION = "1118.6"
-VERSION_TEXT_EN = "Version 1118.6 (Dict Error Fixes + Comprehensive Testing)"
-VERSION_TEXT_KR = "버전 1118.6 (Dict 오류 수정 + 포괄적 테스팅)"
+VERSION = "1119.0"
+VERSION_TEXT_EN = "Version 1119.0 (Phase 2.3 - StrOrigin Change Analysis)"
+VERSION_TEXT_KR = "버전 1119.0 (Phase 2.3 - StrOrigin 변경 분석)"
 
 # English content to add
-EN_HEADER = "WHAT'S NEW IN v1118.6?"
+EN_HEADER = "WHAT'S NEW IN v1119.0?"
 EN_CONTENT = [
+    {
+        "title": "✅ Phase 2.3 COMPLETED - StrOrigin Change Analysis (v1119.0)",
+        "items": [
+            "NEW: 'StrOrigin Change Analysis' sheet in Working VRS Check output",
+            "NEW: Punctuation/Space-only change detection",
+            "NEW: BERT-based semantic similarity analysis (Korean SBERT model)",
+            "NEW: Automatic classification: 'Punctuation/Space Change' or 'XX.X% similar'",
+            "OFFLINE: Korean BERT model (447MB) runs locally - no internet needed",
+            "ANALYSIS: Shows which StrOrigin changes are trivial vs substantial",
+        ]
+    },
     {
         "title": "✅ Critical Bug Fixes (v1118.6)",
         "items": [
@@ -63,8 +74,19 @@ EN_CONTENT = [
 ]
 
 # Korean content to add
-KR_HEADER = "v1118.6의 새로운 기능"
+KR_HEADER = "v1119.0의 새로운 기능"
 KR_CONTENT = [
+    {
+        "title": "✅ Phase 2.3 완료 - StrOrigin 변경 분석 (v1119.0)",
+        "items": [
+            "새로운 기능: Working VRS Check 출력에 'StrOrigin Change Analysis' 시트 추가",
+            "새로운 기능: 구두점/공백만 변경된 경우 자동 감지",
+            "새로운 기능: BERT 기반 의미적 유사도 분석 (Korean SBERT 모델)",
+            "새로운 기능: 자동 분류 - 'Punctuation/Space Change' 또는 'XX.X% similar'",
+            "오프라인: 한국어 BERT 모델 (447MB) 로컬 실행 - 인터넷 불필요",
+            "분석: StrOrigin 변경이 사소한지 실질적인지 표시",
+        ]
+    },
     {
         "title": "✅ 중요 버그 수정 (v1118.6)",
         "items": [

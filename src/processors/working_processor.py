@@ -13,13 +13,17 @@ from src.processors.base_processor import BaseProcessor
 from src.io.excel_reader import safe_read_excel
 from src.io.formatters import apply_direct_coloring, widen_summary_columns, format_update_history_sheet
 from src.utils.data_processing import normalize_dataframe_status, filter_output_columns, remove_full_duplicates
-from src.utils.helpers import log, get_script_dir
+from src.utils.helpers import log, get_script_dir, safe_str
 from src.core.working_helpers import build_working_lookups, find_working_deleted_rows
 from src.core.working_comparison import process_working_comparison
 from src.core.casting import generate_casting_key
 from src.io.summary import create_working_summary, create_working_update_history_sheet
 from src.history.history_manager import add_working_update_record
-from src.config import COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
+from src.config import (
+    COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
+    COL_STRORIGIN, COL_PREVIOUSDATA
+)
+from src.utils.strorigin_analysis import StrOriginAnalyzer
 
 
 class WorkingProcessor(BaseProcessor):
@@ -150,6 +154,81 @@ class WorkingProcessor(BaseProcessor):
             traceback.print_exc()
             return False
 
+    def create_strorigin_analysis_sheet(self):
+        """
+        Create StrOrigin Change Analysis sheet (Phase 2.3).
+
+        This creates a new sheet with:
+        - Filtered rows where CHANGES contains "StrOrigin"
+        - All existing columns preserved
+        - New "StrOrigin Analysis" column with punctuation/space detection and BERT similarity
+
+        Returns:
+            pd.DataFrame or None: Analysis dataframe if StrOrigin changes exist, None otherwise
+        """
+        try:
+            # Filter rows where CHANGES contains "StrOrigin" (case-insensitive)
+            changes_col = "CHANGES"
+            if changes_col not in self.df_result.columns:
+                log("  ℹ️  No CHANGES column found - skipping StrOrigin analysis")
+                return None
+
+            # Filter for StrOrigin changes (case-insensitive)
+            mask = self.df_result[changes_col].astype(str).str.contains(
+                "StrOrigin", case=False, na=False
+            )
+            df_strorigin_changes = self.df_result[mask].copy()
+
+            if df_strorigin_changes.empty:
+                log("  ℹ️  No StrOrigin changes found - skipping analysis sheet")
+                return None
+
+            log(f"  → Found {len(df_strorigin_changes)} rows with StrOrigin changes")
+            log("  → Running StrOrigin analysis (punctuation/space + BERT similarity)...")
+
+            # Initialize analyzer
+            analyzer = StrOriginAnalyzer()
+
+            # Analyze each row
+            analysis_results = []
+            for idx, row in df_strorigin_changes.iterrows():
+                curr_strorigin = safe_str(row.get(COL_STRORIGIN, ""))
+
+                # Extract previous StrOrigin from PreviousData if it exists
+                prev_strorigin = ""
+                if COL_PREVIOUSDATA in row and pd.notna(row[COL_PREVIOUSDATA]):
+                    previous_data = str(row[COL_PREVIOUSDATA])
+                    # PreviousData format: "PrevStrOrigin | PrevSTATUS | PrevFREEMEMO"
+                    parts = previous_data.split(" | ")
+                    if len(parts) >= 1:
+                        prev_strorigin = parts[0]
+
+                # If no previous data, can't analyze
+                if not prev_strorigin:
+                    analysis_results.append("N/A - No previous data")
+                    continue
+
+                # Analyze
+                result = analyzer.analyze(prev_strorigin, curr_strorigin)
+                analysis_results.append(result)
+
+            # Add "StrOrigin Analysis" column after CHANGES
+            changes_col_index = df_strorigin_changes.columns.get_loc(changes_col)
+            df_strorigin_changes.insert(
+                changes_col_index + 1,
+                "StrOrigin Analysis",
+                analysis_results
+            )
+
+            log(f"  ✓ StrOrigin analysis complete")
+            return df_strorigin_changes
+
+        except Exception as e:
+            log(f"  ⚠️  Error creating StrOrigin analysis sheet: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
     def write_output(self):
         """Write results to Excel file with formatting."""
         try:
@@ -170,10 +249,21 @@ class WorkingProcessor(BaseProcessor):
 
                 self.df_summary.to_excel(writer, sheet_name="Summary Report", index=False, header=True)
 
+                # Phase 2.3: Create StrOrigin Change Analysis sheet
+                log("Creating StrOrigin Change Analysis sheet...")
+                df_strorigin_analysis = self.create_strorigin_analysis_sheet()
+                if df_strorigin_analysis is not None:
+                    df_strorigin_analysis.to_excel(writer, sheet_name="StrOrigin Change Analysis", index=False)
+                    log(f"  → Created 'StrOrigin Change Analysis' sheet with {len(df_strorigin_analysis)} rows")
+
                 wb = writer.book
                 apply_direct_coloring(wb["Work Transform"], is_master=False)
                 format_update_history_sheet(wb["📅 Update History"])
                 widen_summary_columns(wb["Summary Report"])
+
+                # Apply coloring to StrOrigin analysis sheet if it exists
+                if "StrOrigin Change Analysis" in wb.sheetnames:
+                    apply_direct_coloring(wb["StrOrigin Change Analysis"], is_master=False)
 
             # Add to history
             add_working_update_record(
