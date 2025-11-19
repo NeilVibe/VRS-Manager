@@ -1,0 +1,89 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - 'v*'  # Only build on version tags (e.g., v1118.6)
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build Windows Executable
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: |
+        python -m PyInstaller VRSManager.spec --clean --noconfirm
+      shell: cmd
+
+    - name: Create release folder
+      run: |
+        mkdir release
+      shell: cmd
+
+    - name: Copy files to release folder
+      run: |
+        copy dist\VRSManager.exe release\VRSManager.exe
+        copy README.md release\README.md
+        copy BUILD.md release\BUILD.md
+        copy VRS_Manager_Process_Guide_EN.xlsx release\VRS_Manager_Process_Guide_EN.xlsx
+        copy VRS_Manager_Process_Guide_KR.xlsx release\VRS_Manager_Process_Guide_KR.xlsx
+        xcopy Previous release\Previous\ /E /I
+        xcopy Current release\Current\ /E /I
+      shell: cmd
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: VRSManager-Windows
+        path: release/
+        retention-days: 30
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+
+    - name: Create ZIP archives
+      run: |
+        cd artifacts
+        for dir in */; do
+          dirname="${dir%/}"
+          zip -r "${dirname}.zip" "$dirname"
+        done
+        ls -lh *.zip
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/*.zip
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
