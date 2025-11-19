@@ -732,6 +732,228 @@ print("✓ Offline operation ready!")
 
 ---
 
+### **BERT Model Deployment Strategy Discussion**
+
+This section discusses different deployment options for the BERT model and its dependencies.
+
+#### Git Size Limits & Constraints
+
+**GitHub Limits**:
+- Individual file size: **100MB hard limit** (blocks push)
+- Repository size: **<1GB recommended**, **5GB warning threshold**
+- Git is designed for code, not large binary files
+
+**BERT Model + Dependencies Size**:
+```
+BERT model (snunlp/KR-SBERT-V40K-klueNLI-augSTS):  ~447MB
+PyTorch (torch):                                     ~2.0GB
+sentence-transformers:                               ~500MB
+scipy:                                                ~50MB
+scikit-learn:                                         ~30MB
+Other packages (tqdm, etc.):                         ~100MB
+───────────────────────────────────────────────────────────
+TOTAL:                                               ~3.1GB
+```
+
+**❌ Cannot use regular git for these files** (way over limits)
+
+#### Deployment Options Analysis
+
+##### **Option A: Bundle Everything in .exe (RECOMMENDED)**
+
+**How it works:**
+- PyInstaller bundles Python + all packages + BERT model into single .exe
+- Use `--hidden-import` and `--copy-metadata` flags for all dependencies
+- Reference implementation: XLSTransfer0225.py build command
+
+**Build command (from XLSTransfer reference)**:
+```bash
+pyinstaller --clean --onefile --console \
+  --distpath ./ \
+  --icon="images/icon789.ico" \
+  --splash="images/splash123.png" \
+  --hidden-import="tqdm" \
+  --hidden-import="regex" \
+  --hidden-import="requests" \
+  --hidden-import="packaging" \
+  --hidden-import="filelock" \
+  --hidden-import="numpy" \
+  --hidden-import="tokenizers" \
+  --hidden-import="torch" \
+  --copy-metadata="tqdm" \
+  --copy-metadata="regex" \
+  --copy-metadata="requests" \
+  --copy-metadata="packaging" \
+  --copy-metadata="filelock" \
+  --copy-metadata="numpy" \
+  --copy-metadata="tokenizers" \
+  --copy-metadata="torch" \
+  main.py
+```
+
+**Pros:**
+- ✅ **Zero setup for users** - just download and run
+- ✅ **No Python installation required**
+- ✅ **No internet needed** - fully offline
+- ✅ **No security warnings** from company IT (single trusted .exe)
+- ✅ **Simple distribution** - one file to share
+- ✅ **Proven working** - XLSTransfer0225 uses this successfully
+
+**Cons:**
+- ❌ **Large .exe size**: ~2.5-3GB (instead of ~50MB without BERT)
+- ❌ **Longer GitHub Actions build time**: ~15-30 minutes (instead of ~5 min)
+- ❌ **Larger download for users**: 2.5GB vs 50MB
+
+**GitHub Distribution:**
+- Use **GitHub Releases** for .exe (no size limit)
+- Don't commit .exe to git (use .gitignore)
+- GitHub Actions builds and uploads to Release automatically
+
+**Verdict: BEST for end users** ✅
+
+---
+
+##### **Option B: Current Implementation (Online-First, Offline-Fallback)**
+
+**How it works:**
+- .exe is small (~50MB, no BERT bundled)
+- First run with internet: Auto-downloads model from Hugging Face
+- Stores in user's cache or program folder
+- Subsequent runs: Uses cached model (offline)
+- If no internet + no cache: Gracefully skips feature
+
+**Current Code** (`src/utils/strorigin_analysis.py`):
+```python
+def _load_model(self):
+    # Try 1: Online from Hugging Face (auto-download)
+    try:
+        self.model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
+        return
+    except:
+        pass
+
+    # Try 2: Local cache (offline mode)
+    if os.path.exists(self.model_path):
+        self.model = SentenceTransformer(self.model_path)
+        return
+
+    # Both failed - gracefully skip
+    raise FileNotFoundError("Model not available")
+```
+
+**Offline Setup** (`download_model.bat`):
+```batch
+REM Install sentence-transformers
+python -m pip install sentence-transformers
+
+REM Download model to local cache
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS').save('./models/kr-sbert')"
+```
+
+**Pros:**
+- ✅ **Small .exe download**: ~50MB (fast)
+- ✅ **Fast GitHub Actions builds**: ~5 minutes
+- ✅ **Flexible**: Works online or offline
+- ✅ **User control**: Can choose to skip feature
+
+**Cons:**
+- ❌ **Complex user setup** for offline mode
+- ❌ **Requires Python installation** for offline setup
+- ❌ **Large download on first use**: 3.1GB packages
+- ❌ **Potential IT security warnings**: Multiple large package downloads
+- ❌ **CRITICAL ISSUE**: .exe can't see packages installed by .bat
+  - .exe has bundled Python interpreter: `VRSManager.exe\Python\...`
+  - .bat installs to system Python: `C:\Python\Lib\site-packages\...`
+  - **They don't share packages!**
+
+**Verdict: Works for online mode, problematic for offline** ⚠️
+
+---
+
+##### **Option C: Separate Dependencies Package (Advanced)**
+
+**How it works:**
+- Main .exe: Small (~50MB), no BERT
+- Separate download: `bert-dependencies.zip` (~3GB)
+- User extracts to program folder
+- .exe checks for dependencies and loads if present
+
+**Distribution:**
+- .exe on GitHub Releases (main download)
+- Dependencies zip on GitHub Releases (optional download)
+- Users download both if they want BERT feature
+
+**Pros:**
+- ✅ **Small main download** for users who don't need BERT
+- ✅ **Full offline support** via dependencies package
+- ✅ **No Python installation required**
+- ✅ **Pre-approved by IT** (single download)
+
+**Cons:**
+- ❌ **Two-step download** (confusing for users)
+- ❌ **Complex build process** (need to package dependencies separately)
+- ❌ **Manual extraction** required
+- ❌ **More support burden** ("Which files do I download?")
+
+**Verdict: More complexity than value** ⚠️
+
+---
+
+##### **Option D: Git LFS (Large File Storage)**
+
+**How it works:**
+- Store large files (model, packages) in Git LFS
+- Git tracks pointers, LFS handles large binaries
+- Users with git-lfs installed get full files
+
+**GitHub LFS Limits:**
+- Free: 1GB storage + 1GB/month bandwidth
+- Pro: 50GB storage + 50GB/month bandwidth
+
+**Pros:**
+- ✅ **Version control** for large files
+- ✅ **Clean git workflow**
+
+**Cons:**
+- ❌ **Bandwidth limits** (1GB free = ~1-2 downloads/month)
+- ❌ **Extra cost** ($5/month for 50GB)
+- ❌ **Requires git-lfs** client
+- ❌ **Doesn't solve .exe distribution** (still need Releases)
+
+**Verdict: Not suitable for frequent public downloads** ❌
+
+---
+
+#### Recommended Strategy
+
+**Primary Recommendation: Option A (Bundle Everything)** ✅
+
+**Why:**
+1. **Proven**: XLSTransfer0225 successfully uses this approach
+2. **Simple**: Users just download one .exe and run
+3. **Reliable**: No internet, Python, or setup required
+4. **Professional**: Single trusted .exe (no security warnings)
+5. **Offline-ready**: Works immediately on isolated company computers
+
+**Implementation:**
+1. Update `VRSManager.spec` with all BERT dependencies
+2. Add `--hidden-import` and `--copy-metadata` for torch, transformers, etc.
+3. Include BERT model in bundle (place in expected location)
+4. GitHub Actions builds and uploads to Releases (~2.5GB .exe)
+5. Users download from Releases page
+
+**Trade-offs:**
+- Larger .exe size (2.5GB vs 50MB) - acceptable for feature richness
+- Longer build time (~30min vs 5min) - acceptable for CI/CD
+- Larger download - acceptable (users download once, use forever)
+
+**Fallback: Keep Current Option B for Development**
+- Small .exe for quick testing during development
+- Auto-download works fine on dev machines with internet
+- Switch to Option A for production releases
+
+---
+
 ## Version History
 
 ### v1119.0 (Current - Production Ready)
