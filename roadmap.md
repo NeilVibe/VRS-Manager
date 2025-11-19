@@ -15,1007 +15,699 @@
 
 ---
 
-## 🎯 Current Status: v1119.0 Production Ready
+## 🎯 Current Status: v1119.1 (Building)
 
-### ✅ Completed Phases
-- **Phase 1.0-2.2**: All core functionality implemented and tested ✅
-  - 10-Key Pattern Matching System
-  - TWO-PASS Algorithm (1-to-1 Row Matching)
-  - TimeFrame Preservation Logic
-  - Group Word Count Analysis
-  - Master File Update Simplification
-  - Super Group Aggregation & Translation Tracking
-  - DialogType & Group Change Detection
+### ✅ All Core Features Complete
+- 10-Key Pattern Matching System
+- TWO-PASS Algorithm (1-to-1 Row Matching)
+- TimeFrame Preservation Logic
+- Group Word Count Analysis & Super Group Aggregation
+- StrOrigin Change Analysis (Punctuation + BERT Semantic Similarity)
+- Master File Update Simplification
+- Translation Tracking & Migration Details
+
+### 🚧 Current Build: v1119.1
+- Bundling BERT model + PyTorch (~3GB .exe)
+- Full offline operation
+- Zero setup for users
 
 ---
 
-## 📋 Current Priority: StrOrigin Change Analysis (Phase 2.3)
+## 📋 Next Priority: Phase 3.0 - Professional Installer System
 
-### **Phase 2.2.1: Super Group Analysis Improvements** ✅ **COMPLETED**
+### Overview
 
-#### Overview
-Fix confusion and improve clarity in Super Group Word Analysis sheet by resolving "Others" vs "Other" confusion, reordering groups logically, and creating a detailed migration tracking table.
+Replace single 3GB .exe with professional installer offering **LIGHT** and **FULL** versions.
 
-#### Issues Identified
+**Problem with current approach:**
+- ❌ 3GB download is large and unprofessional
+- ❌ Users who don't need AI must download BERT anyway
+- ❌ No flexibility for different use cases
 
-**Issue 1: Remove "Others" Category and stageclosedialog**
-- **Current**:
-  - `"Others"` super group exists (line 88-90 super_groups.py)
-  - DialogType "stageclosedialog" returns "Others" (line 39-40 super_groups.py)
-  - `"Other"` is separate category for small groups (police, shop, minigame, etc.)
-- **Problem**: "Others" and stageclosedialog are no longer needed
-- **Solution**:
-  - ❌ Remove "Others" super group entirely from list
-  - ❌ Remove stageclosedialog DialogType check (lines 39-40)
-  - Result: stageclosedialog (if encountered) falls through to "Everything Else"
+**Solution: Two installation options**
+- ✅ LIGHT (~150MB): Core features + punctuation detection
+- ✅ FULL (~2.6GB): Everything + BERT AI analysis
+- ✅ Professional setup experience
+- ✅ Start Menu integration + proper uninstaller
 
-**Issue 2: Super Group Order**
-- **Current Order**: Main Chapters, Faction 1, Faction 2, Faction 3, Quest Dialog, AI Dialog, Others, Other, Everything Else
-- **Desired Order**: Main Chapters, Faction 1, Faction 2, Faction 3, **AI Dialog**, **Quest Dialog**, Other, **Everything Else** (last)
-- **Changes**:
-  - Swap AI Dialog and Quest Dialog positions
-  - Remove "Others"
-  - Ensure "Everything Else" is always last in table
+---
 
-**Issue 3: Column Header Too Long**
-- **Current**: Column header "Untranslated Words (Remaining to Translate)"
-- **Problem**: Header text is too long and takes up excessive space
-- **Solution**: Rename to "Not Translated" (simple and clear)
+### Distribution Strategy: Two Offline Installers (RECOMMENDED)
 
-**Issue 4: Migration Tracking**
-- **Current**:
-  - Main table shows "Words Migrated In" and "Words Migrated Out" columns
-  - Only aggregate totals (can't see source → destination details)
-- **Problem**: No visibility into WHICH groups moved to WHICH groups
-- **Solution**:
-  - ❌ Remove "Words Migrated In" and "Words Migrated Out" from main table
-  - ✅ Create NEW separate "Super Group Migration Details" table
-  - ✅ Show detailed migration pairs with word counts
-  - Format: `Source Group → Destination Group : Word Count`
-  - Example rows:
-    - `Chapter 3 → Faction 3: 4,000 words`
-    - `Faction 2 → Main Chapters: 1,250 words`
+#### Why Offline?
 
-#### Implementation Requirements
+**User Requirements:**
+1. Company computers often have **NO internet** (isolated networks)
+2. Need to **transfer to offline PCs** via USB/network
+3. Predictable installation (no failed downloads mid-install)
+4. **Portable after installation** (zip folder → use anywhere)
 
-##### **1. Remove "Others" Category and stageclosedialog Check**
+#### Distribution Plan
 
-**File**: `src/utils/super_groups.py`
+**GitHub Releases provides two installers:**
 
-**Changes**:
-```python
-# Lines 39-40: REMOVE these lines entirely
-# DELETE:
-# if "stageclosedialog" in dialog_type:
-#     return "Others"
-
-# Line 88-90: Remove "Others" from list
-super_groups = [
-    "Main Chapters", "Faction 1", "Faction 2", "Faction 3",
-    "AI Dialog", "Quest Dialog", "Other", "Everything Else"  # Removed "Others"
-]
+```
+VRSManager_v1120_Light_Setup.exe       (~150MB download)
+VRSManager_v1120_Full_Setup.exe        (~2.6GB download)
 ```
 
-**Result**: Any DialogType "stageclosedialog" will fall through to default "Everything Else" category
+**Both installers work 100% offline** - no internet required during installation.
 
-##### **2. Reorder Super Groups**
+---
 
-**File**: `src/utils/super_groups.py`
+### Installation Workflow
 
-**Changes**:
-```python
-# Line 88-90: New order
-super_groups = [
-    "Main Chapters",      # Story content first
-    "Faction 1",          # Faction groups
-    "Faction 2",
-    "Faction 3",
-    "AI Dialog",          # Dialog types (AI before Quest)
-    "Quest Dialog",
-    "Other",              # Small miscellaneous groups
-    "Everything Else"     # Catch-all LAST
-]
+#### **LIGHT Installer (~150MB)**
+
+**Bundles:**
+- ✅ VRS Manager Core
+- ✅ Python runtime
+- ✅ Data processing (pandas, openpyxl, numpy)
+- ✅ All VRS Check features
+- ❌ NO PyTorch
+- ❌ NO sentence-transformers
+- ❌ NO BERT model
+
+**User Experience:**
+```
+1. Download VRSManager_v1120_Light_Setup.exe (150MB)
+2. Run installer → Select install location
+3. Install completes → Start Menu shortcut created
+4. Run VRS Manager → All core features work
+
+StrOrigin Analysis behavior:
+- Punctuation/Space detection: ✅ Works
+- If NOT punctuation-only: Shows "Content Change" (no %)
+- Fast, lightweight processing
 ```
 
-**File**: `src/io/excel_writer.py`
+**Installed Size:** ~200MB
 
-**Impact**: Table rows will now appear in this order automatically (sorted() on line 175 uses dict order)
+**After Installation - Portability:**
+```
+C:\Program Files\VRSManager\
+├── VRSManager.exe
+├── _internal/
+│   ├── python310.dll
+│   ├── pandas/
+│   ├── openpyxl/
+│   └── ... (core packages)
 
-##### **3. Rename "Untranslated Words" Column Header**
-
-**File**: `src/io/excel_writer.py`
-
-**Changes**:
-```python
-# Line 219: Rename column header
-rows.append({
-    # ... other columns ...
-    "Translated Words": translated_words,
-    "Not Translated": untranslated_words,  # ❌ CHANGED FROM: "Untranslated Words (Remaining to Translate)"
-    # ... other columns ...
-})
-
-# Line 246-247: Update column width key
-column_widths = {
-    # ... other columns ...
-    'F': 16,  # Translated Words
-    'G': 16,  # Not Translated  # ❌ CHANGED FROM: 28 (was too wide for long header)
-    # ... other columns ...
-}
+User can:
+1. Zip this folder → VRSManager_Light.zip
+2. Copy to offline PC
+3. Extract anywhere
+4. Run VRSManager.exe ✅ Works offline!
 ```
 
-##### **4. Update Explanatory Notes Below Table**
+---
 
-**File**: `src/io/excel_writer.py`
+#### **FULL Installer (~2.6GB)**
 
-**Changes**:
-```python
-# Line 354: Remove "Others" from Everything Else note
-note_text_3 = (
-    'Everything Else: All groups that do not match any other Super Group classification. '
-    'This includes groups not specifically categorized under Main Chapters, Factions, Quest Dialog, '
-    'AI Dialog, or Other.'  # ❌ REMOVED: "Others, or Other" → NOW: "or Other"
-)
+**Bundles:**
+- ✅ Everything in LIGHT version
+- ✅ PyTorch (~2GB)
+- ✅ sentence-transformers
+- ✅ BERT model (kr-sbert, 447MB)
+- ✅ scipy, scikit-learn
+- ✅ All ML dependencies
+
+**User Experience:**
+```
+1. Download VRSManager_v1120_Full_Setup.exe (2.6GB)
+2. Run installer → Select install location
+3. Install completes → Start Menu shortcut created
+4. Run VRS Manager → All features including AI work
+
+StrOrigin Analysis behavior:
+- Punctuation/Space detection: ✅ Works
+- If NOT punctuation-only: Shows "XX.X% similar" (BERT)
+- Complete semantic similarity analysis
 ```
 
-##### **5. Remove Migration Columns from Main Table**
+**Installed Size:** ~3.5GB
 
-**File**: `src/io/excel_writer.py`
+**After Installation - Portability:**
+```
+C:\Program Files\VRSManager\
+├── VRSManager.exe
+├── _internal/
+│   ├── python310.dll
+│   ├── torch/               ← PyTorch
+│   ├── models/kr-sbert/     ← BERT model
+│   └── ... (all packages)
 
-**Changes**:
-```python
-# Lines 212-229: Remove migration columns from row dict
-rows.append({
-    "Super Group Name": super_group_name,
-    "Total Words (Current)": curr_total,
-    "Total Words (Previous)": prev_total,
-    "Net Change": net_change,
-    "% Change": pct_change_str,
-    "Translated Words": translated_words,
-    "Untranslated Words (Remaining to Translate)": untranslated_words,
-    "Translation % (Current)": translation_pct_curr_str,
-    "Translation % (Previous)": translation_pct_prev_str,
-    "Translation % Change": translation_pct_change_str,
-    "Words Added": stats["added_words"],
-    "Words Deleted": stats["deleted_words"],
-    "Words Changed": stats["changed_words"],
-    "Words Unchanged": stats["unchanged_words"]
-    # ❌ REMOVED: "Words Migrated In": stats["migrated_in_words"],
-    # ❌ REMOVED: "Words Migrated Out": stats["migrated_out_words"]
-})
-
-# Lines 240-257: Update column widths (remove O and P)
-column_widths = {
-    'A': 22,  # Super Group Name
-    'B': 18,  # Total Words (Current)
-    'C': 18,  # Total Words (Previous)
-    'D': 14,  # Net Change
-    'E': 12,  # % Change
-    'F': 16,  # Translated Words
-    'G': 28,  # Untranslated Words (Remaining to Translate)
-    'H': 18,  # Translation % (Current)
-    'I': 18,  # Translation % (Previous)
-    'J': 18,  # Translation % Change
-    'K': 14,  # Words Added
-    'L': 14,  # Words Deleted
-    'M': 14,  # Words Changed
-    'N': 14   # Words Unchanged
-    # ❌ REMOVED: 'O': 16,  # Words Migrated In
-    # ❌ REMOVED: 'P': 16   # Words Migrated Out
-}
+User can:
+1. Zip this folder → VRSManager_Full.zip (3.5GB)
+2. Copy to offline PC via USB/network
+3. Extract anywhere
+4. Run VRSManager.exe ✅ Works offline with full AI!
 ```
 
-##### **6. Track Detailed Migration Pairs**
+---
 
-**File**: `src/utils/super_groups.py`
+### Code Modifications Required
 
-**New Return Value**: Add migration details tracking
+#### **File: `src/utils/strorigin_analysis.py`**
 
-**Changes**:
+**Current behavior:**
+- Tries BERT import → Crashes if not available
+
+**New behavior:**
+- Gracefully handle missing BERT packages
+- Return appropriate message based on availability
+
+**Changes:**
+
 ```python
-def aggregate_to_super_groups(df_curr, df_prev, pass1_results):
+class StrOriginAnalyzer:
     """
-    Returns:
-        tuple: (super_group_stats, migration_details) where:
-            - super_group_stats: Dict with per-super-group statistics
-            - migration_details: List of migration tuples (source, destination, word_count)
+    Analyzer with LIGHT/FULL version support.
+
+    LIGHT: Punctuation/Space detection only
+    FULL: Punctuation + BERT semantic similarity
     """
-    # ... existing code ...
 
-    # NEW: Track detailed migrations
-    migration_details = []  # List of (source_group, dest_group, word_count)
+    def __init__(self):
+        self.model = None
+        self.bert_available = self._check_bert_available()
 
-    # In the migration detection section (line 167-176):
-    if super_group == prev_super_group:
-        # Same super group - check for StrOrigin changes
-        if "StrOrigin" in change_label:
-            super_group_stats[super_group]["changed_words"] += curr_words
+    def _check_bert_available(self) -> bool:
+        """Check if BERT packages are available (FULL version)"""
+        try:
+            import torch
+            import sentence_transformers
+            return True
+        except ImportError:
+            return False
+
+    def analyze(self, prev_text: str, curr_text: str) -> str:
+        """
+        Analyze StrOrigin change.
+
+        Returns:
+        - LIGHT & FULL: "Punctuation/Space Change" (if applicable)
+        - FULL only: "XX.X% similar" (BERT analysis)
+        - LIGHT only: "Content Change" (if not punctuation-only)
+        """
+        # First Pass: Punctuation/Space check (works in both versions)
+        if is_punctuation_space_change_only(prev_text, curr_text):
+            return "Punctuation/Space Change"
+
+        # Second Pass: BERT similarity (FULL version only)
+        if self.bert_available:
+            # Load model and calculate similarity
+            self._load_model()
+            similarity = calculate_semantic_similarity(prev_text, curr_text, self.model)
+            similarity_pct = similarity * 100
+            return f"{similarity_pct:.1f}% similar"
         else:
-            super_group_stats[super_group]["unchanged_words"] += curr_words
-    else:
-        # SUPER GROUP MIGRATION DETECTED
-        super_group_stats[prev_super_group]["migrated_out_words"] += prev_words
-        super_group_stats[super_group]["migrated_in_words"] += curr_words
-
-        # NEW: Record detailed migration
-        migration_details.append((prev_super_group, super_group, curr_words))
-
-    return super_group_stats, migration_details  # Return both
+            # LIGHT version: Can't calculate similarity
+            return "Content Change"
 ```
 
-##### **7. Create Migration Details Table**
+**Result:**
+- LIGHT version: Shows "Punctuation/Space Change" OR "Content Change"
+- FULL version: Shows "Punctuation/Space Change" OR "XX.X% similar"
 
-**File**: `src/io/excel_writer.py`
+---
 
-**New Function**: `write_super_group_migration_details()`
+#### **File: `src/processors/working_processor.py`**
 
-**Implementation**:
+**Current behavior:**
+- Catches FileNotFoundError only (model file missing)
+- Doesn't handle ImportError (packages missing)
+
+**New behavior:**
+- Handle both ImportError and FileNotFoundError
+- Create StrOrigin Analysis sheet in BOTH versions
+- Different output based on version
+
+**Changes:**
+
 ```python
-def write_super_group_migration_details(worksheet, migration_details, start_row):
+def create_strorigin_analysis_sheet(self):
     """
-    Write detailed super group migration table below main analysis.
+    Create StrOrigin Change Analysis sheet.
 
-    Args:
-        worksheet: Excel worksheet object
-        migration_details: List of tuples (source_group, dest_group, word_count)
-        start_row: Row number to start writing (below main table)
+    Works in both LIGHT and FULL versions:
+    - LIGHT: Punctuation/Space + "Content Change"
+    - FULL: Punctuation/Space + BERT similarity %
     """
-    if not migration_details:
-        # No migrations detected
-        return
-
-    # Aggregate migrations by source → destination pairs
-    migration_summary = {}
-    for source, dest, words in migration_details:
-        key = (source, dest)
-        migration_summary[key] = migration_summary.get(key, 0) + words
-
-    # Create migration table
-    # Header row
-    worksheet[f"A{start_row}"] = "Super Group Migrations"
-    worksheet[f"A{start_row}"].font = Font(bold=True, size=12)
-
-    # Column headers
-    header_row = start_row + 2
-    worksheet[f"A{header_row}"] = "Source Group"
-    worksheet[f"B{header_row}"] = "Destination Group"
-    worksheet[f"C{header_row}"] = "Words Migrated"
-
-    # Apply header formatting
-    for col in ['A', 'B', 'C']:
-        cell = worksheet[f"{col}{header_row}"]
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-        cell.alignment = Alignment(horizontal="center")
-
-    # Data rows
-    data_row = header_row + 1
-    for (source, dest), word_count in sorted(migration_summary.items(),
-                                               key=lambda x: x[1], reverse=True):
-        worksheet[f"A{data_row}"] = source
-        worksheet[f"B{data_row}"] = dest
-        worksheet[f"C{data_row}"] = word_count
-        worksheet[f"C{data_row}"].number_format = '#,##0'
-        worksheet[f"C{data_row}"].alignment = Alignment(horizontal="right")
-        data_row += 1
-
-    # Set column widths
-    worksheet.column_dimensions['A'].width = 22
-    worksheet.column_dimensions['B'].width = 22
-    worksheet.column_dimensions['C'].width = 16
-
-    # Add total row
-    total_row = data_row + 1
-    worksheet[f"A{total_row}"] = "TOTAL MIGRATIONS"
-    worksheet[f"A{total_row}"].font = Font(bold=True)
-    worksheet[f"C{total_row}"] = f"=SUM(C{header_row+1}:C{data_row-1})"
-    worksheet[f"C{total_row}"].font = Font(bold=True)
-    worksheet[f"C{total_row}"].number_format = '#,##0'
-    worksheet[f"C{total_row}"].alignment = Alignment(horizontal="right")
-```
-
-**Integration**: Call from `write_super_group_word_analysis()` after main table
-
-#### Implementation Steps ✅ ALL COMPLETED
-
-- [x] Remove stageclosedialog check entirely in `super_groups.py` (delete lines 39-40)
-- [x] Remove "Others" from super_groups list (line 88-90)
-- [x] Reorder super_groups list to new desired order
-- [x] Rename column header from "Untranslated Words (Remaining to Translate)" to "Not Translated" (line 219)
-- [x] Update column width for "Not Translated" from 28 to 16 (line 247)
-- [x] Update "Everything Else" note in `excel_writer.py` (line 354) - remove "Others" reference
-- [x] Add migration_details tracking in `aggregate_to_super_groups()`
-- [x] Update return value to include migration_details
-- [x] Remove migration columns from main table in `excel_writer.py`
-- [x] Update column widths dictionary (remove O, P)
-- [x] Update formatting loop to exclude O, P columns
-- [x] Create `write_super_group_migration_details()` function
-- [x] Integrate migration table into `write_super_group_word_analysis()`
-- [x] Update all callers to handle new tuple return value
-- [x] Test with sample data containing migrations
-- [x] Verify table order and migration details
-
-#### Success Criteria
-
-- ✅ "Others" super group completely removed (no longer exists)
-- ✅ stageclosedialog DialogType check completely removed (falls through to "Everything Else")
-- ✅ Only 8 super groups exist: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else
-- ✅ Super groups appear in correct order: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else
-- ✅ "Everything Else" is always last in table
-- ✅ Column header renamed from "Untranslated Words (Remaining to Translate)" to "Not Translated"
-- ✅ Column width for "Not Translated" reduced from 28 to 16 (fits new shorter header)
-- ✅ Explanatory notes below table updated - "Others" removed from "Everything Else" note
-- ✅ Main table has NO migration columns (O, P removed)
-- ✅ New "Super Group Migrations" table appears below main table
-- ✅ Migration table shows: Source Group | Destination Group | Words Migrated
-- ✅ Migration counts are accurate
-- ✅ All existing functionality still works
-
----
-
-## 📋 Next Development Phase
-
-### **Phase 2.2: DialogType & Group Change Detection** ✅ **COMPLETED**
-
-#### Overview
-Add "DialogType Change" and "Group Change" markers to the CHANGES column to track when these metadata fields change between Previous and Current TimeFrames. This builds on existing DialogType and Group column identification logic.
-
-#### Feature Components
-
-##### **Change Detection Logic**
-- **Target**: Rows where DialogType or Group values differ between Previous and Current
-- **Markers**:
-  - `"DialogType Change"` - When DialogType value changes
-  - `"Group Change"` - When Group value changes
-- **Composite Support**: Combine with existing CHANGES markers (e.g., "StrOrigin+DialogType Change")
-
-##### **Implementation Requirements**
-1. Use existing DialogType and Group column identification logic
-2. Compare Previous vs Current values for each row
-3. Add appropriate marker(s) to CHANGES column
-4. Follow existing change marker pattern and formatting
-
-#### Implementation Steps
-- [x] Identify where DialogType and Group columns are currently tracked
-- [x] Add DialogType change detection to CHANGES column logic
-- [x] Add Group change detection to CHANGES column logic
-- [x] Test with sample data containing DialogType/Group changes
-- [x] Verify composite change markers work correctly
-- [x] Update version and documentation
-
-#### Success Criteria
-- ✅ CHANGES column correctly shows "DialogType Change" when DialogType differs
-- ✅ CHANGES column correctly shows "Group Change" when Group differs
-- ✅ Composite markers work (e.g., "StrOrigin+DialogType Change")
-- ✅ No false positives (empty values, matching values)
-- ✅ Existing change detection still works correctly
-
----
-
-### **Phase 2.3: StrOrigin Change Detail Analysis** ✅ **COMPLETED**
-
-#### Overview
-Create a dedicated analysis sheet to help analysts understand the nature of StrOrigin changes. This feature creates a new Excel sheet called **"StrOrigin Change Analysis"** that filters and analyzes all rows where CHANGES contains "StrOrigin".
-
-#### Output Structure
-
-**New Sheet**: "StrOrigin Change Analysis"
-- **Filter**: Only rows where CHANGES column contains "StrOrigin" (standalone or composite like "StrOrigin+TimeFrame")
-- **Column Structure**: All normal columns + new **"StrOrigin Analysis"** column (placed next to CHANGES)
-- **Analysis Column Values**:
-  - `"Punctuation/Space Change"` - Only whitespace or punctuation differs
-  - `"XX.XX% similar"` - Semantic similarity percentage (e.g., "94.5% similar")
-
-#### Feature Components
-
-##### **1. Sheet Creation & Row Filtering**
-
-**Purpose**: Create dedicated analysis sheet with StrOrigin-changed rows only
-
-**Implementation**:
-- Create new sheet named **"StrOrigin Change Analysis"**
-- Filter all rows where CHANGES contains "StrOrigin" (case-insensitive)
-- Include composite changes: "StrOrigin+TimeFrame", "StrOrigin+Group", etc.
-- Preserve all existing columns
-- Add new column **"StrOrigin Analysis"** immediately after CHANGES column
-
-##### **2. Punctuation/Space Difference Detection (First Pass)**
-
-**Purpose**: Quickly identify if changes are ONLY punctuation or whitespace differences
-
-**Implementation**:
-- **Target**: All filtered rows in the new sheet
-- **Detection Method**:
-  1. Extract Previous StrOrigin and Current StrOrigin values
-  2. Normalize both texts:
-     - Remove all spaces (`\s+`)
-     - Remove all punctuation: `. , ! ? : ; ( ) [ ] { } " ' - — … ` ~` etc.
-     - Include Korean/Japanese/Chinese punctuation (Unicode category P*)
-  3. Compare normalized strings (case-insensitive)
-  4. If identical → Mark as punctuation/space only
-
-- **Output**:
-  - Column: **"StrOrigin Analysis"**
-  - Value: `"Punctuation/Space Change"` when texts are identical after normalization
-  - If NOT identical → Skip to BERT analysis (next step)
-
-**Technical Details**:
-```python
-# Normalization function
-import re
-import unicodedata
-
-def normalize_text_for_comparison(text):
-    """Remove all spaces and punctuation for comparison"""
-    if not isinstance(text, str):
-        return ""
-
-    # Remove all whitespace
-    text = re.sub(r'\s+', '', text)
-
-    # Remove all punctuation (including Korean, Japanese, Chinese punctuation)
-    # Unicode categories: P* = punctuation
-    text = ''.join(char for char in text if not unicodedata.category(char).startswith('P'))
-
-    return text.lower()  # Case-insensitive comparison
-```
-
-##### **3. Semantic Similarity Analysis (BERT + FAISS) (Second Pass)**
-
-**Purpose**: Calculate semantic similarity percentage for rows that are NOT punctuation/space-only changes
-
-**Trigger**: Only process rows where punctuation check returned FALSE (i.e., substantial content differences exist)
-
-**Model & Dependencies**:
-- **Model**: `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (stored locally for offline use)
-- **Library**: `sentence-transformers`, `faiss-cpu` or `faiss-gpu`
-- **Reference Script**: `/home/neil1988/LocalizationTools/RessourcesForCodingTheProject/MAIN PYTHON SCRIPTS/XLSTransfer0225.py`
-- **Storage Location**: `models/kr-sbert/` (inside project directory)
-
-**Local Model Setup (OFFLINE OPERATION)**:
-
-The model will be stored locally in the project for full offline operation. This ensures the program works without internet connectivity.
-
-1. **Initial Model Download** (one-time setup):
-```python
-from sentence_transformers import SentenceTransformer
-import os
-
-# Download model and save locally
-model_name = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
-local_model_path = './models/kr-sbert'
-
-# Create directory if it doesn't exist
-os.makedirs(local_model_path, exist_ok=True)
-
-# Download and save model
-model = SentenceTransformer(model_name)
-model.save(local_model_path)
-print(f"Model saved to {local_model_path}")
-```
-
-2. **Runtime Usage** (loads from local path - no internet required):
-```python
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-import os
-
-# Get project root directory
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(PROJECT_ROOT, 'models', 'kr-sbert')
-
-# Load model from local path (fully offline)
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Please run model download setup first.")
-
-model = SentenceTransformer(MODEL_PATH)
-
-# Note: Let model.encode() use automatic optimization settings
-# No forced batch encoding - auto-detection is preferred
-```
-
-**Model Distribution**:
-- Model folder (`models/kr-sbert/`) will be included in project distribution
-- Uses relative path for portability
-- Works on any machine without internet connection
-- Model size: ~500MB (will be documented for storage planning)
-
-**Processing Flow**:
-   - **Input**: Rows that failed punctuation/space check (substantial changes exist)
-   - For each row:
-     1. Extract Previous StrOrigin text from row
-     2. Extract Current StrOrigin text from row
-     3. Generate BERT embeddings for both texts
-     4. Calculate cosine similarity using FAISS IndexFlatIP
-     5. Convert to percentage (0-100%)
-     6. Write to "StrOrigin Analysis" column
-
-**Similarity Calculation**:
-```python
-def calculate_similarity(text1, text2, model):
-    """Calculate cosine similarity between two Korean texts"""
-    # Generate embeddings
-    embeddings = model.encode([text1, text2], convert_to_tensor=False)
-    embeddings = np.array(embeddings)
-
-    # Normalize for cosine similarity
-    faiss.normalize_L2(embeddings)
-
-    # Create FAISS index and search
-    index = faiss.IndexFlatIP(embeddings.shape[1])
-    index.add(embeddings[0:1])  # Add first embedding
-
-    # Search for second embedding
-    distances, indices = index.search(embeddings[1:2], 1)
-    similarity_score = distances[0][0]
-
-    # Convert to percentage
-    similarity_percentage = round(similarity_score * 100, 2)
-
-    return similarity_percentage
-```
-
-**Output**:
-   - Column: **"StrOrigin Analysis"**
-   - Value: `"{similarity_percentage}% similar"` (e.g., "94.5% similar", "87.32% similar")
-   - Format: Always 2 decimal places
-   - Only runs for rows NOT marked as "Punctuation/Space Change"
-
-#### Processing Summary
-
-**Two-Step Analysis Process**:
-
-1. **Step 1 (Fast)**: Punctuation/Space Check
-   - All StrOrigin-changed rows processed
-   - If ONLY punctuation/space differs → Write `"Punctuation/Space Change"` → DONE
-   - If substantial content differs → Proceed to Step 2
-
-2. **Step 2 (BERT+FAISS)**: Semantic Similarity
-   - Only rows with substantial content changes
-   - Calculate similarity percentage using Korean BERT embeddings
-   - Write `"XX.XX% similar"` to StrOrigin Analysis column
-
-**Performance Optimization**:
-- Step 1 is fast (simple string normalization)
-- Step 2 only runs when necessary (skips punctuation-only changes)
-- Reduces BERT processing load significantly
-
----
-
-#### Implementation Plan
-
-**Step 1: Sheet Creation & Filtering**
-- [ ] Create new Excel sheet "StrOrigin Change Analysis" in Working processor output
-- [ ] Filter rows where CHANGES contains "StrOrigin" (case-insensitive substring match)
-- [ ] Include composite changes (e.g., "StrOrigin+TimeFrame", "StrOrigin+Group")
-- [ ] Copy all existing columns to new sheet
-- [ ] Add new column "StrOrigin Analysis" immediately after CHANGES column
-
-**Step 2: Punctuation/Space Detection Module**
-- [ ] Create utility function `normalize_text_for_comparison(text)` for text normalization
-- [ ] Test normalization with Korean/Japanese/Chinese punctuation examples
-- [ ] Implement two-step comparison logic:
-  - Step 1: Normalize and compare texts
-  - Step 2: If identical → Write "Punctuation/Space Change"
-  - Step 3: If NOT identical → Skip to BERT analysis
-- [ ] Write unit tests with sample punctuation-only changes
-
-**Step 3: Local Model Setup (Offline Operation)**
-- [ ] Create `models/kr-sbert/` directory in project root
-- [ ] Write model download script (`download_model.py`) for initial setup
-- [ ] Download and save EXACT model: `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (~500MB)
-- [ ] Verify model files are saved correctly (config.json, pytorch_model.bin, etc.)
-- [ ] Test loading model from local path (verify offline operation)
-- [ ] **Disconnect from internet and test again** (confirm fully offline)
-- [ ] Add `models/` folder to project structure and version control (or distribution package)
-- [ ] Update .gitignore if model is too large (use Git LFS or document download process)
-- [ ] Document model setup in README with clear instructions
-
-**Step 4: BERT/FAISS Similarity Module**
-- [ ] Install dependencies: `sentence-transformers`, `faiss-cpu`
-- [ ] Implement model loader with local path (PROJECT_ROOT/models/kr-sbert)
-- [ ] Add error handling for missing model files
-- [ ] Implement `calculate_similarity(text1, text2, model)` function
-- [ ] Return similarity as percentage (0-100%) with 2 decimal places
-- [ ] Add progress logging for batch processing (every N rows)
-- [ ] Test with sample Korean text pairs (verify offline mode)
-
-**Step 5: Integration & Processing Logic**
-- [ ] Implement two-step processing in "StrOrigin Change Analysis" sheet:
-  - **First Pass**: Run punctuation/space check on ALL filtered rows
-  - **Second Pass**: Run BERT similarity ONLY on rows that failed first pass
-- [ ] Write results to "StrOrigin Analysis" column:
-  - `"Punctuation/Space Change"` for punctuation-only
-  - `"XX.XX% similar"` for BERT-analyzed rows
-- [ ] Add row counter/progress indicator for BERT processing
-- [ ] Handle edge cases (empty strings, very short texts, etc.)
-
-**Step 6: Performance Optimization**
-- [ ] Profile execution time with real data
-- [ ] Consider batching embeddings if processing many rows
-- [ ] Add optional feature flag to enable/disable similarity analysis
-- [ ] Document memory requirements (BERT model size: ~500MB)
-
-**Step 7: Testing & Validation**
-- [ ] Create test dataset with known punctuation-only changes
-- [ ] Create test dataset with high/low similarity pairs
-- [ ] Validate output column is correctly populated
-- [ ] Test with production-scale data
-- [ ] Update user documentation
-
----
-
-#### Success Criteria
-- ✅ **Sheet Creation**: "StrOrigin Change Analysis" sheet created in Working processor output
-- ✅ **Row Filtering**: Only rows with "StrOrigin" in CHANGES are included (including composites)
-- ✅ **Column Structure**: "StrOrigin Analysis" column added immediately after CHANGES
-- ✅ **Punctuation Detection**: Correctly identifies punctuation/space-only changes
-- ✅ **Similarity Scores**: Accurate percentages matching manual inspection
-- ✅ **Two-Step Process**: Punctuation check runs first, BERT only on remaining rows
-- ✅ **Performance**: Processing time reasonable (< 5 seconds per 100 rows for BERT)
-- ✅ **Edge Cases**: No crashes with empty strings, special characters, or very short texts
-- ✅ **Offline Operation**: Works without internet connection
-- ✅ **Model Verification**: Uses EXACT model `snunlp/KR-SBERT-V40K-klueNLI-augSTS`
-- ✅ **Documentation**: User guide updated with new sheet explanation and model setup
-
----
-
-#### Technical Notes
-
-**⚠️ CRITICAL: Model Specification**:
-- **MUST USE**: `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (EXACT model from XLSTransfer0225.py line 41)
-- **NO SUBSTITUTIONS** - This is the only approved model
-- **Local Storage**: `./models/kr-sbert/` (relative to project root)
-- **Model Size**: Approximately 500MB
-- **Offline Operation**: Model downloaded once, then runs fully offline
-
-**Reference Locations**:
-- BERT Model Usage: `XLSTransfer0225.py` line 41
-- FAISS Index Creation: `XLSTransfer0225.py` lines 310-353
-- FAISS Similarity Search: `XLSTransfer0225.py` lines 506-525
-- Encoding Reference: `XLSTransfer0225.py` line 266, 508 (model.encode usage)
-
-**Key Implementation Details**:
-- **Offline First**: Load model from local path, no internet required at runtime
-- **Relative Paths**: Use `os.path.join(PROJECT_ROOT, 'models', 'kr-sbert')` for portability
-- **Automatic Optimization**: Let model.encode() use automatic settings (no forced batching)
-- **FAISS Normalization**: Use `faiss.normalize_L2()` before similarity calculation
-- **Index Type**: `IndexFlatIP` for inner product (cosine similarity after normalization)
-- **Filtering**: Process only rows with StrOrigin changes (filter by CHANGES column)
-- **Performance**: Punctuation check runs first (faster), similarity only if not punctuation-only
-
-**Project Structure**:
-```
-vrsmanager/
-├── models/
-│   └── kr-sbert/           # Local BERT model (included in distribution)
-│       ├── config.json
-│       ├── pytorch_model.bin
-│       ├── tokenizer_config.json
-│       └── ... (other model files)
-├── src/
-│   └── processors/
-│       └── working_processor.py   # Will contain StrOrigin analysis
-├── download_model.py      # One-time model download script
-└── requirements.txt
-```
-
-**Dependencies to Add**:
-```python
-# requirements.txt additions
-sentence-transformers>=2.2.0
-faiss-cpu>=1.7.4  # or faiss-gpu for GPU support
-torch>=1.9.0
-```
-
-**Initial Setup Script** (`download_model.py`):
-```python
-"""
-One-time model download script
-Run this once to set up the local model for offline use
-"""
-from sentence_transformers import SentenceTransformer
-import os
-
-# CRITICAL: Use exact model from XLSTransfer0225.py
-MODEL_NAME = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
-LOCAL_PATH = './models/kr-sbert'
-
-os.makedirs(LOCAL_PATH, exist_ok=True)
-print(f"Downloading model: {MODEL_NAME}")
-model = SentenceTransformer(MODEL_NAME)
-model.save(LOCAL_PATH)
-print(f"✓ Model saved to {LOCAL_PATH}")
-print("✓ Offline operation ready!")
-```
-
----
-
-### **BERT Model Deployment Strategy Discussion**
-
-This section discusses different deployment options for the BERT model and its dependencies.
-
-#### Git Size Limits & Constraints
-
-**GitHub Limits**:
-- Individual file size: **100MB hard limit** (blocks push)
-- Repository size: **<1GB recommended**, **5GB warning threshold**
-- Git is designed for code, not large binary files
-
-**BERT Model + Dependencies Size**:
-```
-BERT model (snunlp/KR-SBERT-V40K-klueNLI-augSTS):  ~447MB
-PyTorch (torch):                                     ~2.0GB
-sentence-transformers:                               ~500MB
-scipy:                                                ~50MB
-scikit-learn:                                         ~30MB
-Other packages (tqdm, etc.):                         ~100MB
-───────────────────────────────────────────────────────────
-TOTAL:                                               ~3.1GB
-```
-
-**❌ Cannot use regular git for these files** (way over limits)
-
-#### Deployment Options Analysis
-
-##### **Option A: Bundle Everything in .exe (RECOMMENDED)**
-
-**How it works:**
-- PyInstaller bundles Python + all packages + BERT model into single .exe
-- Use `--hidden-import` and `--copy-metadata` flags for all dependencies
-- Reference implementation: XLSTransfer0225.py build command
-
-**Build command (from XLSTransfer reference)**:
-```bash
-pyinstaller --clean --onefile --console \
-  --distpath ./ \
-  --icon="images/icon789.ico" \
-  --splash="images/splash123.png" \
-  --hidden-import="tqdm" \
-  --hidden-import="regex" \
-  --hidden-import="requests" \
-  --hidden-import="packaging" \
-  --hidden-import="filelock" \
-  --hidden-import="numpy" \
-  --hidden-import="tokenizers" \
-  --hidden-import="torch" \
-  --copy-metadata="tqdm" \
-  --copy-metadata="regex" \
-  --copy-metadata="requests" \
-  --copy-metadata="packaging" \
-  --copy-metadata="filelock" \
-  --copy-metadata="numpy" \
-  --copy-metadata="tokenizers" \
-  --copy-metadata="torch" \
-  main.py
-```
-
-**Pros:**
-- ✅ **Zero setup for users** - just download and run
-- ✅ **No Python installation required**
-- ✅ **No internet needed** - fully offline
-- ✅ **No security warnings** from company IT (single trusted .exe)
-- ✅ **Simple distribution** - one file to share
-- ✅ **Proven working** - XLSTransfer0225 uses this successfully
-
-**Cons:**
-- ❌ **Large .exe size**: ~2.5-3GB (instead of ~50MB without BERT)
-- ❌ **Longer GitHub Actions build time**: ~15-30 minutes (instead of ~5 min)
-- ❌ **Larger download for users**: 2.5GB vs 50MB
-
-**GitHub Distribution:**
-- Use **GitHub Releases** for .exe (no size limit)
-- Don't commit .exe to git (use .gitignore)
-- GitHub Actions builds and uploads to Release automatically
-
-**Verdict: BEST for end users** ✅
-
----
-
-##### **Option B: Current Implementation (Online-First, Offline-Fallback)**
-
-**How it works:**
-- .exe is small (~50MB, no BERT bundled)
-- First run with internet: Auto-downloads model from Hugging Face
-- Stores in user's cache or program folder
-- Subsequent runs: Uses cached model (offline)
-- If no internet + no cache: Gracefully skips feature
-
-**Current Code** (`src/utils/strorigin_analysis.py`):
-```python
-def _load_model(self):
-    # Try 1: Online from Hugging Face (auto-download)
     try:
-        self.model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
-        return
-    except:
-        pass
+        # Filter rows with StrOrigin changes
+        changes_col = "CHANGES"
+        if changes_col not in self.df_result.columns:
+            log("  ℹ️  No CHANGES column found - skipping StrOrigin analysis")
+            return None
 
-    # Try 2: Local cache (offline mode)
-    if os.path.exists(self.model_path):
-        self.model = SentenceTransformer(self.model_path)
-        return
+        mask = self.df_result[changes_col].astype(str).str.contains(
+            "StrOrigin", case=False, na=False
+        )
+        df_strorigin_changes = self.df_result[mask].copy()
 
-    # Both failed - gracefully skip
-    raise FileNotFoundError("Model not available")
+        if df_strorigin_changes.empty:
+            log("  ℹ️  No StrOrigin changes found - skipping analysis sheet")
+            return None
+
+        log(f"  → Found {len(df_strorigin_changes)} rows with StrOrigin changes")
+
+        # Initialize analyzer (handles LIGHT/FULL automatically)
+        try:
+            analyzer = StrOriginAnalyzer()
+            if analyzer.bert_available:
+                log("  → Running FULL analysis (Punctuation + BERT similarity)...")
+            else:
+                log("  → Running LIGHT analysis (Punctuation + Content Change marker)...")
+
+        except Exception as e:
+            log(f"  ⚠️  Analyzer initialization failed: {e}")
+            log(f"  ℹ️  Skipping StrOrigin Analysis sheet creation")
+            return None
+
+        # Analyze each row
+        analysis_results = []
+        for idx, row in df_strorigin_changes.iterrows():
+            curr_strorigin = safe_str(row.get(COL_STRORIGIN, ""))
+
+            # Extract previous StrOrigin from PreviousData
+            prev_strorigin = ""
+            if COL_PREVIOUSDATA in row and pd.notna(row[COL_PREVIOUSDATA]):
+                previous_data = str(row[COL_PREVIOUSDATA])
+                parts = previous_data.split(" | ")
+                if len(parts) >= 1:
+                    prev_strorigin = parts[0]
+
+            if not prev_strorigin:
+                analysis_results.append("N/A - No previous data")
+                continue
+
+            # Analyze (automatically uses LIGHT or FULL logic)
+            result = analyzer.analyze(prev_strorigin, curr_strorigin)
+            analysis_results.append(result)
+
+        # Add "StrOrigin Analysis" column
+        changes_col_index = df_strorigin_changes.columns.get_loc(changes_col)
+        df_strorigin_changes.insert(
+            changes_col_index + 1,
+            "StrOrigin Analysis",
+            analysis_results
+        )
+
+        log(f"  ✓ StrOrigin analysis complete")
+        return df_strorigin_changes
+
+    except Exception as e:
+        log(f"  ⚠️  Error creating StrOrigin analysis sheet: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 ```
 
-**Offline Setup** (`download_model.bat`):
-```batch
-REM Install sentence-transformers
-python -m pip install sentence-transformers
+---
 
-REM Download model to local cache
-python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS').save('./models/kr-sbert')"
+### Installer Implementation (Inno Setup)
+
+#### File: `installer/vrsmanager_light.iss`
+
+```inno
+; VRS Manager LIGHT Installer Script
+
+[Setup]
+AppName=VRS Manager (LIGHT)
+AppVersion=1.120.0
+AppPublisher=Neil Schmitt
+DefaultDirName={autopf}\VRS Manager
+OutputDir=installer_output
+OutputBaseFilename=VRSManager_v1120_Light_Setup
+Compression=lzma2/ultra64
+SolidCompression=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+UninstallDisplayIcon={app}\VRSManager.exe
+
+[Files]
+; Core application (LIGHT version - no BERT)
+Source: "dist_light\VRSManager.exe"; DestDir: "{app}"
+Source: "dist_light\_internal\*"; DestDir: "{app}\_internal"; Flags: recursesubdirs
+Source: "docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs
+Source: "images\*"; DestDir: "{app}\images"
+Source: "Current\README.txt"; DestDir: "{app}\Current"
+Source: "Previous\README.txt"; DestDir: "{app}\Previous"
+
+[Icons]
+Name: "{autoprograms}\VRS Manager"; Filename: "{app}\VRSManager.exe"
+Name: "{autodesktop}\VRS Manager"; Filename: "{app}\VRSManager.exe"; Tasks: desktopicon
+
+[Tasks]
+Name: "desktopicon"; Description: "Create desktop shortcut"; GroupDescription: "Additional icons:"; Flags: unchecked
+
+[Run]
+Filename: "{app}\VRSManager.exe"; Description: "Launch VRS Manager"; Flags: postinstall nowait skipifsilent
 ```
 
-**Pros:**
-- ✅ **Small .exe download**: ~50MB (fast)
-- ✅ **Fast GitHub Actions builds**: ~5 minutes
-- ✅ **Flexible**: Works online or offline
-- ✅ **User control**: Can choose to skip feature
+#### File: `installer/vrsmanager_full.iss`
 
-**Cons:**
-- ❌ **Complex user setup** for offline mode
-- ❌ **Requires Python installation** for offline setup
-- ❌ **Large download on first use**: 3.1GB packages
-- ❌ **Potential IT security warnings**: Multiple large package downloads
-- ❌ **CRITICAL ISSUE**: .exe can't see packages installed by .bat
-  - .exe has bundled Python interpreter: `VRSManager.exe\Python\...`
-  - .bat installs to system Python: `C:\Python\Lib\site-packages\...`
-  - **They don't share packages!**
+```inno
+; VRS Manager FULL Installer Script
 
-**Verdict: Works for online mode, problematic for offline** ⚠️
+[Setup]
+AppName=VRS Manager (FULL)
+AppVersion=1.120.0
+AppPublisher=Neil Schmitt
+DefaultDirName={autopf}\VRS Manager
+OutputDir=installer_output
+OutputBaseFilename=VRSManager_v1120_Full_Setup
+Compression=lzma2/ultra64
+SolidCompression=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+UninstallDisplayIcon={app}\VRSManager.exe
 
----
+[Files]
+; Full application (includes BERT + PyTorch)
+Source: "dist_full\VRSManager.exe"; DestDir: "{app}"
+Source: "dist_full\_internal\*"; DestDir: "{app}\_internal"; Flags: recursesubdirs
+Source: "docs\*"; DestDir: "{app}\docs"; Flags: recursesubdirs
+Source: "images\*"; DestDir: "{app}\images"
+Source: "Current\README.txt"; DestDir: "{app}\Current"
+Source: "Previous\README.txt"; DestDir: "{app}\Previous"
 
-##### **Option C: Separate Dependencies Package (Advanced)**
+[Icons]
+Name: "{autoprograms}\VRS Manager"; Filename: "{app}\VRSManager.exe"
+Name: "{autodesktop}\VRS Manager"; Filename: "{app}\VRSManager.exe"; Tasks: desktopicon
 
-**How it works:**
-- Main .exe: Small (~50MB), no BERT
-- Separate download: `bert-dependencies.zip` (~3GB)
-- User extracts to program folder
-- .exe checks for dependencies and loads if present
+[Tasks]
+Name: "desktopicon"; Description: "Create desktop shortcut"; GroupDescription: "Additional icons:"; Flags: unchecked
 
-**Distribution:**
-- .exe on GitHub Releases (main download)
-- Dependencies zip on GitHub Releases (optional download)
-- Users download both if they want BERT feature
-
-**Pros:**
-- ✅ **Small main download** for users who don't need BERT
-- ✅ **Full offline support** via dependencies package
-- ✅ **No Python installation required**
-- ✅ **Pre-approved by IT** (single download)
-
-**Cons:**
-- ❌ **Two-step download** (confusing for users)
-- ❌ **Complex build process** (need to package dependencies separately)
-- ❌ **Manual extraction** required
-- ❌ **More support burden** ("Which files do I download?")
-
-**Verdict: More complexity than value** ⚠️
+[Run]
+Filename: "{app}\VRSManager.exe"; Description: "Launch VRS Manager"; Flags: postinstall nowait skipifsilent
+```
 
 ---
 
-##### **Option D: Git LFS (Large File Storage)**
+### Build Process
 
-**How it works:**
-- Store large files (model, packages) in Git LFS
-- Git tracks pointers, LFS handles large binaries
-- Users with git-lfs installed get full files
+#### Step 1: Build Two .exe Versions
 
-**GitHub LFS Limits:**
-- Free: 1GB storage + 1GB/month bandwidth
-- Pro: 50GB storage + 50GB/month bandwidth
+**LIGHT build:**
+```bash
+# Temporary: Remove BERT from VRSManager.spec
+# Remove: models/kr-sbert from datas
+# Remove: torch, transformers from hiddenimports
 
-**Pros:**
-- ✅ **Version control** for large files
-- ✅ **Clean git workflow**
+pyinstaller VRSManager.spec --clean --noconfirm --distpath dist_light
+# Result: dist_light/VRSManager.exe (~150MB)
+```
 
-**Cons:**
-- ❌ **Bandwidth limits** (1GB free = ~1-2 downloads/month)
-- ❌ **Extra cost** ($5/month for 50GB)
-- ❌ **Requires git-lfs** client
-- ❌ **Doesn't solve .exe distribution** (still need Releases)
+**FULL build:**
+```bash
+# Use full VRSManager.spec (current - includes BERT)
+pyinstaller VRSManager.spec --clean --noconfirm --distpath dist_full
+# Result: dist_full/VRSManager.exe (~3GB)
+```
 
-**Verdict: Not suitable for frequent public downloads** ❌
+#### Step 2: Compile Installers
+
+```bash
+# Install Inno Setup (Windows)
+iscc installer/vrsmanager_light.iss
+# Output: VRSManager_v1120_Light_Setup.exe (~150MB)
+
+iscc installer/vrsmanager_full.iss
+# Output: VRSManager_v1120_Full_Setup.exe (~2.6GB)
+```
+
+#### Step 3: Upload to GitHub Releases
+
+```
+GitHub Release v1120.0:
+Assets:
+- VRSManager_v1120_Light_Setup.exe (150MB)
+- VRSManager_v1120_Full_Setup.exe (2.6GB)
+- Source code (zip)
+- Source code (tar.gz)
+```
 
 ---
 
-#### Recommended Strategy
+### GitHub Actions Workflow Update
 
-**Primary Recommendation: Option A (Bundle Everything)** ✅
+**New workflow: `.github/workflows/build-installers.yml`**
 
-**Why:**
-1. **Proven**: XLSTransfer0225 successfully uses this approach
-2. **Simple**: Users just download one .exe and run
-3. **Reliable**: No internet, Python, or setup required
-4. **Professional**: Single trusted .exe (no security warnings)
-5. **Offline-ready**: Works immediately on isolated company computers
+```yaml
+name: Build LIGHT and FULL Installers
 
-**Implementation:**
-1. Update `VRSManager.spec` with all BERT dependencies
-2. Add `--hidden-import` and `--copy-metadata` for torch, transformers, etc.
-3. Include BERT model in bundle (place in expected location)
-4. GitHub Actions builds and uploads to Releases (~2.5GB .exe)
-5. Users download from Releases page
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'BUILD_TRIGGER.txt'
 
-**Trade-offs:**
-- Larger .exe size (2.5GB vs 50MB) - acceptable for feature richness
-- Longer build time (~30min vs 5min) - acceptable for CI/CD
-- Larger download - acceptable (users download once, use forever)
+jobs:
+  build-light:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
 
-**Fallback: Keep Current Option B for Development**
-- Small .exe for quick testing during development
-- Auto-download works fine on dev machines with internet
-- Switch to Option A for production releases
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install LIGHT dependencies
+        run: |
+          pip install pandas openpyxl numpy
+          pip install pyinstaller
+
+      - name: Build LIGHT .exe
+        run: |
+          # Modify spec to exclude BERT temporarily
+          python scripts/prepare_light_spec.py
+          pyinstaller VRSManager_light.spec --clean --noconfirm --distpath dist_light
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Compile LIGHT installer
+        run: iscc installer/vrsmanager_light.iss
+
+      - name: Upload LIGHT installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: VRSManager_Light_Setup
+          path: installer_output/VRSManager_v1120_Light_Setup.exe
+
+  build-full:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install FULL dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Download BERT model
+        run: python scripts/download_bert_model.py
+
+      - name: Build FULL .exe
+        run: pyinstaller VRSManager.spec --clean --noconfirm --distpath dist_full
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Compile FULL installer
+        run: iscc installer/vrsmanager_full.iss
+
+      - name: Upload FULL installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: VRSManager_Full_Setup
+          path: installer_output/VRSManager_v1120_Full_Setup.exe
+
+  release:
+    needs: [build-light, build-full]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.120.0
+          files: |
+            VRSManager_Light_Setup/VRSManager_v1120_Light_Setup.exe
+            VRSManager_Full_Setup/VRSManager_v1120_Full_Setup.exe
+```
+
+---
+
+### User Documentation Updates
+
+#### README.md
+
+```markdown
+## Download
+
+Choose your version:
+
+### 🪶 LIGHT Version (150 MB) - Recommended for:
+- Fast download needed
+- Basic StrOrigin analysis (punctuation/space detection)
+- Limited disk space
+
+**[Download LIGHT Installer](https://github.com/NeilVibe/VRS-Manager/releases/latest/download/VRSManager_v1120_Light_Setup.exe)**
+
+### 🚀 FULL Version (2.6 GB) - Recommended for:
+- Complete AI-powered analysis
+- Semantic similarity percentage
+- Offline use (all features included)
+
+**[Download FULL Installer](https://github.com/NeilVibe/VRS-Manager/releases/latest/download/VRSManager_v1120_Full_Setup.exe)**
+
+---
+
+## Installation
+
+1. Download your preferred version (LIGHT or FULL)
+2. Run the installer (VRSManager_vXXXX_Setup.exe)
+3. Follow installation wizard
+4. Launch from Start Menu
+
+**Both versions work 100% offline after installation.**
+
+## Portable Use (Offline Computers)
+
+After installation, you can copy the installed folder to any computer:
+
+1. Install on a computer (online or offline)
+2. Go to: `C:\Program Files\VRS Manager\`
+3. Zip the entire folder
+4. Transfer to offline computer via USB/network
+5. Extract anywhere and run `VRSManager.exe`
+
+Works completely offline! ✅
+```
+
+---
+
+## Summary: LIGHT vs FULL Comparison
+
+| Feature | LIGHT | FULL |
+|---------|-------|------|
+| **Download Size** | 150 MB | 2.6 GB |
+| **Installed Size** | ~200 MB | ~3.5 GB |
+| **Internet Required** | ❌ No | ❌ No |
+| **All VRS Check Features** | ✅ Yes | ✅ Yes |
+| **Punctuation/Space Detection** | ✅ Yes | ✅ Yes |
+| **BERT Semantic Similarity** | ❌ No | ✅ Yes |
+| **StrOrigin Analysis Output** | "Punctuation/Space Change"<br>"Content Change" | "Punctuation/Space Change"<br>"XX.X% similar" |
+| **Portable (Zip & Transfer)** | ✅ Yes | ✅ Yes |
+| **Offline Operation** | ✅ Yes | ✅ Yes |
+| **Best For** | Fast download, basic needs | Complete analysis, offline AI |
+
+---
+
+## Implementation Checklist
+
+### Phase 3.0: Professional Installer System
+
+**Code Changes:**
+- [ ] Modify `src/utils/strorigin_analysis.py`:
+  - [ ] Add `_check_bert_available()` method
+  - [ ] Update `analyze()` to return "Content Change" in LIGHT version
+  - [ ] Test graceful degradation
+
+- [ ] Modify `src/processors/working_processor.py`:
+  - [ ] Update `create_strorigin_analysis_sheet()` error handling
+  - [ ] Handle both ImportError and FileNotFoundError
+  - [ ] Test LIGHT and FULL versions
+
+**Build Infrastructure:**
+- [ ] Create `installer/` folder
+- [ ] Write `vrsmanager_light.iss` (Inno Setup script)
+- [ ] Write `vrsmanager_full.iss` (Inno Setup script)
+- [ ] Create `scripts/prepare_light_spec.py` (removes BERT from spec)
+- [ ] Create `VRSManager_light.spec` (LIGHT build config)
+- [ ] Test LIGHT build locally
+- [ ] Test FULL build locally
+
+**GitHub Actions:**
+- [ ] Create `.github/workflows/build-installers.yml`
+- [ ] Add Inno Setup compilation step
+- [ ] Test workflow (dry run)
+- [ ] Verify artifact uploads
+
+**Testing:**
+- [ ] Test LIGHT installer on clean Windows VM
+- [ ] Test FULL installer on clean Windows VM
+- [ ] Verify StrOrigin Analysis in both versions
+- [ ] Test portability (zip → transfer → extract → run)
+- [ ] Test offline operation
+
+**Documentation:**
+- [ ] Update README.md with two download links
+- [ ] Update BERT_MODEL_SETUP.md (explain LIGHT vs FULL)
+- [ ] Add installation guide
+- [ ] Add portability guide
+
+**Release:**
+- [ ] Update version to v1120.0
+- [ ] Build both installers via GitHub Actions
+- [ ] Create GitHub Release
+- [ ] Upload both installers
+- [ ] Announce release
 
 ---
 
 ## Version History
 
-### v1119.0 (Current - Production Ready)
+### v1120.0 (Planned - Phase 3.0)
+- **NEW**: Professional installer system
+- **NEW**: LIGHT version (150MB) - Core features only
+- **NEW**: FULL version (2.6GB) - Complete with BERT
+- **IMPROVED**: StrOrigin Analysis works in both versions
+- **IMPROVED**: Portable installation (zip & transfer)
+- **IMPROVED**: Start Menu integration
+- **IMPROVED**: Proper Windows uninstaller
+
+### v1119.1 (Current - Building)
+- **BUNDLED**: BERT model + PyTorch in single 3GB .exe
+- **IMPROVED**: Full offline operation
+- **IMPROVED**: Zero setup required
+
+### v1119.0 (Production Ready)
 - **Phase 2.3 COMPLETED**: StrOrigin Change Analysis
-  - NEW: "StrOrigin Change Analysis" sheet in Working VRS Check output
-  - NEW: Punctuation/Space-only change detection (normalize + compare)
-  - NEW: BERT-based semantic similarity analysis (Korean SBERT model)
-  - NEW: Automatic classification: "Punctuation/Space Change" or "XX.X% similar"
-  - OFFLINE: Korean BERT model (447MB) runs locally - no internet needed
-  - ANALYSIS: Helps analysts identify trivial vs substantial StrOrigin changes
+  - NEW: "StrOrigin Change Analysis" sheet in Working VRS Check
+  - NEW: Punctuation/Space-only detection
+  - NEW: BERT semantic similarity (Korean SBERT)
+  - NEW: Results: "Punctuation/Space Change" or "XX.X% similar"
+- **OFFLINE**: Model runs locally, no internet needed
 - **FILES ADDED**:
-  - src/utils/strorigin_analysis.py: Text normalization + BERT similarity
-  - download_bert_model.py: One-time model download script
-  - models/kr-sbert/: Korean BERT model files (not in git - too large)
+  - `src/utils/strorigin_analysis.py`
+  - `scripts/download_bert_model.py`
+  - `scripts/download_model.bat`
 
-### v1118.6
-- **CRITICAL BUG FIXES**:
-  - Fixed TypeError 'unhashable type: dict' in Working VRS Check
-  - Fixed lookup dictionaries storing dict objects instead of indices (src/core/working_helpers.py)
-  - Applied safe_str() pattern to all DataFrame column access across all processors
-  - Fixed src/core/lookups.py, comparison.py, working_comparison.py, alllang_helpers.py
-- **COMPREHENSIVE TESTING**:
-  - Created 5000-row test suite with 10 edge case scenarios
-  - Verified 100% accuracy: change detection, new rows, deleted rows
-  - Mathematical verification: all rows accounted for, zero loss
-  - Performance tested: 879 rows/sec (Raw), 856 rows/sec (Working)
-- **DOCUMENTATION**:
-  - Created CLAUDE.md reference guide for future Claude instances
-  - Updated all Excel guides (EN/KR) with v1118.6 changelog
-  - Unified version numbers across all files
-  - Manual-trigger build system (BUILD_TRIGGER.txt)
-
-### v1118.5
-- DialogType & Group Change Detection
-- Added "DialogType Change" and "Group Change" markers to CHANGES column
-- Support for composite markers (e.g., "StrOrigin+DialogType Change")
-- Works in both Raw and Working processors
-
-### v1118.4
+### v1118.6 (Reorganization Complete)
+- **REORGANIZED**: Project structure
+  - Moved tests → `tests/`
+  - Moved docs → `docs/`
+  - Moved archives → `ARCHIVE/`
+  - Created `scripts/` for build/setup scripts
 - **Phase 2.2.1 COMPLETED**: Super Group Analysis Improvements
-  - Removed "Others" super group and stageclosedialog check
-  - Reordered super groups: AI Dialog now before Quest Dialog
-  - Renamed "Untranslated Words (Remaining to Translate)" → "Not Translated"
-  - Removed migration columns from main table
-  - Added detailed "Super Group Migrations" table (source → destination pairs)
-  - Updated explanatory notes below table
-- Super Group Aggregation & Translation Tracking
-- Enhanced Word Analysis with reorganized columns
+  - Removed "Others" category
+  - Reordered super groups
+  - Added migration tracking table
+  - Renamed "Untranslated" → "Not Translated"
 
-### v1118.3
-- Master File Update with TimeFrame Preservation
-
-### v1118.2
-- Master File Update Simplification
-- EventName-only matching
-
----
-
-## Future Considerations
-
-**After Phase 2.2**:
-- Additional change detail analysis for other change types
-- Visual diff tool for StrOrigin changes
-- Export detailed change reports
-- Performance optimization for large datasets
+### v1118.5 and earlier
+- See git history for complete version details
+- All core VRS Check features implemented
+- 10-Key matching, TWO-PASS algorithm, TimeFrame preservation
