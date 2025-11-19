@@ -9,6 +9,7 @@ import pandas as pd
 from src.config import COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY
 from src.utils.helpers import log
 from src.utils.progress import print_progress, finalize_progress
+from src.utils.data_processing import safe_str
 
 
 def build_working_lookups(df, label="PREVIOUS"):
@@ -39,12 +40,10 @@ def build_working_lookups(df, label="PREVIOUS"):
     log(f"Building {label} lookup dictionaries (10-key system)...")
 
     for idx, row in df.iterrows():
-        row_dict = row.to_dict()
-
-        S = row[COL_SEQUENCE]
-        E = row[COL_EVENTNAME]
-        O = row[COL_STRORIGIN]
-        C = row[COL_CASTINGKEY]
+        S = safe_str(row.get(COL_SEQUENCE, ""))
+        E = safe_str(row.get(COL_EVENTNAME, ""))
+        O = safe_str(row.get(COL_STRORIGIN, ""))
+        C = safe_str(row.get(COL_CASTINGKEY, ""))
 
         # Generate all 10 keys
         key_se = (S, E)
@@ -58,27 +57,27 @@ def build_working_lookups(df, label="PREVIOUS"):
         key_soc = (S, O, C)
         key_eoc = (E, O, C)
 
-        # Store row_dict in each lookup (first occurrence only)
+        # Store idx in each lookup (first occurrence only)
         if key_se not in lookup_se:
-            lookup_se[key_se] = row_dict
+            lookup_se[key_se] = idx
         if key_so not in lookup_so:
-            lookup_so[key_so] = row[COL_EVENTNAME]  # Store EventName for backwards compat
+            lookup_so[key_so] = idx
         if key_sc not in lookup_sc:
-            lookup_sc[key_sc] = row_dict
+            lookup_sc[key_sc] = idx
         if key_eo not in lookup_eo:
-            lookup_eo[key_eo] = row_dict
+            lookup_eo[key_eo] = idx
         if key_ec not in lookup_ec:
-            lookup_ec[key_ec] = row_dict
+            lookup_ec[key_ec] = idx
         if key_oc not in lookup_oc:
-            lookup_oc[key_oc] = row_dict
+            lookup_oc[key_oc] = idx
         if key_seo not in lookup_seo:
-            lookup_seo[key_seo] = row_dict
+            lookup_seo[key_seo] = idx
         if key_sec not in lookup_sec:
-            lookup_sec[key_sec] = row_dict
+            lookup_sec[key_sec] = idx
         if key_soc not in lookup_soc:
-            lookup_soc[key_soc] = row_dict
+            lookup_soc[key_soc] = idx
         if key_eoc not in lookup_eoc:
-            lookup_eoc[key_eoc] = row_dict
+            lookup_eoc[key_eoc] = idx
 
         if (idx + 1) % 500 == 0 or idx == total - 1:
             print_progress(idx + 1, total, f"Indexing {label}")
