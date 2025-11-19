@@ -16,6 +16,7 @@ a = Analysis(
         ('docs/VRS_Manager_Process_Guide_KR.xlsx', '.'),  # Include Korean guide
         ('Previous/README.txt', 'Previous'),  # Include Previous folder with README
         ('Current/README.txt', 'Current'),  # Include Current folder with README
+        ('models/kr-sbert', 'models/kr-sbert'),  # BERT model for StrOrigin analysis (447MB)
     ],
     hiddenimports=[
         # Numpy dependencies (critical for PyInstaller)
@@ -74,14 +75,37 @@ a = Analysis(
         'src.utils.helpers',
         'src.utils.progress',
         'src.utils.data_processing',
+        'src.utils.strorigin_analysis',
+        'src.utils.super_groups',
+        # BERT and ML dependencies (from XLSTransfer0225 command)
+        'torch',
+        'torch._C',
+        'torch.nn',
+        'torch.optim',
+        'tokenizers',
+        'transformers',
+        'sentence_transformers',
+        'sentence_transformers.models',
+        'sentence_transformers.util',
+        'tqdm',
+        'regex',
+        'requests',
+        'packaging',
+        'filelock',
+        'huggingface_hub',
+        'scipy',
+        'scipy.spatial',
+        'scipy.spatial.distance',
+        'scikit-learn',
+        'sklearn',
+        'sklearn.metrics',
+        'sklearn.metrics.pairwise',
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        'matplotlib',
-        'scipy',
-        'PIL',
+        'matplotlib',  # Don't need plotting
         'setuptools',
         'distutils',
     ],
