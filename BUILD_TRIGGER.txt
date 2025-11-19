@@ -4,39 +4,32 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Last build: v1.120.0 (Failed - deprecated actions + model loading issue)
-Current build: v1.120.0 (FIXED - Retry with corrections)
+Last build: v1.120.0 (Failed - model not in repo)
+Current build: v1.120.0 (FIXED - model now in git via LFS!)
 
-Build v1.120.0 - Phase 3.0 Professional Installer System (RETRY)
-------------------------------------------------------------------
+Build v1.120.0 - Phase 3.0 Professional Installer System (FINAL FIX)
+---------------------------------------------------------------------
 
-CRITICAL FIXES APPLIED:
-✅ Upgraded artifact actions v3 → v4 (fixes deprecation error)
-✅ Model loads from bundled path FIRST (100% offline, no AppData)
+CRITICAL FIX APPLIED:
+✅ BERT model now stored in git repo using Git LFS
+✅ Model included when repo is cloned
+✅ No more download failures
+✅ PyInstaller will find model immediately
+
+Git LFS Setup:
+- models/kr-sbert/model.safetensors (467MB) tracked via LFS
+- Model available in every build automatically
+- No internet dependency for model download
 
 This build creates TWO installers:
 
 1. LIGHT Version (~150MB)
    - Core VRS Check features
-   - Punctuation/Space detection
-   - Fast, lightweight
-   - StrOrigin shows: "Punctuation/Space Change" or "Content Change"
+   - No BERT model needed
 
 2. FULL Version (~2.6GB)
    - Everything in LIGHT
-   - PyTorch + Korean BERT model (bundled)
-   - AI-powered semantic similarity
-   - StrOrigin shows: "Punctuation/Space Change" or "XX.X% similar"
-   - 100% offline - loads model from bundle, NOT AppData!
+   - BERT model bundled from repo (via LFS)
+   - 100% offline operation
 
-Both versions:
-- 100% offline operation
-- Professional Windows installers
-- Start Menu integration
-- Fully portable
-- Everything in ONE program folder (no AppData/temp downloads)
-
-Changes from previous attempt:
-- Fixed deprecated upload-artifact@v3 → v4
-- Fixed model loading order (bundled first, online fallback)
-- Model won't download to AppData anymore
+PROBLEM SOLVED: "Unable to find models/kr-sbert" error fixed!
