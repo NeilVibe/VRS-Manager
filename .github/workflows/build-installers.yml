@@ -36,12 +36,17 @@ jobs:
 
       - name: Verify LIGHT build
         run: |
-          if (!(Test-Path "dist_light\VRSManager.exe")) {
+          if (!(Test-Path "dist_light\VRSManager\VRSManager.exe")) {
             Write-Error "LIGHT build failed - VRSManager.exe not found"
+            Write-Host "Expected at: dist_light\VRSManager\VRSManager.exe"
+            if (Test-Path "dist_light") {
+              Write-Host "Contents of dist_light:"
+              Get-ChildItem "dist_light" -Recurse | Select-Object -First 20
+            }
             exit 1
           }
           Write-Host "✓ LIGHT build successful"
-          $size = (Get-Item "dist_light\VRSManager.exe").length / 1MB
+          $size = (Get-Item "dist_light\VRSManager\VRSManager.exe").length / 1MB
           Write-Host "  Size: $([math]::Round($size, 1)) MB"
         shell: pwsh
 
@@ -94,12 +99,7 @@ jobs:
           pip install pyinstaller
         shell: pwsh
 
-      - name: Download BERT model
-        run: |
-          python scripts/download_bert_model.py
-        shell: pwsh
-
-      - name: Verify BERT model
+      - name: Verify BERT model (from LFS)
         run: |
           Write-Host "Checking for model directory..."
           if (!(Test-Path "models\kr-sbert")) {
@@ -137,12 +137,17 @@ jobs:
 
       - name: Verify FULL build
         run: |
-          if (!(Test-Path "dist_full\VRSManager.exe")) {
+          if (!(Test-Path "dist_full\VRSManager\VRSManager.exe")) {
             Write-Error "FULL build failed - VRSManager.exe not found"
+            Write-Host "Expected at: dist_full\VRSManager\VRSManager.exe"
+            if (Test-Path "dist_full") {
+              Write-Host "Contents of dist_full:"
+              Get-ChildItem "dist_full" -Recurse | Select-Object -First 20
+            }
             exit 1
           }
           Write-Host "✓ FULL build successful"
-          $size = (Get-Item "dist_full\VRSManager.exe").length / 1GB
+          $size = (Get-Item "dist_full\VRSManager\VRSManager.exe").length / 1GB
           Write-Host "  Size: $([math]::Round($size, 2)) GB"
         shell: pwsh
 
