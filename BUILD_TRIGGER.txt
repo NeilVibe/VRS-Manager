@@ -4,20 +4,21 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #3)
+Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #4)
 ------------------------------------------------------
 
 FIXES APPLIED IN THIS BUILD:
+✅ Pascal line length limit: Break CreateOutputMsgMemoPage call across lines
 ✅ Model file check: pytorch_model.bin → model.safetensors
-✅ Inno Setup Pascal syntax: Variable assignment for CreateOutputMsgMemoPage
 ✅ Git LFS enabled in all checkout steps
 ✅ Inno Setup OutputDir corrected (..\installer_output)
 
-Previous Build Failures (13:44:17Z):
-- FULL: Failed "Verify BERT model" - Checked for pytorch_model.bin (OLD format)
-  Model uses model.safetensors (NEW safetensors format)
-- LIGHT: Failed "Compile LIGHT installer" - Line 127 Invalid number of parameters
-  Multi-line string concatenation in function call confused Pascal parser
+Previous Build Failures (14:05:39Z - Build #3):
+- LIGHT: Line 125, Column 127 - Line too long (134 chars > 127 limit)
+- FULL: Line 130, Column 127 - Line too long (142 chars > 127 limit)
+
+Root cause: Inno Setup Pascal has 127-character line limit
+Fix: Multi-line function call with parameters on separate lines
 
 Build creates TWO Windows installers:
 

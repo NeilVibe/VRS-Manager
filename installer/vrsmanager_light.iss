@@ -122,5 +122,8 @@ begin
               'Download VRSManager_v1.120.0_Full_Setup.exe instead' + #13#10 +
               '(2.6 GB download with BERT analysis)';
 
-  InfoPage := CreateOutputMsgMemoPage(wpWelcome, 'VRS Manager LIGHT Version', 'Fast & Lightweight Translation Tool', InfoText);
+  InfoPage := CreateOutputMsgMemoPage(wpWelcome,
+    'VRS Manager LIGHT Version',
+    'Fast & Lightweight Translation Tool',
+    InfoText);
 end;

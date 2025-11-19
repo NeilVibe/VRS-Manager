@@ -127,5 +127,8 @@ begin
               'After installation, you can zip the entire folder' + #13#10 +
               'and transfer to offline computers!';
 
-  InfoPage := CreateOutputMsgMemoPage(wpWelcome, 'VRS Manager FULL Version', 'Complete AI-Powered Translation Tool', InfoText);
+  InfoPage := CreateOutputMsgMemoPage(wpWelcome,
+    'VRS Manager FULL Version',
+    'Complete AI-Powered Translation Tool',
+    InfoText);
 end;
