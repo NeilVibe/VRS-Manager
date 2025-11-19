@@ -4,20 +4,20 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #2)
+Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #3)
 ------------------------------------------------------
 
 FIXES APPLIED IN THIS BUILD:
+✅ Model file check: pytorch_model.bin → model.safetensors
+✅ Inno Setup Pascal syntax: Variable assignment for CreateOutputMsgMemoPage
 ✅ Git LFS enabled in all checkout steps
 ✅ Inno Setup OutputDir corrected (..\installer_output)
-✅ Model tracked in LFS (467MB)
-✅ PyInstaller COLLECT creates folder structure
-✅ Workflow verification uses correct paths
-✅ No download step (model from LFS)
 
-Previous Build Failures (13:32:38Z):
-- FULL: Failed at "Verify BERT model (from LFS)" - LFS not enabled
-- LIGHT: Failed at "Compile LIGHT installer" - Wrong OutputDir
+Previous Build Failures (13:44:17Z):
+- FULL: Failed "Verify BERT model" - Checked for pytorch_model.bin (OLD format)
+  Model uses model.safetensors (NEW safetensors format)
+- LIGHT: Failed "Compile LIGHT installer" - Line 127 Invalid number of parameters
+  Multi-line string concatenation in function call confused Pascal parser
 
 Build creates TWO Windows installers:
 

@@ -105,29 +105,27 @@ Type: filesandordirs; Name: "{app}\*.log"
 procedure InitializeWizard();
 var
   InfoPage: TOutputMsgMemoWizardPage;
+  InfoText: String;
 begin
-  // Create custom info page
-  InfoPage := CreateOutputMsgMemoPage(wpWelcome,
-    'VRS Manager FULL Version',
-    'Complete AI-Powered Translation Tool',
-    'You are installing the FULL version of VRS Manager.' + #13#10 + #13#10 +
-    'Features included:' + #13#10 +
-    '  ✓ All VRS Check processes (Raw, Working, AllLang, Master)' + #13#10 +
-    '  ✓ Punctuation/Space change detection' + #13#10 +
-    '  ✓ BERT AI semantic similarity analysis' + #13#10 +
-    '  ✓ Korean language optimization (KR-SBERT)' + #13#10 +
-    '  ✓ Complete offline operation' + #13#10 + #13#10 +
-    'FULL version behavior:' + #13#10 +
-    '  • Punctuation-only changes: "Punctuation/Space Change"' + #13#10 +
-    '  • Content changes: Shows similarity percentage' + #13#10 +
-    '    Example: "94.5% similar", "48.6% similar"' + #13#10 + #13#10 +
-    'Download size: ~2.6 GB' + #13#10 +
-    'Installed size: ~3.5 GB' + #13#10 + #13#10 +
-    'Includes:' + #13#10 +
-    '  • PyTorch (~2 GB)' + #13#10 +
-    '  • Korean BERT Model (447 MB)' + #13#10 +
-    '  • All ML dependencies' + #13#10 + #13#10 +
-    'After installation, you can zip the entire folder' + #13#10 +
-    'and transfer to offline computers!'
-  );
+  InfoText := 'You are installing the FULL version of VRS Manager.' + #13#10 + #13#10 +
+              'Features included:' + #13#10 +
+              '  ✓ All VRS Check processes (Raw, Working, AllLang, Master)' + #13#10 +
+              '  ✓ Punctuation/Space change detection' + #13#10 +
+              '  ✓ BERT AI semantic similarity analysis' + #13#10 +
+              '  ✓ Korean language optimization (KR-SBERT)' + #13#10 +
+              '  ✓ Complete offline operation' + #13#10 + #13#10 +
+              'FULL version behavior:' + #13#10 +
+              '  • Punctuation-only changes: "Punctuation/Space Change"' + #13#10 +
+              '  • Content changes: Shows similarity percentage' + #13#10 +
+              '    Example: "94.5% similar", "48.6% similar"' + #13#10 + #13#10 +
+              'Download size: ~2.6 GB' + #13#10 +
+              'Installed size: ~3.5 GB' + #13#10 + #13#10 +
+              'Includes:' + #13#10 +
+              '  • PyTorch (~2 GB)' + #13#10 +
+              '  • Korean BERT Model (447 MB)' + #13#10 +
+              '  • All ML dependencies' + #13#10 + #13#10 +
+              'After installation, you can zip the entire folder' + #13#10 +
+              'and transfer to offline computers!';
+
+  InfoPage := CreateOutputMsgMemoPage(wpWelcome, 'VRS Manager FULL Version', 'Complete AI-Powered Translation Tool', InfoText);
 end;

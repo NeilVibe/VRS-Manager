@@ -120,7 +120,7 @@ jobs:
           Write-Host "✓ BERT model directory exists"
 
           # Verify critical files
-          $requiredFiles = @("config.json", "pytorch_model.bin")
+          $requiredFiles = @("config.json", "model.safetensors")
           foreach ($file in $requiredFiles) {
             $filePath = "models\kr-sbert\$file"
             if (!(Test-Path $filePath)) {

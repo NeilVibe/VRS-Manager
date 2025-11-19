@@ -105,24 +105,22 @@ Type: filesandordirs; Name: "{app}\*.log"
 procedure InitializeWizard();
 var
   InfoPage: TOutputMsgMemoWizardPage;
+  InfoText: String;
 begin
-  // Create custom info page
-  InfoPage := CreateOutputMsgMemoPage(wpWelcome,
-    'VRS Manager LIGHT Version',
-    'Fast & Lightweight Translation Tool',
-    'You are installing the LIGHT version of VRS Manager.' + #13#10 + #13#10 +
-    'Features included:' + #13#10 +
-    '  ✓ All VRS Check processes (Raw, Working, AllLang, Master)' + #13#10 +
-    '  ✓ Punctuation/Space change detection' + #13#10 +
-    '  ✓ StrOrigin Analysis sheet creation' + #13#10 +
-    '  ✓ Fast, lightweight processing' + #13#10 + #13#10 +
-    'LIGHT version behavior:' + #13#10 +
-    '  • Punctuation-only changes: "Punctuation/Space Change"' + #13#10 +
-    '  • Content changes: "Content Change"' + #13#10 + #13#10 +
-    'Download size: ~150 MB' + #13#10 +
-    'Installed size: ~200 MB' + #13#10 + #13#10 +
-    'For AI-powered semantic similarity (FULL version):' + #13#10 +
-    'Download VRSManager_v1.120.0_Full_Setup.exe instead' + #13#10 +
-    '(2.6 GB download with BERT analysis)'
-  );
+  InfoText := 'You are installing the LIGHT version of VRS Manager.' + #13#10 + #13#10 +
+              'Features included:' + #13#10 +
+              '  ✓ All VRS Check processes (Raw, Working, AllLang, Master)' + #13#10 +
+              '  ✓ Punctuation/Space change detection' + #13#10 +
+              '  ✓ StrOrigin Analysis sheet creation' + #13#10 +
+              '  ✓ Fast, lightweight processing' + #13#10 + #13#10 +
+              'LIGHT version behavior:' + #13#10 +
+              '  • Punctuation-only changes: "Punctuation/Space Change"' + #13#10 +
+              '  • Content changes: "Content Change"' + #13#10 + #13#10 +
+              'Download size: ~150 MB' + #13#10 +
+              'Installed size: ~200 MB' + #13#10 + #13#10 +
+              'For AI-powered semantic similarity (FULL version):' + #13#10 +
+              'Download VRSManager_v1.120.0_Full_Setup.exe instead' + #13#10 +
+              '(2.6 GB download with BERT analysis)';
+
+  InfoPage := CreateOutputMsgMemoPage(wpWelcome, 'VRS Manager LIGHT Version', 'Fast & Lightweight Translation Tool', InfoText);
 end;
