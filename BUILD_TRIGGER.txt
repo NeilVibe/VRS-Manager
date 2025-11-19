@@ -4,37 +4,44 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (FINAL - Build #6)
-----------------------------------------------
+Build v1.121.0 - Phase 3.1.1 (Word-Level Diff Enhancement)
+-----------------------------------------------------------
 
-CRITICAL FIXES:
-✅ GitHub workflow permissions: Added contents: write for release creation
-✅ Wizard pages: Re-enabled with empty InitializeWizard (standard Inno wizard)
-✅ Model file check: pytorch_model.bin → model.safetensors
-✅ Git LFS enabled in all checkout steps
-✅ Inno Setup OutputDir corrected (..\installer_output)
+MAJOR IMPROVEMENTS:
+✅ Word-level diff algorithm (WinMerge-style chunking)
+✅ Separate 4-column layout for StrOrigin Analysis
+✅ Progress bar with filling animation
+✅ StrOrigin Analysis in BOTH Raw and Working Process
+✅ Optimized column widths (25|25|20|35)
 
-Previous Build Results (14:22:48Z - Build #5):
-✅ LIGHT: Compiled successfully (1m52s) - Artifact uploaded
-✅ FULL: Compiled successfully (7m35s) - Artifact uploaded
-❌ Release: Failed with 403 (Permission Denied)
+TECHNICAL CHANGES:
+- extract_differences(): Character→Word level diff
+- analyze(): Returns tuple (analysis, diff_detail)
+- create_strorigin_analysis_sheet(): Added to Raw Processor
+- Progress tracking: Every 5 rows with filling bar
+- Column layout: Previous → Current → Analysis → Diff
 
-Fixes:
-- Added "permissions: contents: write" to workflow (fixes 403 error)
-- Simplified wizard code (no custom pages, uses standard Inno Setup wizard)
+TESTING:
+✅ test_word_level_analyzer.py - All tests pass
+✅ test_korean_diff.py - Word-level validates correctly
+✅ test_accuracy.py - 100% accuracy maintained
+✅ All existing tests pass
 
-This should create the GitHub Release with both installers!
+VERSION: 1.121.0
+- All 10+ version files updated consistently
+- Excel guides updated (EN/KR)
+- Documentation complete
 
 Build creates TWO Windows installers:
 
 LIGHT Version (~150MB):
 - Path: dist_light/VRSManager/VRSManager.exe
 - No BERT model
-- Output: installer_output/VRSManager_v1.120.0_Light_Setup.exe
+- Output: installer_output/VRSManager_v1.121.0_Light_Setup.exe
 
 FULL Version (~2.6GB):
 - Path: dist_full/VRSManager/VRSManager.exe
 - BERT model bundled from LFS
-- Output: installer_output/VRSManager_v1.120.0_Full_Setup.exe
+- Output: installer_output/VRSManager_v1.121.0_Full_Setup.exe
 
-All critical errors fixed - testing build #2!
+This is Build #7 - Phase 3.1.1 Complete!
