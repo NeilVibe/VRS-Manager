@@ -316,24 +316,24 @@ def write_super_group_migration_details(worksheet, migration_details, start_row)
 
 **Integration**: Call from `write_super_group_word_analysis()` after main table
 
-#### Implementation Steps
+#### Implementation Steps ✅ ALL COMPLETED
 
-- [ ] Remove stageclosedialog check entirely in `super_groups.py` (delete lines 39-40)
-- [ ] Remove "Others" from super_groups list (line 88-90)
-- [ ] Reorder super_groups list to new desired order
-- [ ] Rename column header from "Untranslated Words (Remaining to Translate)" to "Not Translated" (line 219)
-- [ ] Update column width for "Not Translated" from 28 to 16 (line 247)
-- [ ] Update "Everything Else" note in `excel_writer.py` (line 354) - remove "Others" reference
-- [ ] Add migration_details tracking in `aggregate_to_super_groups()`
-- [ ] Update return value to include migration_details
-- [ ] Remove migration columns from main table in `excel_writer.py`
-- [ ] Update column widths dictionary (remove O, P)
-- [ ] Update formatting loop to exclude O, P columns
-- [ ] Create `write_super_group_migration_details()` function
-- [ ] Integrate migration table into `write_super_group_word_analysis()`
-- [ ] Update all callers to handle new tuple return value
-- [ ] Test with sample data containing migrations
-- [ ] Verify table order and migration details
+- [x] Remove stageclosedialog check entirely in `super_groups.py` (delete lines 39-40)
+- [x] Remove "Others" from super_groups list (line 88-90)
+- [x] Reorder super_groups list to new desired order
+- [x] Rename column header from "Untranslated Words (Remaining to Translate)" to "Not Translated" (line 219)
+- [x] Update column width for "Not Translated" from 28 to 16 (line 247)
+- [x] Update "Everything Else" note in `excel_writer.py` (line 354) - remove "Others" reference
+- [x] Add migration_details tracking in `aggregate_to_super_groups()`
+- [x] Update return value to include migration_details
+- [x] Remove migration columns from main table in `excel_writer.py`
+- [x] Update column widths dictionary (remove O, P)
+- [x] Update formatting loop to exclude O, P columns
+- [x] Create `write_super_group_migration_details()` function
+- [x] Integrate migration table into `write_super_group_word_analysis()`
+- [x] Update all callers to handle new tuple return value
+- [x] Test with sample data containing migrations
+- [x] Verify table order and migration details
 
 #### Success Criteria
 
@@ -758,6 +758,13 @@ print("✓ Offline operation ready!")
 - Works in both Raw and Working processors
 
 ### v1118.4
+- **Phase 2.2.1 COMPLETED**: Super Group Analysis Improvements
+  - Removed "Others" super group and stageclosedialog check
+  - Reordered super groups: AI Dialog now before Quest Dialog
+  - Renamed "Untranslated Words (Remaining to Translate)" → "Not Translated"
+  - Removed migration columns from main table
+  - Added detailed "Super Group Migrations" table (source → destination pairs)
+  - Updated explanatory notes below table
 - Super Group Aggregation & Translation Tracking
 - Enhanced Word Analysis with reorganized columns
 

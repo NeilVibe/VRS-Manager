@@ -31,15 +31,16 @@ EN_CONTENT = [
         ]
     },
     {
-        "title": "✅ Enhanced Super Group Word Analysis (v1118.4)",
+        "title": "✅ Phase 2.2.1 COMPLETED - Super Group Analysis Improvements (v1118.4)",
         "items": [
-            "NEW: 'Other' super group - Contains: Police, Minigame, Trade, Church, Shop, Contribution, RoyalSupply, Research, Quest Groups, faction_etc",
-            "RENAMED: Catch-all 'Other' → 'Everything Else' (for better clarity)",
-            "NEW: Translation % (Previous) - Track translation progress from previous version",
-            "NEW: Translation % Change - See translation progress difference",
-            "Renamed: 'Untranslated Words' → 'Untranslated Words (Remaining to Translate)'",
-            "Reorganized columns: Most important metrics first, related data grouped together",
-            "Added explanatory note below table describing 'Everything Else'",
+            "REMOVED: 'Others' super group and stageclosedialog check entirely",
+            "REORDERED: Super groups - AI Dialog now appears before Quest Dialog",
+            "RENAMED: 'Untranslated Words (Remaining to Translate)' → 'Not Translated'",
+            "REMOVED: Migration columns from main table (Words Migrated In/Out)",
+            "ADDED: Detailed 'Super Group Migrations' table below main table",
+            "Shows source → destination pairs with word counts for all migrations",
+            "UPDATED: Explanatory notes below table (removed 'Others' references)",
+            "8 super groups total: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else",
         ]
     },
     {
@@ -75,15 +76,16 @@ KR_CONTENT = [
         ]
     },
     {
-        "title": "✅ 향상된 슈퍼 그룹 단어 분석 (v1118.4)",
+        "title": "✅ Phase 2.2.1 완료 - 슈퍼 그룹 분석 개선 (v1118.4)",
         "items": [
-            "새로운 기능: 'Other' 슈퍼 그룹 - 포함: Police, Minigame, Trade, Church, Shop, Contribution, RoyalSupply, Research, Quest Groups, faction_etc",
-            "이름 변경: 포괄적인 'Other' → 'Everything Else' (더 명확한 의미)",
-            "새로운 기능: Translation % (Previous) - 이전 버전의 번역 진행 상황 추적",
-            "새로운 기능: Translation % Change - 번역 진행률 차이 확인",
-            "이름 변경: 'Untranslated Words' → 'Untranslated Words (Remaining to Translate)'",
-            "컬럼 재구성: 가장 중요한 지표를 먼저 배치, 관련 데이터를 그룹화",
-            "'Everything Else'를 설명하는 참고 사항을 표 아래에 추가",
+            "제거됨: 'Others' 슈퍼 그룹 및 stageclosedialog 체크 완전히 제거",
+            "재정렬: 슈퍼 그룹 - AI Dialog가 이제 Quest Dialog 앞에 표시됨",
+            "이름 변경: 'Untranslated Words (Remaining to Translate)' → 'Not Translated'",
+            "제거됨: 메인 테이블에서 마이그레이션 컬럼 제거 (Words Migrated In/Out)",
+            "추가됨: 메인 테이블 아래에 상세한 'Super Group Migrations' 테이블",
+            "모든 마이그레이션에 대한 소스 → 목적지 쌍과 단어 수 표시",
+            "업데이트: 테이블 아래 설명 노트 ('Others' 참조 제거)",
+            "총 8개의 슈퍼 그룹: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else",
         ]
     },
     {
