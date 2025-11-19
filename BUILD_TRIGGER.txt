@@ -4,37 +4,25 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 Professional Installer System
----------------------------------------------------------
+Build v1.120.0 - Phase 3.0 (ALL CRITICAL FIXES APPLIED)
+--------------------------------------------------------
 
-ALL FIXES APPLIED:
-✅ BERT model in git via LFS (no download failures)
-✅ PyInstaller creates folder structure (not monolith)
-✅ Inno Setup scripts match new folder structure
-✅ Artifact actions upgraded to v4
-✅ Model loads from bundled path first (offline priority)
+FINAL FIXES:
+✅ Model in git via LFS (no download needed)
+✅ PyInstaller COLLECT creates folder structure
+✅ Inno Setup matches folder structure
+✅ Workflow verification uses correct paths
+✅ No download step (model from LFS)
+✅ Old executable workflow removed
 
-This build creates TWO professional Windows installers:
+Build creates TWO Windows installers:
 
-1. LIGHT Version Installer (~150MB)
-   Installs to: C:\Program Files\VRS Manager\
-   - VRSManager.exe
-   - _internal\ (core dependencies)
-   - No BERT model
-   - Shows "Content Change" for StrOrigin
+LIGHT Version (~150MB):
+- Path: dist_light/VRSManager/VRSManager.exe
+- No BERT model
 
-2. FULL Version Installer (~2.6GB)
-   Installs to: C:\Program Files\VRS Manager\
-   - VRSManager.exe
-   - _internal\ (all dependencies + BERT model)
-   - Shows "XX.X% similar" for StrOrigin
-   - 100% offline operation
+FULL Version (~2.6GB):
+- Path: dist_full/VRSManager/VRSManager.exe
+- BERT model bundled from LFS
 
-Build Process:
-1. Clone repo → Model included (via LFS) ✅
-2. PyInstaller → Creates folder structure ✅
-3. Inno Setup → Finds files correctly ✅
-4. Upload installers ✅
-5. Create GitHub Release ✅
-
-Ready to build!
+All errors fixed - ready to build!
