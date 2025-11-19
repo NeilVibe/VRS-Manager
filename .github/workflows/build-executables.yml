@@ -2,8 +2,9 @@ name: Build Executables
 
 on:
   push:
+    branches: [ main ]  # Build on every push to main
     tags:
-      - 'v*'  # Only build on version tags (e.g., v1118.6)
+      - 'v*'  # Also build on version tags
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 jobs:
