@@ -350,7 +350,7 @@ Examples:
 
 ## Current Version
 
-**Version**: 1118.3 (Simplified Master File Update + TimeFrame Preservation - Production Ready)
+**Version**: 1118.6 (Simplified Master File Update + TimeFrame Preservation - Production Ready)
 
 ## Architecture Overview
 
