@@ -91,10 +91,10 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             prev_idx = prev_lookup_seo[key_seo]
             if prev_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[prev_idx]
-                prev_S = prev_row[COL_SEQUENCE]
-                prev_E = prev_row[COL_EVENTNAME]
-                prev_O = prev_row[COL_STRORIGIN]
-                prev_C = prev_row[COL_CASTINGKEY]
+                prev_S = safe_str(prev_row.get(COL_SEQUENCE, ""))
+                prev_E = safe_str(prev_row.get(COL_EVENTNAME, ""))
+                prev_O = safe_str(prev_row.get(COL_STRORIGIN, ""))
+                prev_C = safe_str(prev_row.get(COL_CASTINGKEY, ""))
 
                 # Perfect match: All 4 keys identical
                 if S == prev_S and E == prev_E and O == prev_O and C == prev_C:
@@ -189,8 +189,8 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_seo[key_seo]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
-                prev_castingkey = safe_str(prev_row[COL_CASTINGKEY])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
+                prev_castingkey = safe_str(safe_str(prev_row.get(COL_CASTINGKEY, "")))
 
                 if C == prev_castingkey:
                     # Check for DialogType and Group changes
@@ -218,7 +218,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_sec[key_sec]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
 
                 # Only compare columns that exist in BOTH dataframes
                 common_cols = [col for col in df_curr.columns if col in df_prev.columns]
@@ -248,7 +248,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_soc[key_soc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
 
                 if contains_korean(O):
                     change_label = "EventName Change"
@@ -264,7 +264,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_eoc[key_eoc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
                 change_label = "SequenceName Change"
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)  # Mark as matched
@@ -276,7 +276,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_se[key_se]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
 
                 # Only compare columns that exist in BOTH dataframes
                 common_cols = [col for col in df_curr.columns if col in df_prev.columns]
@@ -322,12 +322,12 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_oc[key_oc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
 
                 changes_list = []
-                if S != prev_row[COL_SEQUENCE]:
+                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
                     changes_list.append("SequenceName")
-                if E != prev_row[COL_EVENTNAME]:
+                if E != safe_str(prev_row.get(COL_EVENTNAME, "")):
                     changes_list.append("EventName")
 
                 change_label = "+".join(changes_list) + " Change" if changes_list else "No Relevant Change"
@@ -340,12 +340,12 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_ec[key_ec]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
 
                 changes_list = []
-                if S != prev_row[COL_SEQUENCE]:
+                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
                     changes_list.append("SequenceName")
-                if O != prev_row[COL_STRORIGIN]:
+                if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
                     changes_list.append("StrOrigin")
 
                 change_label = "+".join(changes_list) + " Change" if changes_list else "No Relevant Change"
@@ -358,7 +358,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_sc[key_sc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
                 change_label = "EventName+StrOrigin Change"
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)  # Mark as matched
@@ -369,13 +369,13 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_so[key_so]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
-                old_eventname = prev_row[COL_EVENTNAME]
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
+                old_eventname = safe_str(prev_row.get(COL_EVENTNAME, ""))
 
                 changes_list = []
                 if E != old_eventname:
                     changes_list.append("EventName")
-                if C != prev_row[COL_CASTINGKEY]:
+                if C != safe_str(prev_row.get(COL_CASTINGKEY, "")):
                     changes_list.append("CastingKey")
 
                 if changes_list and contains_korean(O):
@@ -392,7 +392,7 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
             candidate_idx = prev_lookup_eo[key_eo]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_strorigin = safe_str(prev_row[COL_STRORIGIN])
+                prev_strorigin = safe_str(safe_str(prev_row.get(COL_STRORIGIN, "")))
                 change_label = "SequenceName Change"  # Most common case
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)  # Mark as matched

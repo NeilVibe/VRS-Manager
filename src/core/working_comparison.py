@@ -98,10 +98,10 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             prev_idx = prev_lookup_seo[key_seo]
             if prev_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[prev_idx]
-                prev_S = prev_row[COL_SEQUENCE]
-                prev_E = prev_row[COL_EVENTNAME]
-                prev_O = prev_row[COL_STRORIGIN]
-                prev_C = prev_row[COL_CASTINGKEY]
+                prev_S = safe_str(prev_row.get(COL_SEQUENCE, ""))
+                prev_E = safe_str(prev_row.get(COL_EVENTNAME, ""))
+                prev_O = safe_str(prev_row.get(COL_STRORIGIN, ""))
+                prev_C = safe_str(prev_row.get(COL_CASTINGKEY, ""))
 
                 # Perfect match: All 4 keys identical
                 if S == prev_S and E == prev_E and O == prev_O and C == prev_C:
@@ -179,7 +179,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             candidate_idx = prev_lookup_seo[key_seo]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_castingkey = safe_str(prev_row[COL_CASTINGKEY])
+                prev_castingkey = safe_str(safe_str(prev_row.get(COL_CASTINGKEY, "")))
 
                 if C == prev_castingkey:
                     change_type = "No Change"
@@ -194,7 +194,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             candidate_idx = prev_lookup_sec[key_sec]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                if O != prev_row[COL_STRORIGIN]:
+                if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
                     change_type = "StrOrigin Change"
                 else:
                     change_type = "No Change"
@@ -232,9 +232,9 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
                 changes = []
-                if O != prev_row[COL_STRORIGIN]:
+                if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
                     changes.append("StrOrigin")
-                if C != prev_row[COL_CASTINGKEY]:
+                if C != safe_str(prev_row.get(COL_CASTINGKEY, "")):
                     changes.append("CastingKey")
 
                 change_type = "+".join(changes) + " Change" if changes else "No Change"
@@ -247,9 +247,9 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
                 changes = []
-                if S != prev_row[COL_SEQUENCE]:
+                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
                     changes.append("SequenceName")
-                if E != prev_row[COL_EVENTNAME]:
+                if E != safe_str(prev_row.get(COL_EVENTNAME, "")):
                     changes.append("EventName")
 
                 change_type = "+".join(changes) + " Change" if changes else "No Relevant Change"
@@ -262,9 +262,9 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
                 changes = []
-                if S != prev_row[COL_SEQUENCE]:
+                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
                     changes.append("SequenceName")
-                if O != prev_row[COL_STRORIGIN]:
+                if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
                     changes.append("StrOrigin")
 
                 change_type = "+".join(changes) + " Change" if changes else "No Relevant Change"
@@ -285,12 +285,12 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             candidate_idx = prev_lookup_so[key_so]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                old_eventname = prev_row[COL_EVENTNAME]
+                old_eventname = safe_str(prev_row.get(COL_EVENTNAME, ""))
 
                 changes = []
                 if E != old_eventname:
                     changes.append("EventName")
-                if C != prev_row[COL_CASTINGKEY]:
+                if C != safe_str(prev_row.get(COL_CASTINGKEY, "")):
                     changes.append("CastingKey")
 
                 if changes and contains_korean(O):
