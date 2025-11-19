@@ -1,0 +1,8 @@
+Build Trigger File
+==================
+
+This file is used to trigger GitHub Actions builds.
+When this file is updated and pushed to main, a build will automatically start.
+
+Last build: v1118.5
+Next build: v1118.6

@@ -1,13 +1,14 @@
 name: Build Executables
 
 on:
-  # Manual trigger only - build when requested
-  workflow_dispatch:
-
-  # Optional: Also build on version tags (v1.0.0, v1.1.0, etc.)
+  # Build when BUILD_TRIGGER.txt is updated on main
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]
+    paths:
+      - 'BUILD_TRIGGER.txt'
+
+  # Manual trigger option
+  workflow_dispatch:
 
 jobs:
   build:

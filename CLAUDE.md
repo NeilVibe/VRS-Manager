@@ -2,11 +2,11 @@
 
 ## BUILD ("build it", "trigger build")
 ```bash
-# Check current version
-git tag -l "v1118.*" | sort -V | tail -1
-
-# Increment and push (e.g. v1118.5 → v1118.6)
-git tag v1118.X && git push origin v1118.X
+# Update BUILD_TRIGGER.txt with new version and push to main
+echo "Last build: v1118.X" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger build v1118.X"
+git push origin main
 ```
 
 ## TESTING
