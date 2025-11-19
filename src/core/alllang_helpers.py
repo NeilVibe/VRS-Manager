@@ -285,10 +285,15 @@ def process_alllang_comparison(df_curr, prev_lookup_se, prev_lookup_so, prev_loo
     for idx, curr_row in df_curr.iterrows():
         curr_dict = curr_row.to_dict()
 
-        S = curr_row[COL_SEQUENCE]
-        E = curr_row[COL_EVENTNAME]
-        O = curr_row[COL_STRORIGIN]
-        C = curr_row[COL_CASTINGKEY]
+        S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+        E = safe_str(curr_row.get(COL_EVENTNAME, ""))
+        O = safe_str(curr_row.get(COL_STRORIGIN, ""))
+        C = safe_str(curr_row.get(COL_CASTINGKEY, ""))
+
+        # Defensive check: ensure all values are strings
+        if isinstance(S, dict) or isinstance(E, dict) or isinstance(O, dict) or isinstance(C, dict):
+            log(f"ERROR at row {idx}: Found dict value in keys!")
+            raise TypeError(f"Row {idx} contains dict value in key columns. Check Excel file for corrupted data.")
 
         mainline_kr = safe_str(curr_dict.get("Text_KR", ""))
         mainline_en = safe_str(curr_dict.get("Text_EN", ""))
@@ -530,10 +535,15 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
         log("PASS 1: Detecting certainties for KR...")
         progress_count = 0
         for curr_idx, curr_row in df_curr.iterrows():
-            S = curr_row[COL_SEQUENCE]
-            E = curr_row[COL_EVENTNAME]
-            O = curr_row[COL_STRORIGIN]
-            C = curr_row[COL_CASTINGKEY]
+            S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+            E = safe_str(curr_row.get(COL_EVENTNAME, ""))
+            O = safe_str(curr_row.get(COL_STRORIGIN, ""))
+            C = safe_str(curr_row.get(COL_CASTINGKEY, ""))
+
+            # Defensive check: ensure all values are strings
+            if isinstance(S, dict) or isinstance(E, dict) or isinstance(O, dict) or isinstance(C, dict):
+                log(f"ERROR at row {curr_idx}: Found dict value in keys!")
+                raise TypeError(f"Row {curr_idx} contains dict value in key columns. Check Excel file for corrupted data.")
 
             # Generate all 10 keys
             key_se = (S, E)
@@ -595,10 +605,15 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
                     print_progress(progress_count, total_rows, "PASS 2: Detecting changes")
                 continue
 
-            S = curr_row[COL_SEQUENCE]
-            E = curr_row[COL_EVENTNAME]
-            O = curr_row[COL_STRORIGIN]
-            C = curr_row[COL_CASTINGKEY]
+            S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+            E = safe_str(curr_row.get(COL_EVENTNAME, ""))
+            O = safe_str(curr_row.get(COL_STRORIGIN, ""))
+            C = safe_str(curr_row.get(COL_CASTINGKEY, ""))
+
+            # Defensive check: ensure all values are strings
+            if isinstance(S, dict) or isinstance(E, dict) or isinstance(O, dict) or isinstance(C, dict):
+                log(f"ERROR at row {curr_idx}: Found dict value in keys!")
+                raise TypeError(f"Row {curr_idx} contains dict value in key columns. Check Excel file for corrupted data.")
 
             # Generate all 10 keys
             key_se = (S, E)
@@ -777,8 +792,8 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
     for curr_idx, curr_row in df_curr.iterrows():
         curr_dict = curr_row.to_dict()
 
-        S = curr_row[COL_SEQUENCE]
-        E = curr_row[COL_EVENTNAME]
+        S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+        E = safe_str(curr_row.get(COL_EVENTNAME, ""))
 
         # Get KR detection result
         if has_kr and curr_idx in pass1_results:

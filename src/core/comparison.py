@@ -56,10 +56,23 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
 
     progress_count = 0
     for curr_idx, curr_row in df_curr.iterrows():
-        S = curr_row[COL_SEQUENCE]
-        E = curr_row[COL_EVENTNAME]
-        O = curr_row[COL_STRORIGIN]
-        C = curr_row[COL_CASTINGKEY]
+        S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+        E = safe_str(curr_row.get(COL_EVENTNAME, ""))
+        O = safe_str(curr_row.get(COL_STRORIGIN, ""))
+        C = safe_str(curr_row.get(COL_CASTINGKEY, ""))
+
+        # Defensive check: ensure all values are strings
+        if isinstance(S, dict) or isinstance(E, dict) or isinstance(O, dict) or isinstance(C, dict):
+            log(f"ERROR at row {curr_idx}: Found dict value in keys!")
+            if isinstance(S, dict):
+                log(f"  SequenceName is dict: {S}")
+            if isinstance(E, dict):
+                log(f"  EventName is dict: {E}")
+            if isinstance(O, dict):
+                log(f"  StrOrigin is dict: {O}")
+            if isinstance(C, dict):
+                log(f"  CastingKey is dict: {C}")
+            raise TypeError(f"Row {curr_idx} contains dict value in key columns. Check Excel file for corrupted data.")
 
         # Generate all 10 keys
         key_se = (S, E)
@@ -134,10 +147,23 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
                 print_progress(progress_count, total_rows, "PASS 2: Detecting changes")
             continue
 
-        S = curr_row[COL_SEQUENCE]
-        E = curr_row[COL_EVENTNAME]
-        O = curr_row[COL_STRORIGIN]
-        C = curr_row[COL_CASTINGKEY]
+        S = safe_str(curr_row.get(COL_SEQUENCE, ""))
+        E = safe_str(curr_row.get(COL_EVENTNAME, ""))
+        O = safe_str(curr_row.get(COL_STRORIGIN, ""))
+        C = safe_str(curr_row.get(COL_CASTINGKEY, ""))
+
+        # Defensive check: ensure all values are strings
+        if isinstance(S, dict) or isinstance(E, dict) or isinstance(O, dict) or isinstance(C, dict):
+            log(f"ERROR at row {curr_idx}: Found dict value in keys!")
+            if isinstance(S, dict):
+                log(f"  SequenceName is dict: {S}")
+            if isinstance(E, dict):
+                log(f"  EventName is dict: {E}")
+            if isinstance(O, dict):
+                log(f"  StrOrigin is dict: {O}")
+            if isinstance(C, dict):
+                log(f"  CastingKey is dict: {C}")
+            raise TypeError(f"Row {curr_idx} contains dict value in key columns. Check Excel file for corrupted data.")
 
         # Generate all 10 keys
         key_se = (S, E)
