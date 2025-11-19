@@ -55,6 +55,11 @@ working_update_history.json
 master_update_history.json
 alllang_update_history.json
 
+# Temporary output files
+MasterFile_Updated_*.xlsx
+Test_*.xlsx
+!tests/Test_*.xlsx
+
 # Temporary files
 *.tmp
 *.bak

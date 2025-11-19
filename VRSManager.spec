@@ -12,8 +12,8 @@ a = Analysis(
     binaries=[],
     datas=[
         ('images/vrsmanager.ico', 'images'),  # Include icon in bundle
-        ('VRS_Manager_Process_Guide_EN.xlsx', '.'),  # Include English guide
-        ('VRS_Manager_Process_Guide_KR.xlsx', '.'),  # Include Korean guide
+        ('docs/VRS_Manager_Process_Guide_EN.xlsx', '.'),  # Include English guide
+        ('docs/VRS_Manager_Process_Guide_KR.xlsx', '.'),  # Include Korean guide
         ('Previous/README.txt', 'Previous'),  # Include Previous folder with README
         ('Current/README.txt', 'Current'),  # Include Current folder with README
     ],

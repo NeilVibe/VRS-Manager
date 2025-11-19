@@ -80,9 +80,9 @@ git commit -m "Update Excel guides to v1118.X"
 
 ## TESTING
 ```bash
-python3 test_5000_perf.py      # Performance (879 rows/sec expected)
-python3 test_accuracy.py       # Accuracy (100% expected)
-python3 test_math_verify.py    # Math verification
+python3 tests/test_5000_perf.py      # Performance (879 rows/sec expected)
+python3 tests/test_accuracy.py       # Accuracy (100% expected)
+python3 tests/test_math_verify.py    # Math verification
 ```
 
 ## CRITICAL PATTERN (DataFrame access)

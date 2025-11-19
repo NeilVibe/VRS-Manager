@@ -171,9 +171,9 @@ def fix_pass1_to_pass2(wb):
 
 def update_en_guide():
     """Update English Process Guide"""
-    print("Updating VRS_Manager_Process_Guide_EN.xlsx...")
+    print("Updating docs/VRS_Manager_Process_Guide_EN.xlsx...")
 
-    wb = openpyxl.load_workbook('VRS_Manager_Process_Guide_EN.xlsx')
+    wb = openpyxl.load_workbook('docs/VRS_Manager_Process_Guide_EN.xlsx')
 
     # Update Overview sheet
     if 'Overview' in wb.sheetnames:
@@ -249,15 +249,15 @@ def update_en_guide():
     widen_columns(wb)
     print("  ✅ Widened columns A, B, C for better text visibility")
 
-    wb.save('VRS_Manager_Process_Guide_EN.xlsx')
+    wb.save('docs/VRS_Manager_Process_Guide_EN.xlsx')
     print("✅ English guide updated successfully!")
 
 
 def update_kr_guide():
     """Update Korean Process Guide"""
-    print("\nUpdating VRS_Manager_Process_Guide_KR.xlsx...")
+    print("\nUpdating docs/VRS_Manager_Process_Guide_KR.xlsx...")
 
-    wb = openpyxl.load_workbook('VRS_Manager_Process_Guide_KR.xlsx')
+    wb = openpyxl.load_workbook('docs/VRS_Manager_Process_Guide_KR.xlsx')
 
     # Update Overview sheet (개요)
     if '개요' in wb.sheetnames:
@@ -333,7 +333,7 @@ def update_kr_guide():
     widen_columns(wb)
     print("  ✅ Widened columns A, B, C for better text visibility")
 
-    wb.save('VRS_Manager_Process_Guide_KR.xlsx')
+    wb.save('docs/VRS_Manager_Process_Guide_KR.xlsx')
     print("✅ Korean guide updated successfully!")
 
 
@@ -346,6 +346,6 @@ if __name__ == '__main__':
     print("=" * 60)
     print("\nNext steps:")
     print("1. Open the Excel files to verify the changes")
-    print("2. git add VRS_Manager_Process_Guide_EN.xlsx VRS_Manager_Process_Guide_KR.xlsx")
+    print("2. git add docs/VRS_Manager_Process_Guide_EN.xlsx docs/VRS_Manager_Process_Guide_KR.xlsx")
     print(f'3. git commit -m "Update Excel guides to v{VERSION}"')
     print("4. git push")
