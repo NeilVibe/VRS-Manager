@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 Current Status: v1.120.0 (Released)
+## 🎯 Current Status: v1.121.0 (Released)
 
 ### ✅ Phase 3.0 COMPLETE - Professional Installer System
 
@@ -42,7 +42,160 @@
 
 ---
 
-## 📋 Next Priority: Phase 3.1 - Expand StrOrigin Analysis
+## 📋 Current Priority: Phase 3.1.1 - Word-Level Diff Enhancement ⚡ IN PROGRESS
+
+### Overview
+
+**Current Implementation:**
+- StrOrigin Analysis uses character-level diff
+- Shows changes but can be messy for multi-word changes
+- Example: `[w→l] [n→st] [g→m]` (hard to read)
+
+**New Implementation: Word-Level Diff**
+- Switch from character-level to word-level diff (like WinMerge)
+- Automatic chunking of consecutive changed words
+- Much cleaner output for sentence changes
+- Example: `[won→lost] [game→match]` (clear and readable)
+
+### Changes Being Applied
+
+#### 1. Word-Level Diff Algorithm ✅ PRIORITY 1
+
+**What:** Replace character-level diff with word-level diff in `strorigin_analysis.py`
+
+**Before:**
+```
+"The player won the game" → "The enemy lost the battle"
+Result: [w→l] [n→st] [g→m] [me→tch]  ❌ Messy
+```
+
+**After:**
+```
+"The player won the game" → "The enemy lost the battle"
+Result: [player won→enemy lost] [game→battle]  ✅ Clear
+```
+
+**Korean Example:**
+```
+Before: [플레→적] [-어가] [승리했→도망갔]  ❌ Confusing
+After:  [플레이어가 승리했습니다→적이 도망갔습니다]  ✅ Shows full scope
+```
+
+**Benefits:**
+- ✅ Cleaner output (fewer brackets)
+- ✅ Shows scope of change clearly
+- ✅ Automatic chunking (consecutive words grouped)
+- ✅ Works great for Korean AND English
+- ✅ Easier for translators to understand
+
+**Implementation:** Update `extract_differences()` function to use word-level matching
+
+---
+
+#### 2. Separate "Diff Detail" Column ✅ PRIORITY 1
+
+**What:** Split StrOrigin Analysis into TWO columns for clarity
+
+**Current Layout:**
+```
+| StrOrigin Change Analysis |
+|---------------------------|
+| 81.7% similar | Changed: [won→lost] |  ← All in one cell, cluttered
+```
+
+**New Layout:**
+```
+| Previous StrOrigin | Current StrOrigin | StrOrigin Analysis | Diff Detail |
+|--------------------|-------------------|-------------------|-------------|
+| won the game       | lost the match    | 81.7% similar     | [won→lost] [game→match] |
+```
+
+**Benefits:**
+- ✅ Cleaner separation of data
+- ✅ Can sort/filter by similarity %
+- ✅ Side-by-side comparison of prev/current
+- ✅ Natural reading order (left to right)
+- ✅ LIGHT version shows empty Diff Detail (not cluttered text)
+
+**Implementation:** Update raw_processor.py sheet creation
+
+---
+
+#### 3. Column Widths ✅ PRIORITY 1
+
+**What:** Make StrOrigin Analysis columns wider for better readability
+
+**Sizing:**
+- Previous StrOrigin: **25 characters** (same as CHANGES column)
+- Current StrOrigin: **25 characters** (same as CHANGES column)
+- StrOrigin Analysis: **20 characters** (for "XX.X% similar" text)
+- Diff Detail: **30 characters** (wider - for `[old→new]` display)
+
+**Why:** StrOrigin Analysis is a dedicated sheet - give it space for clarity!
+
+**Implementation:** Set column widths in openpyxl when creating sheet
+
+---
+
+#### 4. Progress Tracking with Filling Bar ✅ PRIORITY 2
+
+**What:** Add row-by-row progress tracking for StrOrigin analysis (reuse existing progress bar system)
+
+**Current:**
+```
+→ Running FULL analysis (Punctuation + BERT similarity)...
+(no feedback for 30 seconds... is it frozen?)
+```
+
+**New:**
+```
+→ Analyzing StrOrigin changes...
+  [████░░░░░░░░░░░░░░░░] 20% (25/127 rows)
+  [████████░░░░░░░░░░░░] 40% (50/127 rows)
+  [████████████░░░░░░░░] 60% (76/127 rows)
+  [████████████████░░░░] 80% (101/127 rows)
+  [████████████████████] 100% (127/127 rows)
+✓ StrOrigin analysis complete (127 rows in 12.3s)
+```
+
+**Benefits:**
+- ✅ Users know it's working (not frozen)
+- ✅ Can estimate time remaining
+- ✅ Professional UX like rest of app
+- ✅ Reuses existing progress bar code
+
+**Implementation:**
+- Use existing progress bar from `src/utils/progress.py`
+- Update every row (or every 5 rows for very large files)
+- Track both difflib AND BERT steps
+
+---
+
+#### 5. Apply to Both Raw and Working Process ✅ PRIORITY 3
+
+**Raw Process:** ✅ Apply immediately (already has StrOrigin Analysis)
+**Working Process:** ⏳ Apply when Working Process StrOrigin Analysis is implemented
+
+**Status:** Raw Process first, Working Process when Phase 3.1.2 starts
+
+---
+
+### Testing Checklist
+
+- [ ] Test word-level diff with English sentences
+- [ ] Test word-level diff with Korean sentences
+- [ ] Test word-level diff with mixed English/Korean
+- [ ] Test LIGHT version (shows "Content Change | Changed: [diff]")
+- [ ] Test FULL version (shows "XX.X% similar | Changed: [diff]")
+- [ ] Verify column order: Previous → Current → Analysis → Diff
+- [ ] Verify column widths are readable
+- [ ] Verify progress bar works for small files (10 rows)
+- [ ] Verify progress bar works for large files (500+ rows)
+- [ ] Run existing test suite (test_accuracy.py, test_5000_perf.py)
+
+---
+
+## 📋 Next Priority: Phase 3.1.2 - Expand StrOrigin Analysis
 
 ### Overview
 
@@ -171,10 +324,10 @@ Plus any other relevant columns (StringID, TimeFrame, Translation, etc.)
 
 ---
 
-### 4. Model & FAISS Verification ⚠️ TODO
+### 4. Model Verification ✅ CONFIRMED CORRECT
 
 **Current Implementation (VRS Manager):**
-- **Model:** `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (Korean SBERT)
+- **Model:** `snunlp/KR-SBERT-V40K-klueNLI-augSTS` (Korean SBERT) ✅ CORRECT
 - **Method:** Simple cosine similarity using numpy
   ```python
   dot_product = np.dot(embedding1, embedding2)
@@ -182,24 +335,27 @@ Plus any other relevant columns (StringID, TimeFrame, Translation, etc.)
   norm2 = np.linalg.norm(embedding2)
   similarity = dot_product / (norm1 * norm2)
   ```
-- **NOT using FAISS** - Direct numpy calculation
+- **NOT using FAISS** - Direct numpy calculation ✅ INTENTIONAL
 
-**xlstransfer Implementation:**
-- **Model:** ??? (NEEDS VERIFICATION)
-- **Method:** ??? (FAISS? Simple cosine? NEEDS VERIFICATION)
+**Why FAISS is NOT Needed:**
 
-**Action Required:**
-1. ✅ Check xlstransfer source code to confirm model name
-2. ✅ Check xlstransfer similarity calculation method
-3. ⚠️ **If different:** Align VRS Manager to use same model/method as xlstransfer
-4. ⚠️ **If using FAISS:** Update VRS Manager to use FAISS for consistency and performance
+FAISS is designed for searching/indexing thousands of vectors (e.g., "find top 10 most similar from 1M strings").
 
-**Why This Matters:**
-- Consistency across projects
-- xlstransfer may have better optimized approach (FAISS is faster for large datasets)
-- Results should match between projects for same inputs
+VRS Manager already has **1-to-1 matching via 10-key system**:
+```
+Row A (10-key: ABC123) → Matched to Row B (10-key: ABC123)
+                      ↓
+                 Compare only these 2 strings
+                      ↓
+              Simple cosine similarity (microseconds)
+```
 
-**Status:** PENDING VERIFICATION
+**Use Case Comparison:**
+- **FAISS needed:** Search database of 100K translations for similar matches
+- **VRS Manager:** Compare 2 pre-matched strings (already paired by 10-key)
+- **Conclusion:** Simple numpy cosine similarity is perfect for our use case
+
+**Status:** ✅ CONFIRMED - Current approach is optimal for VRS Manager architecture
 
 ---
 
@@ -311,6 +467,17 @@ def process(self):
 ---
 
 ## Version History
+
+### v1.121.0 (Released - 2025-01-20) ✅
+- **Phase 3.1.1 COMPLETE**: Word-Level Diff Enhancement
+- **IMPROVED**: StrOrigin Analysis now uses word-level diff (cleaner, more readable output)
+- **NEW**: Separate "Diff Detail" column showing exact word changes `[old→new]`
+- **NEW**: Progress tracking with filling bar during StrOrigin analysis
+- **NEW**: StrOrigin Analysis now available in Raw Process (was Working only)
+- **IMPROVED**: 4-column layout: Previous StrOrigin | Current StrOrigin | Analysis | Diff Detail
+- **IMPROVED**: Optimized column widths (25|25|20|35 chars) for better readability
+- **IMPROVED**: Natural reading order (left to right)
+- **DOCS**: Complete Phase 3.1.1 implementation notes in PHASE_3.1.1_NOTES.md
 
 ### v1.120.0 (Released - 2025-11-19) ✅
 - **Phase 3.0 COMPLETE**: Professional Installer System

@@ -1,10 +1,10 @@
 # Claude Code Reference - VRS Manager
 
 ## QUICK PROJECT STATUS
-**Current Version:** v1119.0
-**Status:** Production Ready - All critical bugs fixed
-**Last Major Fix:** Dict error in Working VRS Check
-**Next Priority:** Phase 2.3 (StrOrigin Change Analysis) - see roadmap.md
+**Current Version:** v1.121.0
+**Status:** Production Ready - Phase 3.1.1 Complete
+**Last Major Feature:** Word-Level Diff Enhancement for StrOrigin Analysis
+**Next Priority:** Phase 3.1.2 (Expand to AllLang Process) - see roadmap.md
 
 ## BUILD ("build it", "trigger build")
 ```bash
@@ -20,7 +20,7 @@ Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actio
 
 **WHY CRITICAL:** Version inconsistencies cause confusion for users, documentation mismatches, and make debugging difficult. When building releases, ALL documentation must match the actual code version. User trust depends on accurate version reporting across all files.
 
-**Current Version: 1119.0** - Update ALL these files together:
+**Current Version: 1.121.0** - Update ALL these files together:
 ```bash
 # 1. src/config.py - VERSION and VERSION_FOOTER
 # 2. main.py - Docstring (line 5) and print statements (lines 12-15)

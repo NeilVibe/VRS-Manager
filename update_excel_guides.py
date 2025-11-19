@@ -13,21 +13,21 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # CONFIGURATION - EDIT THIS SECTION FOR EACH UPDATE
 # ============================================================================
 
-VERSION = "1119.0"
-VERSION_TEXT_EN = "Version 1119.0 (Phase 2.3 - StrOrigin Change Analysis)"
-VERSION_TEXT_KR = "버전 1119.0 (Phase 2.3 - StrOrigin 변경 분석)"
+VERSION = "1121.0"
+VERSION_TEXT_EN = "Version 1121.0 (Phase 3.1.1 - Word-Level Diff Enhancement)"
+VERSION_TEXT_KR = "버전 1121.0 (Phase 3.1.1 - 단어 수준 비교 개선)"
 
 # English content to add
-EN_HEADER = "WHAT'S NEW IN v1119.0?"
+EN_HEADER = "WHAT'S NEW IN v1.121.0?"
 EN_CONTENT = [
     {
-        "title": "✅ Phase 2.3 COMPLETED - StrOrigin Change Analysis (v1119.0)",
+        "title": "✅ Phase 3.1.1 COMPLETED - Word-Level Diff Enhancement (v1.121.0)",
         "items": [
-            "NEW: 'StrOrigin Change Analysis' sheet in Working VRS Check output",
-            "NEW: Punctuation/Space-only change detection",
-            "NEW: BERT-based semantic similarity analysis (Korean SBERT model)",
-            "NEW: Automatic classification: 'Punctuation/Space Change' or 'XX.X% similar'",
-            "OFFLINE: Korean BERT model (447MB) runs locally - no internet needed",
+            "IMPROVED: Word-level diff (cleaner output than character-level)",
+            "NEW: Separate 'Diff Detail' column showing exact changes [old→new]",
+            "NEW: Progress bar with filling animation during analysis",
+            "NEW: StrOrigin Analysis now in BOTH Raw and Working Process",
+            "IMPROVED: 4-column layout for better readability",
             "ANALYSIS: Shows which StrOrigin changes are trivial vs substantial",
         ]
     },
@@ -74,17 +74,16 @@ EN_CONTENT = [
 ]
 
 # Korean content to add
-KR_HEADER = "v1119.0의 새로운 기능"
+KR_HEADER = "v1.121.0의 새로운 기능"
 KR_CONTENT = [
     {
-        "title": "✅ Phase 2.3 완료 - StrOrigin 변경 분석 (v1119.0)",
+        "title": "✅ Phase 3.1.1 완료 - 단어 수준 비교 개선 (v1.121.0)",
         "items": [
-            "새로운 기능: Working VRS Check 출력에 'StrOrigin Change Analysis' 시트 추가",
-            "새로운 기능: 구두점/공백만 변경된 경우 자동 감지",
-            "새로운 기능: BERT 기반 의미적 유사도 분석 (Korean SBERT 모델)",
-            "새로운 기능: 자동 분류 - 'Punctuation/Space Change' 또는 'XX.X% similar'",
-            "오프라인: 한국어 BERT 모델 (447MB) 로컬 실행 - 인터넷 불필요",
-            "분석: StrOrigin 변경이 사소한지 실질적인지 표시",
+            "개선: 단어 수준 비교 (문자 수준보다 깔끔한 출력)",
+            "새로운 기능: 정확한 변경사항을 보여주는 별도 'Diff Detail' 컬럼 [이전→현재]",
+            "새로운 기능: 분석 중 진행률 표시 막대",
+            "새로운 기능: Raw와 Working Process 모두에서 StrOrigin 분석 제공",
+            "개선: 가독성을 위한 4컬럼 레이아웃",
         ]
     },
     {

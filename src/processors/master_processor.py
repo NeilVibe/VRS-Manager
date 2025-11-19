@@ -4,7 +4,7 @@ Master File Update processor.
 This processor updates a Master File by importing data from a Working Process output,
 using simplified EventName matching with high/low importance logic and TimeFrame preservation.
 
-Version: v1119.0
+Version: v1121.0
 - Enhanced Super Group Word Analysis with reorganized columns and translation tracking
 - TimeFrame (StartFrame) preservation when StrOrigin unchanged
 """

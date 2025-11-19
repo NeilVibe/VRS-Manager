@@ -2,7 +2,7 @@
 
 ## What is this?
 
-**StrOrigin Change Analysis** is an optional feature in VRS Manager v1119.0+ that uses AI (BERT) to analyze how different StrOrigin changes really are.
+**StrOrigin Change Analysis** is an optional feature in VRS Manager v1121.0+ that uses AI (BERT) to analyze how different StrOrigin changes really are.
 
 ## How It Works (Smart Dual-Mode System)
 

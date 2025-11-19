@@ -3,6 +3,11 @@ Verify accuracy of change detection, new rows, deleted rows, and group analysis.
 """
 import sys
 import pandas as pd
+from pathlib import Path
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from src.io.excel_reader import safe_read_excel
 from src.utils.data_processing import normalize_dataframe_status, remove_full_duplicates
 from src.core.casting import generate_casting_key

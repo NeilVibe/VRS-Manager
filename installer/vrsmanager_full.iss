@@ -11,7 +11,7 @@
 ; Output: Shows "XX.X% similar" with BERT analysis
 
 #define MyAppName "VRS Manager"
-#define MyAppVersion "1.120.0"
+#define MyAppVersion "1.121.0"
 #define MyAppPublisher "Neil Schmitt"
 #define MyAppURL "https://github.com/NeilVibe/VRS-Manager"
 #define MyAppExeName "VRSManager.exe"

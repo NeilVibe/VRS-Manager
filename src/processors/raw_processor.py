@@ -22,9 +22,10 @@ from src.core.casting import generate_casting_key
 from src.config import (
     OUTPUT_COLUMNS_RAW,
     COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
-    COL_PREVIOUS_STRORIGIN
+    COL_STRORIGIN, COL_PREVIOUS_STRORIGIN
 )
 from src.io.summary import create_raw_summary
+from src.utils.strorigin_analysis import StrOriginAnalyzer
 
 
 class RawProcessor(BaseProcessor):
@@ -157,6 +158,96 @@ class RawProcessor(BaseProcessor):
             traceback.print_exc()
             return False
 
+    def create_strorigin_analysis_sheet(self):
+        """
+        Create StrOrigin Change Analysis sheet for Raw Process.
+
+        Returns:
+            DataFrame with StrOrigin analysis, or None if not applicable
+        """
+        try:
+            # Find rows where StrOrigin changed (CHANGES contains "StrOrigin")
+            changes_col = "CHANGES"
+            if changes_col not in self.df_result.columns:
+                log("  ℹ️  No CHANGES column found - skipping StrOrigin analysis")
+                return None
+
+            # Filter to rows with StrOrigin changes
+            mask = self.df_result[changes_col].astype(str).str.contains("StrOrigin", case=False, na=False)
+            df_strorigin_changes = self.df_result[mask].copy()
+
+            if df_strorigin_changes.empty:
+                log("  ℹ️  No StrOrigin changes found - skipping analysis sheet")
+                return None
+
+            log(f"  → Found {len(df_strorigin_changes)} rows with StrOrigin changes")
+
+            # Initialize analyzer (checks if BERT is available)
+            analyzer = StrOriginAnalyzer()
+
+            # Log which version is being used
+            if analyzer.bert_available:
+                log("  → Running FULL analysis (Punctuation/Space + BERT similarity)...")
+            else:
+                log("  → Running LIGHT analysis (Punctuation/Space + Content Change marker)...")
+                log("  ℹ️  BERT not available - similarity percentages will show 'Content Change'")
+
+            # Prepare data lists
+            prev_strorigins = []
+            curr_strorigins = []
+            analysis_results = []
+            diff_details = []
+
+            # Import progress tracking
+            from src.utils.progress import print_progress, finalize_progress
+            from src.utils.helpers import safe_str
+
+            total_rows = len(df_strorigin_changes)
+            log(f"  → Analyzing {total_rows} rows...")
+
+            # Analyze each row with progress tracking
+            for row_num, (idx, row) in enumerate(df_strorigin_changes.iterrows(), start=1):
+                curr_strorigin = safe_str(row.get(COL_STRORIGIN, ""))
+                prev_strorigin = safe_str(row.get(COL_PREVIOUS_STRORIGIN, ""))
+
+                # Store for columns
+                prev_strorigins.append(prev_strorigin)
+                curr_strorigins.append(curr_strorigin)
+
+                # If no previous data, can't analyze
+                if not prev_strorigin:
+                    analysis_results.append("N/A - No previous data")
+                    diff_details.append("")
+                else:
+                    # Analyze - returns tuple (analysis, diff_detail)
+                    analysis, diff = analyzer.analyze(prev_strorigin, curr_strorigin)
+                    analysis_results.append(analysis)
+                    diff_details.append(diff)
+
+                # Progress tracking (update every 5 rows or at end)
+                if row_num % 5 == 0 or row_num == total_rows:
+                    print_progress(row_num, total_rows, label="Analyzing")
+
+            finalize_progress()
+
+            # Add columns in natural reading order:
+            # Previous StrOrigin → Current StrOrigin → StrOrigin Analysis → Diff Detail
+            changes_col_index = df_strorigin_changes.columns.get_loc(changes_col)
+
+            df_strorigin_changes.insert(changes_col_index + 1, "Previous StrOrigin", prev_strorigins)
+            df_strorigin_changes.insert(changes_col_index + 2, "Current StrOrigin", curr_strorigins)
+            df_strorigin_changes.insert(changes_col_index + 3, "StrOrigin Analysis", analysis_results)
+            df_strorigin_changes.insert(changes_col_index + 4, "Diff Detail", diff_details)
+
+            log(f"  ✓ StrOrigin analysis complete")
+            return df_strorigin_changes
+
+        except Exception as e:
+            log(f"  ⚠️  Error creating StrOrigin analysis sheet: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
     def write_output(self):
         """Write results to Excel file with formatting."""
         try:
@@ -187,9 +278,38 @@ class RawProcessor(BaseProcessor):
                     if migration_details:
                         log(f"  → {len(migration_details)} migrations detected")
 
+                # Create StrOrigin Change Analysis sheet
+                log("Creating StrOrigin Change Analysis sheet...")
+                df_strorigin_analysis = self.create_strorigin_analysis_sheet()
+                if df_strorigin_analysis is not None:
+                    df_strorigin_analysis.to_excel(writer, sheet_name="StrOrigin Change Analysis", index=False)
+                    log(f"  → Created 'StrOrigin Change Analysis' sheet with {len(df_strorigin_analysis)} rows")
+
                 wb = writer.book
                 apply_direct_coloring(wb["Comparison"], is_master=False, changed_columns_map=self.changed_columns_map)
                 widen_summary_columns(wb["Summary Report"])
+
+                # Apply coloring and formatting to StrOrigin analysis sheet if it exists
+                if "StrOrigin Change Analysis" in wb.sheetnames:
+                    apply_direct_coloring(wb["StrOrigin Change Analysis"], is_master=False)
+
+                    # Set column widths for better readability
+                    ws_strorigin = wb["StrOrigin Change Analysis"]
+                    for column_cells in ws_strorigin.columns:
+                        col_letter = column_cells[0].column_letter
+                        col_name = column_cells[0].value
+
+                        # Set specific widths based on column name
+                        if col_name == "Previous StrOrigin":
+                            ws_strorigin.column_dimensions[col_letter].width = 25
+                        elif col_name == "Current StrOrigin":
+                            ws_strorigin.column_dimensions[col_letter].width = 25
+                        elif col_name == "StrOrigin Analysis":
+                            ws_strorigin.column_dimensions[col_letter].width = 20
+                        elif col_name == "Diff Detail":
+                            ws_strorigin.column_dimensions[col_letter].width = 35  # Wider for [old→new] display
+                        elif col_name == "CHANGES":
+                            ws_strorigin.column_dimensions[col_letter].width = 25
 
             log(f"✓ File saved: {self.output_path}")
             return True

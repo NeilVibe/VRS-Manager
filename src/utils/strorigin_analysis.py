@@ -4,15 +4,17 @@ StrOrigin Change Analysis - Phase 2.3
 This module provides functions to analyze StrOrigin changes in VRS data:
 1. Punctuation/space-only detection
 2. Semantic similarity calculation using Korean BERT
+3. Character-level diff highlighting (shows exact changes)
 
 Author: Neil Schmitt
-Version: 1119.0
+Version: 1121.0
 """
 
 import re
 import unicodedata
 import os
 import numpy as np
+from difflib import SequenceMatcher
 from typing import Optional, Tuple
 
 
@@ -71,6 +73,68 @@ def is_punctuation_space_change_only(prev_text: str, curr_text: str) -> bool:
     normalized_curr = normalize_text_for_comparison(curr_text)
 
     return normalized_prev == normalized_curr
+
+
+def extract_differences(text1: str, text2: str, max_length: int = 80) -> str:
+    """
+    Extract WORD-LEVEL differences between two texts using difflib.
+
+    Shows exactly what changed in WinMerge style with automatic chunking:
+    - [old words→new words] for replacements (consecutive words grouped)
+    - [-deleted words] for deletions
+    - [+added words] for additions
+
+    Args:
+        text1: Previous text
+        text2: Current text
+        max_length: Maximum length for diff output (truncate if longer)
+
+    Returns:
+        Diff string showing changes, or empty string if no changes
+
+    Examples:
+        >>> extract_differences("Hello world", "Hallo world")
+        '[Hello→Hallo]'
+        >>> extract_differences("Press any button", "Press button")
+        '[-any]'
+        >>> extract_differences("Loading", "Loading complete")
+        '[+complete]'
+        >>> extract_differences("The player won the game", "The enemy lost the battle")
+        '[player won→enemy lost] [game→battle]'
+    """
+    if not text1 or not text2:
+        return ""
+
+    # Split into words (preserves Korean and English spacing)
+    words1 = text1.split()
+    words2 = text2.split()
+
+    # Word-level diff (automatic chunking of consecutive changes)
+    matcher = SequenceMatcher(None, words1, words2)
+    changes = []
+
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == 'replace':
+            old_words = ' '.join(words1[i1:i2])
+            new_words = ' '.join(words2[j1:j2])
+            changes.append(f"[{old_words}→{new_words}]")
+        elif tag == 'delete':
+            deleted_words = ' '.join(words1[i1:i2])
+            changes.append(f"[-{deleted_words}]")
+        elif tag == 'insert':
+            added_words = ' '.join(words2[j1:j2])
+            changes.append(f"[+{added_words}]")
+
+    if not changes:
+        return ""
+
+    diff_str = ' '.join(changes)
+
+    # Truncate if too long (avoid huge Excel cells)
+    if len(diff_str) > max_length:
+        diff_str = diff_str[:max_length-3] + "..."
+
+    return diff_str
 
 
 def calculate_semantic_similarity(text1: str, text2: str, model) -> float:
@@ -213,25 +277,33 @@ class StrOriginAnalyzer:
             f"\nFor offline use, run: python scripts/download_bert_model.py"
         )
 
-    def analyze(self, prev_text: str, curr_text: str) -> str:
+    def analyze(self, prev_text: str, curr_text: str) -> Tuple[str, str]:
         """
         Analyze the difference between previous and current StrOrigin texts.
 
-        Returns one of:
-        - "Punctuation/Space Change" - Only formatting differs (LIGHT & FULL)
-        - "XX.X% similar" - Semantic similarity percentage (FULL version only)
-        - "Content Change" - Content differs, no BERT available (LIGHT version only)
+        Returns a tuple of (analysis, diff_detail):
+        - analysis: "Punctuation/Space Change", "XX.X% similar" (FULL), or "Content Change" (LIGHT)
+        - diff_detail: "[old→new]" showing exact word-level changes, or "" if punctuation-only
 
         Args:
             prev_text: Previous StrOrigin text
             curr_text: Current StrOrigin text
 
         Returns:
-            Analysis result string
+            Tuple of (analysis_result, diff_detail)
+
+        Examples:
+            >>> analyzer.analyze("Hello", "Hallo")
+            ("81.7% similar", "[Hello→Hallo]")
+            >>> analyzer.analyze("Hello!", "Hello")
+            ("Punctuation/Space Change", "")
         """
         # First Pass: Check punctuation/space only (works in both LIGHT and FULL)
         if is_punctuation_space_change_only(prev_text, curr_text):
-            return "Punctuation/Space Change"
+            return ("Punctuation/Space Change", "")
+
+        # Extract word-level differences
+        diff_detail = extract_differences(prev_text, curr_text)
 
         # Second Pass: BERT semantic similarity (FULL version only)
         if self.bert_available:
@@ -239,10 +311,12 @@ class StrOriginAnalyzer:
             self._load_model()  # Lazy load
             similarity = calculate_semantic_similarity(prev_text, curr_text, self.model)
             similarity_pct = similarity * 100
-            return f"{similarity_pct:.1f}% similar"
+            analysis = f"{similarity_pct:.1f}% similar"
         else:
             # LIGHT version: Can't calculate similarity
-            return "Content Change"
+            analysis = "Content Change"
+
+        return (analysis, diff_detail)
 
     def analyze_batch(self, text_pairs: list) -> list:
         """
@@ -252,12 +326,12 @@ class StrOriginAnalyzer:
             text_pairs: List of (prev_text, curr_text) tuples
 
         Returns:
-            List of analysis result strings
+            List of (analysis, diff_detail) tuples
         """
         results = []
 
         for prev_text, curr_text in text_pairs:
-            result = self.analyze(prev_text, curr_text)
-            results.append(result)
+            analysis, diff_detail = self.analyze(prev_text, curr_text)
+            results.append((analysis, diff_detail))
 
         return results
