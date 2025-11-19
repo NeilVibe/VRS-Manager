@@ -33,7 +33,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 
 ; Output
-OutputDir=installer_output
+OutputDir=..\installer_output
 OutputBaseFilename=VRSManager_v{#MyAppVersion}_Light_Setup
 SetupIconFile=..\images\vrsmanager.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}

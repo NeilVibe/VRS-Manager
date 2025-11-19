@@ -4,25 +4,31 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (ALL CRITICAL FIXES APPLIED)
---------------------------------------------------------
+Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #2)
+------------------------------------------------------
 
-FINAL FIXES:
-✅ Model in git via LFS (no download needed)
+FIXES APPLIED IN THIS BUILD:
+✅ Git LFS enabled in all checkout steps
+✅ Inno Setup OutputDir corrected (..\installer_output)
+✅ Model tracked in LFS (467MB)
 ✅ PyInstaller COLLECT creates folder structure
-✅ Inno Setup matches folder structure
 ✅ Workflow verification uses correct paths
 ✅ No download step (model from LFS)
-✅ Old executable workflow removed
+
+Previous Build Failures (13:32:38Z):
+- FULL: Failed at "Verify BERT model (from LFS)" - LFS not enabled
+- LIGHT: Failed at "Compile LIGHT installer" - Wrong OutputDir
 
 Build creates TWO Windows installers:
 
 LIGHT Version (~150MB):
 - Path: dist_light/VRSManager/VRSManager.exe
 - No BERT model
+- Output: installer_output/VRSManager_v1.120.0_Light_Setup.exe
 
 FULL Version (~2.6GB):
 - Path: dist_full/VRSManager/VRSManager.exe
 - BERT model bundled from LFS
+- Output: installer_output/VRSManager_v1.120.0_Full_Setup.exe
 
-All errors fixed - ready to build!
+All critical errors fixed - testing build #2!
