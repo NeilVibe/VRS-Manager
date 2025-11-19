@@ -85,6 +85,23 @@ python3 tests/test_accuracy.py       # Accuracy (100% expected)
 python3 tests/test_math_verify.py    # Math verification
 ```
 
+## BERT MODEL SETUP (Phase 2.3)
+**Model:** Korean SBERT for semantic similarity analysis
+**Size:** 447MB (stored locally in `models/kr-sbert/`)
+**Status:** ✅ Downloaded and ready
+
+**One-time setup (if models/ directory missing):**
+```bash
+python3 download_bert_model.py
+```
+
+**Why not in git?** Model is 447MB - exceeds GitHub's 100MB file size limit. Must download locally on each machine.
+
+**Test model:**
+```bash
+python3 -c "from sentence_transformers import SentenceTransformer; m = SentenceTransformer('./models/kr-sbert'); print('✅ Model ready!')"
+```
+
 ## CRITICAL PATTERN (DataFrame access)
 ```python
 # ALWAYS use this:

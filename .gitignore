@@ -60,6 +60,9 @@ MasterFile_Updated_*.xlsx
 Test_*.xlsx
 !tests/Test_*.xlsx
 
+# BERT model (too large for git - 447MB)
+models/
+
 # Temporary files
 *.tmp
 *.bak
