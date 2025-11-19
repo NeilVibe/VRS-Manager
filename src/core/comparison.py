@@ -101,10 +101,10 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
                     # Check for DialogType and Group changes
                     metadata_changes = []
                     if COL_DIALOGTYPE in curr_row.index and COL_DIALOGTYPE in prev_row.index:
-                        if safe_str(curr_row[COL_DIALOGTYPE]) != safe_str(prev_row[COL_DIALOGTYPE]):
+                        if safe_str(curr_row[COL_DIALOGTYPE]) != safe_str(safe_str(prev_row.get(COL_DIALOGTYPE, ""))):
                             metadata_changes.append("DialogType")
                     if COL_GROUP in curr_row.index and COL_GROUP in prev_row.index:
-                        if safe_str(curr_row[COL_GROUP]) != safe_str(prev_row[COL_GROUP]):
+                        if safe_str(curr_row[COL_GROUP]) != safe_str(safe_str(prev_row.get(COL_GROUP, ""))):
                             metadata_changes.append("Group")
 
                     if metadata_changes:
@@ -196,10 +196,10 @@ def compare_rows(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_s
                     # Check for DialogType and Group changes
                     metadata_changes = []
                     if COL_DIALOGTYPE in curr_row.index and COL_DIALOGTYPE in prev_row.index:
-                        if safe_str(curr_row[COL_DIALOGTYPE]) != safe_str(prev_row[COL_DIALOGTYPE]):
+                        if safe_str(curr_row[COL_DIALOGTYPE]) != safe_str(safe_str(prev_row.get(COL_DIALOGTYPE, ""))):
                             metadata_changes.append("DialogType")
                     if COL_GROUP in curr_row.index and COL_GROUP in prev_row.index:
-                        if safe_str(curr_row[COL_GROUP]) != safe_str(prev_row[COL_GROUP]):
+                        if safe_str(curr_row[COL_GROUP]) != safe_str(safe_str(prev_row.get(COL_GROUP, ""))):
                             metadata_changes.append("Group")
 
                     if metadata_changes:
