@@ -172,8 +172,8 @@ class StrOriginAnalyzer:
         Lazy load the BERT model (only when first needed).
 
         Attempts to load in this order:
-        1. Online from Hugging Face (auto-downloads if needed) - DEFAULT
-        2. Offline from local cache (fallback if no internet)
+        1. Offline from bundled model (for FULL version .exe) - PRIORITY
+        2. Online from Hugging Face (fallback if bundled not found)
         3. Raises FileNotFoundError if both fail
         """
         if self.model is not None:
@@ -183,7 +183,20 @@ class StrOriginAnalyzer:
 
         model_name = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
 
-        # Try 1: Load from Hugging Face (online mode - AUTO-DOWNLOAD)
+        # Try 1: Load from bundled local path (offline mode - PRIORITY)
+        # This ensures the FULL version .exe works 100% offline
+        if os.path.exists(self.model_path):
+            try:
+                print(f"  → Loading BERT model from bundled path (offline mode)...")
+                self.model = SentenceTransformer(self.model_path)
+                print(f"  ✓ Model loaded successfully from: {self.model_path}")
+                return
+            except Exception as e:
+                print(f"  ⚠️  Failed to load bundled model: {e}")
+                print(f"  → Trying online fallback...")
+
+        # Try 2: Load from Hugging Face (online fallback)
+        # Only if bundled model not found (e.g., running from source code)
         try:
             print(f"  → Attempting to load BERT model from Hugging Face (online mode)...")
             self.model = SentenceTransformer(model_name)
@@ -191,23 +204,13 @@ class StrOriginAnalyzer:
             return
         except Exception as e:
             print(f"  ℹ️  Online mode unavailable: {str(e)[:100]}")
-            print(f"  → Trying local cache...")
-
-        # Try 2: Load from local cache (offline mode)
-        if os.path.exists(self.model_path):
-            try:
-                self.model = SentenceTransformer(self.model_path)
-                print(f"  ✓ Model loaded from local cache: {self.model_path}")
-                return
-            except Exception as e:
-                print(f"  ⚠️  Failed to load local model: {e}")
 
         # Both failed - raise error with clear instructions
         raise FileNotFoundError(
             f"BERT model not available. Tried:\n"
-            f"  1. Online from Hugging Face (no internet or connection failed)\n"
-            f"  2. Local cache at {self.model_path} (not found)\n"
-            f"\nFor offline use, run: download_model.bat"
+            f"  1. Bundled local model at {self.model_path} (not found)\n"
+            f"  2. Online from Hugging Face (no internet or connection failed)\n"
+            f"\nFor offline use, run: python scripts/download_bert_model.py"
         )
 
     def analyze(self, prev_text: str, curr_text: str) -> str:

@@ -67,7 +67,7 @@ jobs:
         shell: pwsh
 
       - name: Upload LIGHT installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: VRSManager_Light_Setup
           path: installer_output/VRSManager_v1.120.0_Light_Setup.exe
@@ -148,7 +148,7 @@ jobs:
         shell: pwsh
 
       - name: Upload FULL installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: VRSManager_Full_Setup
           path: installer_output/VRSManager_v1.120.0_Full_Setup.exe
@@ -165,13 +165,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download LIGHT installer
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: VRSManager_Light_Setup
           path: ./artifacts/light
 
       - name: Download FULL installer
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: VRSManager_Full_Setup
           path: ./artifacts/full
