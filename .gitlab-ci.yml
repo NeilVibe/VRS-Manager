@@ -1,0 +1,31 @@
+stages:
+  - build
+
+build-windows:
+  stage: build
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  script:
+    - python --version
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pyinstaller
+    - python -m PyInstaller VRSManager.spec --clean --noconfirm
+    - mkdir release
+    - copy dist\VRSManager.exe release\VRSManager.exe
+    - copy README.md release\README.md
+    - copy BUILD.md release\BUILD.md
+    - copy VRS_Manager_Process_Guide_EN.xlsx release\VRS_Manager_Process_Guide_EN.xlsx
+    - copy VRS_Manager_Process_Guide_KR.xlsx release\VRS_Manager_Process_Guide_KR.xlsx
+    - xcopy Previous release\Previous\ /E /I
+    - xcopy Current release\Current\ /E /I
+  artifacts:
+    name: "VRSManager-Windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - release/
+    expire_in: 30 days
+  only:
+    - main
+    - tags
