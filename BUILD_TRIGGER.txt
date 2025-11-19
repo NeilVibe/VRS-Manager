@@ -4,11 +4,15 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Last build: v1119.1 (Old monolith approach)
-Current build: v1.120.0 (Phase 3.0 - LIGHT + FULL dual installers)
+Last build: v1.120.0 (Failed - deprecated actions + model loading issue)
+Current build: v1.120.0 (FIXED - Retry with corrections)
 
-Build v1.120.0 - Phase 3.0 Professional Installer System
----------------------------------------------------------
+Build v1.120.0 - Phase 3.0 Professional Installer System (RETRY)
+------------------------------------------------------------------
+
+CRITICAL FIXES APPLIED:
+✅ Upgraded artifact actions v3 → v4 (fixes deprecation error)
+✅ Model loads from bundled path FIRST (100% offline, no AppData)
 
 This build creates TWO installers:
 
@@ -20,19 +24,19 @@ This build creates TWO installers:
 
 2. FULL Version (~2.6GB)
    - Everything in LIGHT
-   - PyTorch + Korean BERT model
+   - PyTorch + Korean BERT model (bundled)
    - AI-powered semantic similarity
    - StrOrigin shows: "Punctuation/Space Change" or "XX.X% similar"
+   - 100% offline - loads model from bundle, NOT AppData!
 
 Both versions:
 - 100% offline operation
 - Professional Windows installers
 - Start Menu integration
 - Fully portable
+- Everything in ONE program folder (no AppData/temp downloads)
 
-Changes from v1119.1:
-- Split into LIGHT and FULL versions
-- Professional Inno Setup installers
-- Improved StrOrigin Analysis with BERT (FULL only)
-- Parallel build process for both versions
-- Automated release creation with both installers
+Changes from previous attempt:
+- Fixed deprecated upload-artifact@v3 → v4
+- Fixed model loading order (bundled first, online fallback)
+- Model won't download to AppData anymore
