@@ -4,6 +4,35 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Last build: v1119.0
-Next build: v1119.1
-Build v1119.1 - Bundle BERT + All ML Dependencies (~3GB .exe)
+Last build: v1119.1 (Old monolith approach)
+Current build: v1.120.0 (Phase 3.0 - LIGHT + FULL dual installers)
+
+Build v1.120.0 - Phase 3.0 Professional Installer System
+---------------------------------------------------------
+
+This build creates TWO installers:
+
+1. LIGHT Version (~150MB)
+   - Core VRS Check features
+   - Punctuation/Space detection
+   - Fast, lightweight
+   - StrOrigin shows: "Punctuation/Space Change" or "Content Change"
+
+2. FULL Version (~2.6GB)
+   - Everything in LIGHT
+   - PyTorch + Korean BERT model
+   - AI-powered semantic similarity
+   - StrOrigin shows: "Punctuation/Space Change" or "XX.X% similar"
+
+Both versions:
+- 100% offline operation
+- Professional Windows installers
+- Start Menu integration
+- Fully portable
+
+Changes from v1119.1:
+- Split into LIGHT and FULL versions
+- Professional Inno Setup installers
+- Improved StrOrigin Analysis with BERT (FULL only)
+- Parallel build process for both versions
+- Automated release creation with both installers
