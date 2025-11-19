@@ -4,21 +4,22 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (CRITICAL FIXES - Build #4)
-------------------------------------------------------
+Build v1.120.0 - Phase 3.0 (CRITICAL TEST - Build #5)
+-----------------------------------------------------
 
-FIXES APPLIED IN THIS BUILD:
-✅ Pascal line length limit: Break CreateOutputMsgMemoPage call across lines
+TEMPORARY FIX FOR TESTING:
+⚠️ Custom wizard pages disabled to test if core build works
 ✅ Model file check: pytorch_model.bin → model.safetensors
 ✅ Git LFS enabled in all checkout steps
 ✅ Inno Setup OutputDir corrected (..\installer_output)
 
-Previous Build Failures (14:05:39Z - Build #3):
-- LIGHT: Line 125, Column 127 - Line too long (134 chars > 127 limit)
-- FULL: Line 130, Column 127 - Line too long (142 chars > 127 limit)
+Previous Build Failures (14:13:20Z - Build #4):
+- LIGHT: Line 128, Column 14 - Invalid number of parameters
+- FULL: Line 133, Column 14 - Invalid number of parameters
 
-Root cause: Inno Setup Pascal has 127-character line limit
-Fix: Multi-line function call with parameters on separate lines
+Root cause: CreateOutputMsgMemoPage function signature issue
+Temporary fix: Comment out InitializeWizard() to test core build
+Next: Research correct Inno Setup function signature and re-enable
 
 Build creates TWO Windows installers:
 
