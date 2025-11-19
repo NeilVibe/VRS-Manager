@@ -184,17 +184,16 @@ class WorkingProcessor(BaseProcessor):
                 return None
 
             log(f"  → Found {len(df_strorigin_changes)} rows with StrOrigin changes")
-            log("  → Running StrOrigin analysis (punctuation/space + BERT similarity)...")
 
-            # Initialize analyzer (may fail if model not available)
-            try:
-                analyzer = StrOriginAnalyzer()
-            except FileNotFoundError as e:
-                log(f"  ⚠️  BERT model not found - StrOrigin analysis unavailable")
-                log(f"  ⚠️  To enable this feature, download the model:")
-                log(f"      python3 download_bert_model.py")
-                log(f"  ℹ️  Skipping StrOrigin Analysis sheet creation")
-                return None
+            # Initialize analyzer (checks if BERT is available)
+            analyzer = StrOriginAnalyzer()
+
+            # Log which version is being used
+            if analyzer.bert_available:
+                log("  → Running FULL analysis (Punctuation/Space + BERT similarity)...")
+            else:
+                log("  → Running LIGHT analysis (Punctuation/Space + Content Change marker)...")
+                log("  ℹ️  BERT not available - similarity percentages will show 'Content Change'")
 
             # Analyze each row
             analysis_results = []

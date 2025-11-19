@@ -123,9 +123,13 @@ class StrOriginAnalyzer:
     """
     Analyzer for StrOrigin changes combining punctuation detection and BERT similarity.
 
+    Supports both LIGHT and FULL versions:
+    - LIGHT: Punctuation/Space detection only (no BERT)
+    - FULL: Punctuation/Space + BERT semantic similarity
+
     This class handles the full analysis pipeline:
-    1. First Pass: Check if change is punctuation/space only
-    2. Second Pass: Calculate semantic similarity using BERT if not punctuation-only
+    1. First Pass: Check if change is punctuation/space only (both versions)
+    2. Second Pass: Calculate semantic similarity using BERT (FULL version only)
 
     The model is loaded lazily (only when first needed) for performance.
     """
@@ -139,6 +143,7 @@ class StrOriginAnalyzer:
         """
         self.model = None
         self.model_path = model_path or self._get_default_model_path()
+        self.bert_available = self._check_bert_available()
 
     def _get_default_model_path(self) -> str:
         """Get default model path relative to project root"""
@@ -146,6 +151,21 @@ class StrOriginAnalyzer:
         current_file = os.path.abspath(__file__)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
         return os.path.join(project_root, 'models', 'kr-sbert')
+
+    def _check_bert_available(self) -> bool:
+        """
+        Check if BERT packages are available.
+
+        Returns:
+            True if FULL version (torch + sentence_transformers available)
+            False if LIGHT version (packages not available)
+        """
+        try:
+            import torch
+            import sentence_transformers
+            return True
+        except ImportError:
+            return False
 
     def _load_model(self):
         """
@@ -195,8 +215,9 @@ class StrOriginAnalyzer:
         Analyze the difference between previous and current StrOrigin texts.
 
         Returns one of:
-        - "Punctuation/Space Change" - Only formatting differs
-        - "XX.XX% similar" - Semantic similarity percentage (e.g., "94.5% similar")
+        - "Punctuation/Space Change" - Only formatting differs (LIGHT & FULL)
+        - "XX.X% similar" - Semantic similarity percentage (FULL version only)
+        - "Content Change" - Content differs, no BERT available (LIGHT version only)
 
         Args:
             prev_text: Previous StrOrigin text
@@ -205,18 +226,20 @@ class StrOriginAnalyzer:
         Returns:
             Analysis result string
         """
-        # First Pass: Check punctuation/space only
+        # First Pass: Check punctuation/space only (works in both LIGHT and FULL)
         if is_punctuation_space_change_only(prev_text, curr_text):
             return "Punctuation/Space Change"
 
-        # Second Pass: BERT semantic similarity
-        self._load_model()  # Lazy load
-
-        similarity = calculate_semantic_similarity(prev_text, curr_text, self.model)
-
-        # Format as percentage with 1 decimal place
-        similarity_pct = similarity * 100
-        return f"{similarity_pct:.1f}% similar"
+        # Second Pass: BERT semantic similarity (FULL version only)
+        if self.bert_available:
+            # FULL version: Calculate BERT similarity
+            self._load_model()  # Lazy load
+            similarity = calculate_semantic_similarity(prev_text, curr_text, self.model)
+            similarity_pct = similarity * 100
+            return f"{similarity_pct:.1f}% similar"
+        else:
+            # LIGHT version: Can't calculate similarity
+            return "Content Change"
 
     def analyze_batch(self, text_pairs: list) -> list:
         """
