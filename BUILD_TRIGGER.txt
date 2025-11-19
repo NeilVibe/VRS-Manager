@@ -4,6 +4,6 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Last build: v1118.5
-Next build: v1118.6
-Build v1119.0 - Phase 2.3: StrOrigin Change Analysis
+Last build: v1119.0
+Next build: v1119.1
+Build v1119.1 - Bundle BERT + All ML Dependencies (~3GB .exe)
