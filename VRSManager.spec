@@ -18,6 +18,14 @@ a = Analysis(
         ('Current/README.txt', 'Current'),  # Include Current folder with README
     ],
     hiddenimports=[
+        # Numpy dependencies (critical for PyInstaller)
+        'numpy',
+        'numpy.core._multiarray_umath',
+        'numpy.core._multiarray_tests',
+        'numpy.random.common',
+        'numpy.random.bounded_integers',
+        'numpy.random.entropy',
+        # OpenPyXL
         'openpyxl',
         'openpyxl.cell',
         'openpyxl.cell._writer',
@@ -27,8 +35,11 @@ a = Analysis(
         'openpyxl.worksheet',
         'openpyxl.worksheet._reader',
         'openpyxl.worksheet._write_only',
+        # Pandas
         'pandas',
         'pandas.io.formats.excel',
+        'pandas._libs.tslibs.timedeltas',
+        # Tkinter
         'tkinter',
         'tkinter.scrolledtext',
         'tkinter.ttk',
@@ -70,7 +81,6 @@ a = Analysis(
     excludes=[
         'matplotlib',
         'scipy',
-        'numpy.testing',
         'PIL',
         'setuptools',
         'distutils',
