@@ -19,6 +19,7 @@ from src.config import (
     COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY
 )
 from src.utils.progress import print_progress, finalize_progress
+from src.utils.data_processing import safe_str
 
 
 def build_lookups(df):
@@ -59,10 +60,10 @@ def build_lookups(df):
     progress_count = 0
 
     for df_idx, row in df.iterrows():
-        S = row[COL_SEQUENCE]
-        E = row[COL_EVENTNAME]
-        O = row[COL_STRORIGIN]
-        C = row[COL_CASTINGKEY]
+        S = safe_str(row.get(COL_SEQUENCE, ""))
+        E = safe_str(row.get(COL_EVENTNAME, ""))
+        O = safe_str(row.get(COL_STRORIGIN, ""))
+        C = safe_str(row.get(COL_CASTINGKEY, ""))
 
         # Generate all 10 keys
         key_se = (S, E)
@@ -146,10 +147,10 @@ def build_working_lookups(df, label="PREVIOUS"):
 
     progress_count = 0
     for df_idx, row in df.iterrows():
-        S = row[COL_SEQUENCE]
-        E = row[COL_EVENTNAME]
-        O = row[COL_STRORIGIN]
-        C = row[COL_CASTINGKEY]
+        S = safe_str(row.get(COL_SEQUENCE, ""))
+        E = safe_str(row.get(COL_EVENTNAME, ""))
+        O = safe_str(row.get(COL_STRORIGIN, ""))
+        C = safe_str(row.get(COL_CASTINGKEY, ""))
 
         # Generate all 10 keys
         key_se = (S, E)
