@@ -4,55 +4,88 @@
 
 **StrOrigin Change Analysis** is an optional feature in VRS Manager v1119.0+ that uses AI (BERT) to analyze how different StrOrigin changes really are.
 
-**If you don't have the model:**
-- VRS Manager works perfectly fine WITHOUT it
-- All other features work normally
-- You'll see a message: "BERT model not found - StrOrigin analysis unavailable"
-- The "StrOrigin Change Analysis" sheet won't be created (but everything else works)
+## How It Works (Smart Dual-Mode System)
 
-**If you want this feature:**
-- Download the 447MB Korean BERT model (one-time setup)
-- Takes 5-10 minutes depending on internet speed
-- Enables automatic analysis: "Punctuation/Space Change" or "XX.X% similar"
+VRS Manager **automatically** tries to use the BERT model in this order:
+
+1. **Online Mode (Default)** - If you have internet, it automatically downloads the model from Hugging Face when first needed
+2. **Offline Mode (Fallback)** - If no internet, it uses a locally-installed model
+3. **Graceful Skip** - If neither works, all other features continue working normally
+
+**This means:**
+- ✅ Computers WITH internet: **Works automatically!** No setup needed!
+- ✅ Computers WITHOUT internet: Use `download_model.bat` first, then works offline
+- ✅ VRS Manager works perfectly fine WITHOUT the model (all other features continue)
 
 ---
 
-## Option 1: For .exe Users (Recommended)
+## For Users WITH Internet (Automatic Mode)
 
-### Step 1: Download Python (if not installed)
-1. Go to: https://www.python.org/downloads/
-2. Download Python 3.10 or newer
-3. Install with "Add to PATH" checkbox checked
+### No Setup Required!
 
-### Step 2: Download the Model
-1. Open Command Prompt (cmd) or PowerShell
-2. Navigate to VRS Manager folder:
+Just run VRS Manager normally. When you process a file with StrOrigin changes:
+- First time: Downloads model automatically (~5-10 minutes, 447MB)
+- After that: Uses cached model (instant)
+- Works seamlessly!
+
+**Requirements:**
+- Internet connection (first use only)
+- ~1GB free disk space
+- Python packages will auto-install
+
+**You'll see:**
+```
+→ Attempting to load BERT model from Hugging Face (online mode)...
+  [Downloading model...]
+✓ Model loaded successfully from Hugging Face
+→ Running StrOrigin analysis...
+```
+
+---
+
+## For Users WITHOUT Internet (Offline Mode)
+
+### Step 1: Prepare on a Computer WITH Internet
+
+1. Download VRS Manager to a computer that HAS internet
+2. Navigate to VRS Manager folder in Command Prompt:
    ```
    cd C:\path\to\VRSManager
    ```
-3. Run the download script:
+3. Run the offline setup script:
    ```
-   python download_bert_model.py
+   download_model.bat
    ```
 4. Wait 5-10 minutes for download (447MB)
-5. Done! Model is now available offline
+5. You'll see: `SUCCESS! Model downloaded and ready for offline use.`
 
-### Step 3: Verify
-Run VRS Manager .exe again. You should see:
-- "Running StrOrigin analysis (punctuation/space + BERT similarity)..."
-- New sheet: "StrOrigin Change Analysis"
+### Step 2: Transfer to Offline Computer
+
+1. Copy the entire `models` folder (next to VRSManager.exe)
+2. Transfer to your offline computer
+3. Place the `models` folder next to VRSManager.exe on the offline computer
+4. Done! VRS Manager will use the offline model
+
+**You'll see:**
+```
+→ Attempting to load BERT model from Hugging Face (online mode)...
+ℹ️  Online mode unavailable: [connection error]
+→ Trying local cache...
+✓ Model loaded from local cache: models/kr-sbert/
+→ Running StrOrigin analysis...
+```
 
 ---
 
-## Option 2: Manual Download (Advanced Users)
+## Alternative: Manual Download (Advanced Users)
 
 If you have Python and pip installed:
 
 ```bash
-# Install required packages
+# Install required package
 pip install sentence-transformers
 
-# Download model
+# Download model to local cache
 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS').save('./models/kr-sbert')"
 ```
 

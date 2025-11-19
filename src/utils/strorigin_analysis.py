@@ -148,18 +148,47 @@ class StrOriginAnalyzer:
         return os.path.join(project_root, 'models', 'kr-sbert')
 
     def _load_model(self):
-        """Lazy load the BERT model (only when first needed)"""
+        """
+        Lazy load the BERT model (only when first needed).
+
+        Attempts to load in this order:
+        1. Online from Hugging Face (auto-downloads if needed) - DEFAULT
+        2. Offline from local cache (fallback if no internet)
+        3. Raises FileNotFoundError if both fail
+        """
         if self.model is not None:
             return
 
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(
-                f"BERT model not found at {self.model_path}. "
-                f"Please run: python3 download_bert_model.py"
-            )
-
         from sentence_transformers import SentenceTransformer
-        self.model = SentenceTransformer(self.model_path)
+
+        model_name = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
+
+        # Try 1: Load from Hugging Face (online mode - AUTO-DOWNLOAD)
+        try:
+            print(f"  → Attempting to load BERT model from Hugging Face (online mode)...")
+            self.model = SentenceTransformer(model_name)
+            print(f"  ✓ Model loaded successfully from Hugging Face")
+            return
+        except Exception as e:
+            print(f"  ℹ️  Online mode unavailable: {str(e)[:100]}")
+            print(f"  → Trying local cache...")
+
+        # Try 2: Load from local cache (offline mode)
+        if os.path.exists(self.model_path):
+            try:
+                self.model = SentenceTransformer(self.model_path)
+                print(f"  ✓ Model loaded from local cache: {self.model_path}")
+                return
+            except Exception as e:
+                print(f"  ⚠️  Failed to load local model: {e}")
+
+        # Both failed - raise error with clear instructions
+        raise FileNotFoundError(
+            f"BERT model not available. Tried:\n"
+            f"  1. Online from Hugging Face (no internet or connection failed)\n"
+            f"  2. Local cache at {self.model_path} (not found)\n"
+            f"\nFor offline use, run: download_model.bat"
+        )
 
     def analyze(self, prev_text: str, curr_text: str) -> str:
         """
