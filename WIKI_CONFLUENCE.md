@@ -1,6 +1,6 @@
 # VRS Manager - User Guide
 
-**Version:** 1118.3 | **Status:** Production Ready | **Date:** November 2025
+**Version:** 1118.6 | **Status:** Production Ready | **Date:** November 2025
 
 ---
 
@@ -390,9 +390,15 @@ This formula always holds true thanks to:
 
 ## Version Information
 
-**Current Version**: 1118.2 (Simplified Master File Update + CHANGES Preservation)
+**Current Version**: 1118.6 (Production Ready - All Core Features Implemented)
 
 **Key Features**:
+- ✅ **Super Group Analysis Improvements** (v1118.4 - Phase 2.2.1) - Enhanced clarity and tracking
+  - Removed "Others" super group and stageclosedialog check
+  - Reordered super groups: AI Dialog before Quest Dialog
+  - Renamed column to "Not Translated" (simplified header)
+  - Added detailed "Super Group Migrations" table below main table
+  - Shows source → destination pairs with word counts
 - ✅ **Simplified Master File Update** (v1118.2) - EventName-only matching, CHANGES preservation
   - Simple data movement operation (not comparison)
   - CHANGES values always preserved from SOURCE
