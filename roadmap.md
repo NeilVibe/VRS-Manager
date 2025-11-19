@@ -734,14 +734,22 @@ print("✓ Offline operation ready!")
 
 ## Version History
 
-### v1118.6 (Current)
-- Super Group Analysis Improvements
-- Removed "Others" super group (stageclosedialog no longer needed)
-- Reordered super groups: AI Dialog now before Quest Dialog
-- Renamed "Untranslated Words (Remaining to Translate)" → "Not Translated"
-- Removed migration columns from main table
-- Added detailed "Super Group Migrations" table showing source → destination pairs
-- Updated explanatory notes
+### v1118.6 (Current - Production Ready)
+- **CRITICAL BUG FIXES**:
+  - Fixed TypeError 'unhashable type: dict' in Working VRS Check
+  - Fixed lookup dictionaries storing dict objects instead of indices (src/core/working_helpers.py)
+  - Applied safe_str() pattern to all DataFrame column access across all processors
+  - Fixed src/core/lookups.py, comparison.py, working_comparison.py, alllang_helpers.py
+- **COMPREHENSIVE TESTING**:
+  - Created 5000-row test suite with 10 edge case scenarios
+  - Verified 100% accuracy: change detection, new rows, deleted rows
+  - Mathematical verification: all rows accounted for, zero loss
+  - Performance tested: 879 rows/sec (Raw), 856 rows/sec (Working)
+- **DOCUMENTATION**:
+  - Created CLAUDE.md reference guide for future Claude instances
+  - Updated all Excel guides (EN/KR) with v1118.6 changelog
+  - Unified version numbers across all files
+  - Manual-trigger build system (BUILD_TRIGGER.txt)
 
 ### v1118.5
 - DialogType & Group Change Detection
