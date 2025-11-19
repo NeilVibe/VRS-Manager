@@ -24,6 +24,9 @@ MANIFEST
 # PyInstaller
 build/
 dist/
+dist_light/
+dist_full/
+installer_output/
 *.spec.bak
 *.pyc
 build.log

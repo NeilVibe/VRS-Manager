@@ -1,0 +1,271 @@
+name: Build LIGHT and FULL Installers
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'BUILD_TRIGGER.txt'
+  workflow_dispatch:
+
+jobs:
+  build-light:
+    name: Build LIGHT Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install LIGHT dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl numpy
+          pip install pyinstaller
+        shell: pwsh
+
+      - name: Build LIGHT .exe
+        run: |
+          pyinstaller VRSManager_light.spec --clean --noconfirm --distpath dist_light
+        shell: pwsh
+
+      - name: Verify LIGHT build
+        run: |
+          if (!(Test-Path "dist_light\VRSManager.exe")) {
+            Write-Error "LIGHT build failed - VRSManager.exe not found"
+            exit 1
+          }
+          Write-Host "✓ LIGHT build successful"
+          $size = (Get-Item "dist_light\VRSManager.exe").length / 1MB
+          Write-Host "  Size: $([math]::Round($size, 1)) MB"
+        shell: pwsh
+
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup -y
+        shell: pwsh
+
+      - name: Compile LIGHT installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\vrsmanager_light.iss
+        shell: pwsh
+
+      - name: Verify LIGHT installer
+        run: |
+          if (!(Test-Path "installer_output\VRSManager_v1.120.0_Light_Setup.exe")) {
+            Write-Error "LIGHT installer compilation failed"
+            exit 1
+          }
+          Write-Host "✓ LIGHT installer compiled successfully"
+          $size = (Get-Item "installer_output\VRSManager_v1.120.0_Light_Setup.exe").length / 1MB
+          Write-Host "  Size: $([math]::Round($size, 1)) MB"
+        shell: pwsh
+
+      - name: Upload LIGHT installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: VRSManager_Light_Setup
+          path: installer_output/VRSManager_v1.120.0_Light_Setup.exe
+          retention-days: 90
+
+  build-full:
+    name: Build FULL Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install FULL dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+        shell: pwsh
+
+      - name: Download BERT model
+        run: |
+          python scripts/download_bert_model.py
+        shell: pwsh
+
+      - name: Verify BERT model
+        run: |
+          if (!(Test-Path "models\kr-sbert")) {
+            Write-Error "BERT model download failed"
+            exit 1
+          }
+          Write-Host "✓ BERT model downloaded successfully"
+          $size = (Get-ChildItem "models\kr-sbert" -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+          Write-Host "  Size: $([math]::Round($size, 1)) MB"
+        shell: pwsh
+
+      - name: Build FULL .exe
+        run: |
+          pyinstaller VRSManager.spec --clean --noconfirm --distpath dist_full
+        shell: pwsh
+
+      - name: Verify FULL build
+        run: |
+          if (!(Test-Path "dist_full\VRSManager.exe")) {
+            Write-Error "FULL build failed - VRSManager.exe not found"
+            exit 1
+          }
+          Write-Host "✓ FULL build successful"
+          $size = (Get-Item "dist_full\VRSManager.exe").length / 1GB
+          Write-Host "  Size: $([math]::Round($size, 2)) GB"
+        shell: pwsh
+
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup -y
+        shell: pwsh
+
+      - name: Compile FULL installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\vrsmanager_full.iss
+        shell: pwsh
+
+      - name: Verify FULL installer
+        run: |
+          if (!(Test-Path "installer_output\VRSManager_v1.120.0_Full_Setup.exe")) {
+            Write-Error "FULL installer compilation failed"
+            exit 1
+          }
+          Write-Host "✓ FULL installer compiled successfully"
+          $size = (Get-Item "installer_output\VRSManager_v1.120.0_Full_Setup.exe").length / 1GB
+          Write-Host "  Size: $([math]::Round($size, 2)) GB"
+        shell: pwsh
+
+      - name: Upload FULL installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: VRSManager_Full_Setup
+          path: installer_output/VRSManager_v1.120.0_Full_Setup.exe
+          retention-days: 90
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-light, build-full]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download LIGHT installer
+        uses: actions/download-artifact@v3
+        with:
+          name: VRSManager_Light_Setup
+          path: ./artifacts/light
+
+      - name: Download FULL installer
+        uses: actions/download-artifact@v3
+        with:
+          name: VRSManager_Full_Setup
+          path: ./artifacts/full
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -lh artifacts/light/
+          ls -lh artifacts/full/
+
+      - name: Extract version from BUILD_TRIGGER.txt
+        id: version
+        run: |
+          VERSION=$(grep "Build v" BUILD_TRIGGER.txt | head -1 | sed 's/.*Build v//' | cut -d' ' -f1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: VRS Manager v${{ steps.version.outputs.version }}
+          body: |
+            # VRS Manager v${{ steps.version.outputs.version }}
+
+            ## Download Options
+
+            ### 🪶 LIGHT Version (Recommended for most users)
+            **Download:** VRSManager_v${{ steps.version.outputs.version }}_Light_Setup.exe
+            **Size:** ~150 MB
+
+            **Includes:**
+            - All VRS Check features
+            - Punctuation/Space detection
+            - Fast, lightweight processing
+
+            **StrOrigin Analysis:**
+            - Punctuation-only: "Punctuation/Space Change"
+            - Content changed: "Content Change"
+
+            ---
+
+            ### 🚀 FULL Version (AI-Powered)
+            **Download:** VRSManager_v${{ steps.version.outputs.version }}_Full_Setup.exe
+            **Size:** ~2.6 GB
+
+            **Includes:**
+            - Everything in LIGHT
+            - PyTorch + Korean BERT model
+            - AI semantic similarity analysis
+            - Complete offline operation
+
+            **StrOrigin Analysis:**
+            - Punctuation-only: "Punctuation/Space Change"
+            - Content changed: Shows similarity % (e.g., "94.5% similar")
+
+            ---
+
+            ## Installation
+
+            1. Download your preferred version
+            2. Run the installer
+            3. Follow installation wizard
+            4. Launch from Start Menu
+
+            Both versions work 100% offline after installation!
+
+            ## Portable Use
+
+            After installation, you can:
+            1. Zip `C:\Program Files\VRS Manager\`
+            2. Transfer to offline computer
+            3. Extract anywhere
+            4. Run VRSManager.exe
+
+            Fully portable! ✅
+
+            ---
+
+            ## Changelog
+
+            See [roadmap.md](https://github.com/NeilVibe/VRS-Manager/blob/main/roadmap.md) for complete version history.
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/light/VRSManager_v1.120.0_Light_Setup.exe
+            artifacts/full/VRSManager_v1.120.0_Full_Setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          echo "✓ GitHub Release v${{ steps.version.outputs.version }} created successfully!"
+          echo ""
+          echo "Assets uploaded:"
+          echo "  - LIGHT installer: VRSManager_v${{ steps.version.outputs.version }}_Light_Setup.exe"
+          echo "  - FULL installer: VRSManager_v${{ steps.version.outputs.version }}_Full_Setup.exe"
