@@ -102,7 +102,7 @@ Type: filesandordirs; Name: "{app}\*.xls"
 Type: filesandordirs; Name: "{app}\*.log"
 
 [Code]
-// Custom wizard page temporarily disabled for testing
-// procedure InitializeWizard();
-// begin
-// end;
+procedure InitializeWizard();
+begin
+  // Simple info message - no custom page needed
+end;

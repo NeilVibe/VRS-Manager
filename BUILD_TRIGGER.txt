@@ -4,22 +4,26 @@ Build Trigger File
 This file is used to trigger GitHub Actions builds.
 When this file is updated and pushed to main, a build will automatically start.
 
-Build v1.120.0 - Phase 3.0 (CRITICAL TEST - Build #5)
------------------------------------------------------
+Build v1.120.0 - Phase 3.0 (FINAL - Build #6)
+----------------------------------------------
 
-TEMPORARY FIX FOR TESTING:
-⚠️ Custom wizard pages disabled to test if core build works
+CRITICAL FIXES:
+✅ GitHub workflow permissions: Added contents: write for release creation
+✅ Wizard pages: Re-enabled with empty InitializeWizard (standard Inno wizard)
 ✅ Model file check: pytorch_model.bin → model.safetensors
 ✅ Git LFS enabled in all checkout steps
 ✅ Inno Setup OutputDir corrected (..\installer_output)
 
-Previous Build Failures (14:13:20Z - Build #4):
-- LIGHT: Line 128, Column 14 - Invalid number of parameters
-- FULL: Line 133, Column 14 - Invalid number of parameters
+Previous Build Results (14:22:48Z - Build #5):
+✅ LIGHT: Compiled successfully (1m52s) - Artifact uploaded
+✅ FULL: Compiled successfully (7m35s) - Artifact uploaded
+❌ Release: Failed with 403 (Permission Denied)
 
-Root cause: CreateOutputMsgMemoPage function signature issue
-Temporary fix: Comment out InitializeWizard() to test core build
-Next: Research correct Inno Setup function signature and re-enable
+Fixes:
+- Added "permissions: contents: write" to workflow (fixes 403 error)
+- Simplified wizard code (no custom pages, uses standard Inno Setup wizard)
+
+This should create the GitHub Release with both installers!
 
 Build creates TWO Windows installers:
 
