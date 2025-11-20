@@ -7,7 +7,12 @@ identifying changes and generating a comparison report.
 
 import os
 import pandas as pd
-from tkinter import messagebox
+
+# Conditional tkinter import for headless testing
+if os.environ.get('HEADLESS', '').lower() not in ('1', 'true', 'yes'):
+    from tkinter import messagebox
+else:
+    messagebox = None
 
 from src.processors.base_processor import BaseProcessor
 from src.io.excel_reader import safe_read_excel
@@ -229,6 +234,12 @@ class RawProcessor(BaseProcessor):
                     print_progress(row_num, total_rows, label="Analyzing")
 
             finalize_progress()
+
+            # Drop existing columns if they already exist (to avoid insert errors)
+            cols_to_drop = ["Previous StrOrigin", "Current StrOrigin", "StrOrigin Analysis", "Diff Detail"]
+            for col in cols_to_drop:
+                if col in df_strorigin_changes.columns:
+                    df_strorigin_changes.drop(columns=[col], inplace=True)
 
             # Add columns in natural reading order:
             # Previous StrOrigin → Current StrOrigin → StrOrigin Analysis → Diff Detail

@@ -8,7 +8,12 @@ from tri-lingual files (KR/EN/CN) using the 4-tier key matching system.
 import os
 import pandas as pd
 from datetime import datetime
-from tkinter import messagebox
+
+# Conditional tkinter import for headless testing
+if os.environ.get('HEADLESS', '').lower() not in ('1', 'true', 'yes'):
+    from tkinter import messagebox
+else:
+    messagebox = None
 
 from src.processors.base_processor import BaseProcessor
 from src.io.excel_reader import safe_read_excel

@@ -47,9 +47,9 @@ grep -r "1118\." --include="*.py" --include="*.md" | grep -v test | grep -v ".gi
 
 **Edit these variables:**
 ```python
-VERSION = "1119.0"
-VERSION_TEXT_EN = "Version 1119.0 (Brief description)"
-VERSION_TEXT_KR = "버전 1119.0 (간단한 설명)"
+VERSION = "1121.0"
+VERSION_TEXT_EN = "Version 1121.0 (Phase 3.1.1 - Word-Level Diff Enhancement)"
+VERSION_TEXT_KR = "버전 1121.0 (Phase 3.1.1 - 단어 수준 비교 개선)"
 EN_CONTENT = [...]  # Add new features
 KR_CONTENT = [...]  # Add Korean translation
 ```

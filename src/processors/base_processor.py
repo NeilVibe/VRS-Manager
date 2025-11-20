@@ -9,8 +9,16 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 import pandas as pd
-from tkinter import filedialog, messagebox
-import tkinter as tk
+
+# Conditional tkinter import for headless testing
+if os.environ.get('HEADLESS', '').lower() not in ('1', 'true', 'yes'):
+    from tkinter import filedialog, messagebox
+    import tkinter as tk
+else:
+    # Dummy imports for headless mode
+    filedialog = None
+    messagebox = None
+    tk = None
 
 from src.utils.helpers import log, get_script_dir
 from src.utils.data_processing import normalize_dataframe_status

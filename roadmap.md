@@ -36,13 +36,34 @@
 - ✅ StrOrigin Analysis works in both versions
 
 **Current StrOrigin Analysis Coverage:**
-- ✅ Raw Process (Comparison output) - Shows "Punctuation/Space Change" or similarity %
-- ❌ Working Process - NOT YET IMPLEMENTED
+- ✅ Raw Process - Word-level diff with 4-column layout
+- ✅ Working Process - Word-level diff with 4-column layout
 - ❌ AllLang Process - NOT YET IMPLEMENTED
 
 ---
 
-## 📋 Current Priority: Phase 3.1.1 - Word-Level Diff Enhancement ⚡ IN PROGRESS
+## 📋 Current Priority: Phase 3.1.2 - AllLang Process Enhancement 🔜 NEXT
+
+### ✅ Phase 3.1.1 COMPLETE - Word-Level Diff Enhancement
+
+**Released:** v1.121.0
+
+**Implemented Features:**
+- ✅ Word-level diff algorithm (WinMerge-style automatic chunking)
+- ✅ 4-column layout: Previous StrOrigin → Current StrOrigin → Analysis → Diff Detail
+- ✅ Progress tracking with filling bar
+- ✅ Applied to BOTH Raw and Working processes
+- ✅ Column widths optimized (25|25|20|35)
+- ✅ Works in LIGHT and FULL versions
+
+**Output Examples:**
+- Punctuation-only: `"Punctuation/Space Change"` (empty diff)
+- Word changes: `"79.8% similar"` + `"[world→universe]"`
+- Multiple changes: `"[player won→enemy lost] [game→battle]"`
+
+---
+
+## 📋 Phase 3.1.1 Implementation Details (ARCHIVED)
 
 ### Overview
 

@@ -12,7 +12,13 @@ Version: v1121.0
 import os
 import pandas as pd
 from datetime import datetime
-from tkinter import messagebox
+
+# Conditional tkinter import for headless testing
+if os.environ.get('HEADLESS', '').lower() not in ('1', 'true', 'yes'):
+    from tkinter import messagebox
+else:
+    messagebox = None
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from copy import copy
