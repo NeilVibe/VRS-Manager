@@ -78,3 +78,24 @@ NEW DEFAULT PATHS:
 - FULL: C:\Users\[Username]\Desktop\VRS Manager
 
 This is Build #9 - User-friendly Desktop installation!
+
+Build v11201321
+First DateTime Versioning Build (MMDDHHMM format)
+
+DATETIME: November 20, 2025 at 1:21 PM KST
+FORMAT: MMDDHHMM (11201321)
+
+VERSION UNIFIED ACROSS:
+- Code (config.py, main.py, processors)
+- Documentation (README, roadmap, WIKI)
+- Installers (Light + Full .iss)
+- Workflow (build-installers.yml)
+- Guides (update_excel_guides.py)
+
+FEATURES:
+- Desktop installation (no admin required)
+- DateTime versioning (sortable, clear)
+- Word-level diff analysis
+- 100% portable
+
+This is Build #10 - First DateTime Build!
