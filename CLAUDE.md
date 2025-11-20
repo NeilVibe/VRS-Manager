@@ -32,11 +32,22 @@ Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actio
 
 **WHY CRITICAL:** Version inconsistencies cause confusion for users, documentation mismatches, and make debugging difficult. When building releases, ALL documentation must match the actual code version. User trust depends on accurate version reporting across all files.
 
-**AUTOMATED CHECK:**
+**AUTOMATED CHECK - COMPREHENSIVE MONITORING:**
 ```bash
 python3 check_version_unified.py
 ```
-This script automatically verifies all 12 files are unified. Run before every build!
+
+**What it checks (THOROUGH COVERAGE):**
+- ✅ **12 Static Files:** Code, docs, installers, workflows
+- ✅ **Runtime Imports:** src.config VERSION/VERSION_FOOTER
+- ✅ **GUI Display:** Window title + footer (centralized import)
+- ✅ **Terminal Prints:** main.py startup messages (4 statements)
+- ✅ **Processor Comments:** Version headers in code
+- ✅ **Build System:** Installer file paths + workflow references
+- ✅ **Documentation:** README, roadmap, WIKI, guides
+
+**Runs automatically!** Reports exact file:line for any mismatch.
+**RUN BEFORE EVERY BUILD!** Ensures zero version inconsistencies.
 
 **Current Version: 11201321** - Update ALL these files together:
 ```bash
