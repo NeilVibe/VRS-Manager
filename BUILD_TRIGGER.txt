@@ -118,3 +118,4 @@ FEATURES:
 - 100% portable
 
 This is Build #10 - First DateTime Build!
+Build LIGHT v11201928
