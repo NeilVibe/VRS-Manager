@@ -46,10 +46,11 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
         prev_lookup_eoc: Previous lookup for (Event, StrOrigin, CastingKey) → DataFrame index
 
     Returns:
-        tuple: (df_result, counter, marked_prev_indices) where:
+        tuple: (df_result, counter, marked_prev_indices, pass1_results) where:
             - df_result: DataFrame with imported data
             - counter: Dictionary of change type counts
             - marked_prev_indices: Set of previous DataFrame indices that were matched
+            - pass1_results: Dictionary of PASS 1 results (needed for Super Group Word Analysis)
     """
     log("Comparing and importing data (TWO-PASS algorithm)...")
 
@@ -404,4 +405,4 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
         results.append(curr_dict)
         counter[change_type] = counter.get(change_type, 0) + 1
 
-    return pd.DataFrame(results), counter, marked_prev_indices
+    return pd.DataFrame(results), counter, marked_prev_indices, pass1_results

@@ -29,6 +29,8 @@ from src.config import (
     COL_STRORIGIN, COL_PREVIOUSDATA
 )
 from src.utils.strorigin_analysis import StrOriginAnalyzer
+from src.io.excel_writer import write_super_group_word_analysis
+from src.utils.super_groups import aggregate_to_super_groups
 
 
 class WorkingProcessor(BaseProcessor):
@@ -127,7 +129,7 @@ class WorkingProcessor(BaseProcessor):
              self.prev_lookup_soc, self.prev_lookup_eoc) = build_working_lookups(self.df_prev, "PREVIOUS")
 
             # Process comparison and import (TWO-PASS algorithm)
-            self.df_result, self.counter, marked_prev_indices = process_working_comparison(
+            self.df_result, self.counter, marked_prev_indices, self.pass1_results = process_working_comparison(
                 self.df_curr, self.df_prev,
                 self.prev_lookup_se, self.prev_lookup_so, self.prev_lookup_sc,
                 self.prev_lookup_eo, self.prev_lookup_ec, self.prev_lookup_oc,
@@ -288,6 +290,19 @@ class WorkingProcessor(BaseProcessor):
                     log(f"  → Created 'Deleted Rows' sheet with {len(self.df_deleted)} rows")
 
                 self.df_summary.to_excel(writer, sheet_name="Summary Report", index=False, header=True)
+
+                # Phase 3.1.3: Add Super Group Word Analysis (parity with RAW processor)
+                if hasattr(self, 'pass1_results'):
+                    log("Generating Super Group Word Analysis...")
+                    super_group_analysis, migration_details = aggregate_to_super_groups(
+                        self.df_curr,
+                        self.df_prev,
+                        self.pass1_results
+                    )
+                    write_super_group_word_analysis(writer, super_group_analysis, migration_details)
+                    log(f"  → {len(super_group_analysis)} super groups analyzed")
+                    if migration_details:
+                        log(f"  → {len(migration_details)} migrations detected")
 
                 # Phase 2.3: Create StrOrigin Change Analysis sheet
                 log("Creating StrOrigin Change Analysis sheet...")
