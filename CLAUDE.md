@@ -86,6 +86,46 @@ git push origin main
 
 Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actions
 
+## BUILD TROUBLESHOOTING
+
+### ⚠️ LFS Bandwidth Quota Exceeded (CRITICAL LESSON LEARNED!)
+
+**If you see:** `This repository exceeded its LFS budget`
+
+**What happened:**
+- GitHub LFS has monthly bandwidth quota (1GB free)
+- BERT model is 447MB stored in LFS
+- Each build download counts against quota
+
+**The Fix (Already Applied):**
+```yaml
+# LIGHT build (no BERT needed)
+build-light:
+  - uses: actions/checkout@v3
+    with:
+      lfs: false  # ✅ Skip LFS download
+
+# FULL build (BERT required)
+build-full:
+  - uses: actions/checkout@v3
+    with:
+      lfs: true  # ✅ Download BERT model
+
+# Release job (only needs artifacts)
+create-release:
+  - uses: actions/checkout@v3
+    with:
+      lfs: false  # ✅ No source files needed
+```
+
+**Key Lesson:** Only enable `lfs: true` where BERT model is actually needed!
+
+**Check build logs:**
+```bash
+gh run list --workflow=build-installers.yml --limit 5
+gh run view [run-id] --log-failed | grep "LFS\|error"
+```
+
 ## VERSION UNIFICATION (CRITICAL!)
 
 **WHY CRITICAL:** Version inconsistencies cause confusion for users, documentation mismatches, and make debugging difficult. When building releases, ALL documentation must match the actual code version. User trust depends on accurate version reporting across all files.

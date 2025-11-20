@@ -252,10 +252,45 @@ Before triggering builds, ensure:
 ✅ Installers downloadable
 
 ### Build Failure Troubleshooting
+
 ❌ **Job failed** - Click job to see error logs
 ❌ **Model not found (FULL)** - Check Git LFS setup
 ❌ **Import errors** - Check dependencies in requirements.txt
 ❌ **Installer compile failed** - Check .iss file version numbers
+
+#### ⚠️ CRITICAL: LFS Bandwidth Quota Exceeded
+
+**Error Message:**
+```
+batch response: This repository exceeded its LFS budget.
+error: failed to fetch some objects from 'github.com/[repo]/info/lfs'
+```
+
+**Root Cause:**
+- GitHub LFS has monthly bandwidth quota (1GB free, then paid)
+- BERT model is 447MB in LFS
+- Each download counts against quota
+
+**Solution (Already Fixed in Workflow):**
+- ✅ LIGHT build uses `lfs: false` (doesn't need BERT model)
+- ✅ FULL build uses `lfs: true` (needs BERT model)
+- ✅ Release job uses `lfs: false` (only needs artifacts)
+
+**What Was Wrong:**
+- All 3 jobs were using `lfs: true`
+- LIGHT and Release jobs were downloading 447MB unnecessarily
+- Multiple build attempts quickly exceeded quota
+
+**Key Lesson:**
+- **Only enable LFS where actually needed!**
+- LIGHT version = No BERT = No LFS needed
+- FULL version = BERT included = LFS required
+- This is WHY modular builds are important - optimization!
+
+**If You See This Error:**
+1. Check GitHub LFS quota: Settings → Billing → Git LFS Data
+2. Verify workflow jobs only use `lfs: true` when needed
+3. Wait for quota reset (monthly) or upgrade plan
 
 ---
 
