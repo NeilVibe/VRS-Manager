@@ -1,17 +1,29 @@
 # Claude Code Reference - VRS Manager
 
 ## QUICK PROJECT STATUS
-**Current Version:** v1.121.0
-**Status:** Production Ready - Phase 3.1.1 Complete
+**Current Version:** v11201314
+**Status:** Production Ready - Desktop Installer + DateTime Versioning
 **Last Major Feature:** Word-Level Diff Enhancement for StrOrigin Analysis
 **Next Priority:** Phase 3.1.2 (Expand to AllLang Process) - see roadmap.md
+
+## VERSIONING SCHEME (NEW!)
+
+**Format:** `MMDDHHMM` (DateTime-based versioning)
+- MM = Month (11 = November)
+- DD = Day (20)
+- HH = Hour (13 = 1 PM)
+- MM = Minute (14)
+
+**Example:** `11201314` = November 20, 2025 at 1:14 PM
+
+**Why?** Clear, sortable, and shows when each version was created.
 
 ## BUILD ("build it", "trigger build")
 ```bash
 # Update BUILD_TRIGGER.txt and push to main
-echo "Build v1118.X" >> BUILD_TRIGGER.txt
+echo "Build v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
 git add BUILD_TRIGGER.txt
-git commit -m "Trigger build v1118.X"
+git commit -m "Trigger build v$(date '+%m%d%H%M')"
 git push origin main
 ```
 Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actions
@@ -20,7 +32,7 @@ Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actio
 
 **WHY CRITICAL:** Version inconsistencies cause confusion for users, documentation mismatches, and make debugging difficult. When building releases, ALL documentation must match the actual code version. User trust depends on accurate version reporting across all files.
 
-**Current Version: 1.121.0** - Update ALL these files together:
+**Current Version: 11201314** - Update ALL these files together:
 ```bash
 # 1. src/config.py - VERSION and VERSION_FOOTER
 # 2. main.py - Docstring (line 5) and print statements (lines 12-15)

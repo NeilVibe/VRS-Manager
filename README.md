@@ -1,6 +1,6 @@
 # VRS Manager
 
-**Version:** 1121.0
+**Version:** 11201314
 **Author:** Neil Schmitt
 **Status:** Production Ready (TWO-PASS Algorithm + Clean Super Group Tables + Migration Tracking)
 
