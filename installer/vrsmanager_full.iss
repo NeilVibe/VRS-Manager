@@ -28,7 +28,7 @@ AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases
 
 ; Install paths
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={userdesktop}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 
@@ -50,7 +50,7 @@ ArchitecturesInstallIn64BitMode=x64
 MinVersion=6.1sp1
 
 ; Privileges
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 
 ; Misc
