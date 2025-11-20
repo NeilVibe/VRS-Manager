@@ -157,7 +157,7 @@ def verify_working_accuracy():
 
     # Build lookups and process
     lookups = build_working_lookups(df_prev, "PREVIOUS")
-    result, counter, marked = process_working_comparison(df_curr, df_prev, *lookups)
+    result, counter, marked, pass1_results, previous_strorigins = process_working_comparison(df_curr, df_prev, *lookups)
 
     # Find deleted rows
     from src.core.working_helpers import find_working_deleted_rows
