@@ -12,9 +12,10 @@ openpyxl>=3.0.0
 # tkinter is part of the Python standard library
 
 # BERT and ML dependencies for StrOrigin Analysis (Phase 2.3)
-torch>=1.9.0
-transformers>=4.20.0
-sentence-transformers>=2.2.0
+# NOTE: sentence-transformers 5.0+ required for bundled model compatibility
+torch>=2.0.0
+transformers>=4.30.0
+sentence-transformers>=5.0.0
 tokenizers>=0.13.0
 scipy>=1.7.0
 scikit-learn>=1.0.0
