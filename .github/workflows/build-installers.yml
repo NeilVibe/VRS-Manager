@@ -243,7 +243,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          lfs: true
+          lfs: false
 
       - name: Download LIGHT installer
         if: needs.check-build-type.outputs.build-light == 'true'
