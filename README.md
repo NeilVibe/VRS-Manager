@@ -2,7 +2,7 @@
 
 **Version:** 1121.0
 **Author:** Neil Schmitt
-**Status:** Production Ready (TWO-PASS Algorithm + Clean Super Group Tables)
+**Status:** Production Ready (TWO-PASS Algorithm + Clean Super Group Tables + Migration Tracking)
 
 [![Build Executables](https://github.com/NeilVibe/VRS-Manager/actions/workflows/build-executables.yml/badge.svg)](https://github.com/NeilVibe/VRS-Manager/actions/workflows/build-executables.yml)
 [![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
@@ -20,7 +20,7 @@ The tool compares previous and current versions of VRS Excel files to detect and
 
 ## Key Features
 
-### 🔑 10-Key Pattern Matching + TWO-PASS Algorithm (v1116+)
+### 🔑 10-Key Pattern Matching + TWO-PASS Algorithm (v1116 - Latest)
 - **Ultra-precise change detection** using comprehensive 10-key combinations:
   - **2-Key Combos (6)**: SE, SO, SC, EO, EC, OC
   - **3-Key Combos (4)**: SEO, SEC, SOC, EOC
@@ -348,7 +348,23 @@ View history via **"📊 View Update History"** button in GUI.
 
 ## Version History
 
-### v1116 (Current - TWO-PASS Algorithm)
+### v1117.1 (Current - TimeFrame+StrOrigin Logic + Column Robustness)
+- ✅ **Column Robustness Fix** - Handles files with different column structures
+  - Only compares columns that exist in BOTH files (PREVIOUS and CURRENT)
+  - No crashes when optional columns missing (Desc, StartFrame, EndFrame, Text, etc.)
+  - Required CORE columns: SequenceName, EventName, StrOrigin, CastingKey components
+  - Program gracefully skips change detection for missing optional columns
+- ✅ All v1117 features included
+
+### v1117 (Previous - TimeFrame+StrOrigin Logic)
+- ✅ **Master File Update TimeFrame Preservation Logic** - Robust and universal implementation
+  - If TimeFrame changed AND StrOrigin changed → Update TimeFrame
+  - If TimeFrame changed BUT StrOrigin did NOT change → Preserve TimeFrame
+  - Works for ANY combination of changes (universal rule)
+- ✅ **Documentation Updates** - All guides updated with TimeFrame logic
+- ✅ All v1116 features included
+
+### v1116 (Previous - TWO-PASS Algorithm)
 - ✅ **TWO-PASS Algorithm** - Eliminates 1-to-many matching issues
   - PASS 1: Detect & mark certainties (No Change, New)
   - PASS 2: Pattern match using UNMARKED rows only
@@ -447,4 +463,3 @@ For issues, questions, or feature requests:
 ---
 
 **Happy VRS Managing! 🎙️🎬**
-# Test

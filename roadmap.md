@@ -7,7 +7,6 @@
 - [ ] `src/config.py` → `VERSION` constant and `VERSION_FOOTER`
 - [ ] `main.py` → Docstring (line 5) and all print statements (lines 12-15)
 - [ ] `README.md` → Version number (line 3) and status line (line 5)
-- [ ] `README_EN.md` → Version number (line 3) and status line (line 5)
 - [ ] `README_KR.md` → Version number (line 3) and status line (line 5)
 - [ ] `roadmap.md` → Current Status header (below) and add to Version History section
 - [ ] `docs/VRS_Manager_Process_Guide_EN.xlsx` → Version in Overview sheet
