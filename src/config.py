@@ -56,7 +56,7 @@ OUTPUT_COLUMNS = [
     "DialogVoice", "CastingKey", "StrOrigin", "STATUS", "Text", "Desc",
     "FREEMEMO", "SubTimelineName", "CHANGES", "EventName", "StartFrame",
     "EndFrame", "Tribe", "Age", "Gender", "Job", "Region", "UpdateTime",
-    "PreviousData", "Mainline Translation"
+    "PreviousData", "Previous StrOrigin", "Mainline Translation"
 ]
 
 OUTPUT_COLUMNS_RAW = [
