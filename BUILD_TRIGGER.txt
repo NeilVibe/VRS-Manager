@@ -63,3 +63,18 @@ FULL Version:
 - Output: installer_output/VRSManager_v1.121.0_Full_Setup.exe
 
 This is Build #8 - Excel Guides Verified!
+
+Build v1.121.0 - Build #9
+Desktop Installation (No Admin Required)
+
+INSTALLER CHANGES:
+- Default path: Desktop instead of Program Files
+- No admin rights required (lowest privileges)
+- Bypasses company security restrictions
+- Still 100% portable and movable
+
+NEW DEFAULT PATHS:
+- LIGHT: C:\Users\[Username]\Desktop\VRS Manager
+- FULL: C:\Users\[Username]\Desktop\VRS Manager
+
+This is Build #9 - User-friendly Desktop installation!
