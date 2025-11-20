@@ -18,9 +18,45 @@
 
 **Why?** Clear, sortable, and shows when each version was created.
 
+## VERSION UPDATE WORKFLOW (FOLLOW THIS!)
+
+**CRITICAL: Always run check BEFORE commit/push!**
+
+```bash
+# 1. Get new datetime version
+NEW_VERSION=$(date '+%m%d%H%M')
+echo "New version: $NEW_VERSION"
+
+# 2. Update all 12 files manually (see VERSION UNIFICATION section below)
+#    - src/config.py
+#    - main.py
+#    - README.md, README_KR.md
+#    - installer/*.iss
+#    - .github/workflows/build-installers.yml
+#    - update_excel_guides.py
+#    - CLAUDE.md, roadmap.md, WIKI_CONFLUENCE.md
+#    - src/processors/master_processor.py
+
+# 3. RUN CHECK BEFORE COMMIT! (This catches mistakes!)
+python3 check_version_unified.py
+
+# 4. Only if check passes (exit code 0), then commit
+git add -A
+git commit -m "Version unification: v$NEW_VERSION"
+git push origin main
+
+# 5. NOW trigger build
+echo "Build v$NEW_VERSION" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger build v$NEW_VERSION"
+git push origin main
+```
+
+**Golden Rule:** Never commit version changes without running `check_version_unified.py` first!
+
 ## BUILD ("build it", "trigger build")
 ```bash
-# Update BUILD_TRIGGER.txt and push to main
+# Quick build trigger (after version already updated)
 echo "Build v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
 git add BUILD_TRIGGER.txt
 git commit -m "Trigger build v$(date '+%m%d%H%M')"
@@ -47,7 +83,14 @@ python3 check_version_unified.py
 - ✅ **Documentation:** README, roadmap, WIKI, guides
 
 **Runs automatically!** Reports exact file:line for any mismatch.
-**RUN BEFORE EVERY BUILD!** Ensures zero version inconsistencies.
+
+**⚠️ MANDATORY WORKFLOW:**
+1. Update version in all 12 files
+2. **RUN THIS CHECK** → `python3 check_version_unified.py`
+3. Only if exit code 0 (success) → commit and push
+4. Then trigger build
+
+**NEVER commit version changes without running this check first!**
 
 **Current Version: 11201321** - Update ALL these files together:
 ```bash
