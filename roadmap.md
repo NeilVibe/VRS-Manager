@@ -41,7 +41,41 @@
 
 ---
 
-## 📋 Current Priority: Phase 3.1.2 - AllLang Process Enhancement 🔜 NEXT
+## 📋 Current Priority: Phase 3.2 - Self-Monitoring Infrastructure ⚙️ IN PROGRESS
+
+### ✅ COMPLETED: Version Unification Check Script
+
+**Script:** `check_version_unified.py`
+
+**Purpose:** Automatically verify version consistency across all 12 project files
+
+**Features:**
+- ✅ Reads source of truth from `src/config.py`
+- ✅ Checks all version references in code, docs, installers, workflows
+- ✅ Reports mismatches with file:line numbers
+- ✅ Ignores historical version entries (Version History section)
+- ✅ Exit code 0 = unified, 1 = mismatch detected
+
+**Usage:**
+```bash
+python3 check_version_unified.py
+```
+
+**Files Monitored (12 total):**
+1. src/config.py - VERSION + VERSION_FOOTER
+2. main.py - Docstring + print statements
+3. README.md + README_KR.md - Version headers
+4. installer/*.iss - MyAppVersion
+5. .github/workflows/build-installers.yml - File paths
+6. update_excel_guides.py - VERSION variables
+7. CLAUDE.md, roadmap.md, WIKI_CONFLUENCE.md - Documentation
+8. src/processors/master_processor.py - Version comment
+
+**Recommendation:** Run before every build to ensure version consistency!
+
+---
+
+## 📋 Next Priority: Phase 3.1.2 - AllLang Process Enhancement 🔜 NEXT
 
 ### ✅ Phase 3.1.1 COMPLETE - Word-Level Diff Enhancement
 
