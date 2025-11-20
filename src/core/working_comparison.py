@@ -108,7 +108,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
                 # Perfect match: All 4 keys identical
                 if S == prev_S and E == prev_E and O == prev_O and C == prev_C:
                     marked_prev_indices.add(prev_idx)
-                    pass1_results[curr_idx] = ("No Change", prev_idx, prev_strorigin)
+                    pass1_results[curr_idx] = ("No Change", prev_idx, prev_strorigin, [])
 
         # Check if NEW row (all 10 keys missing)
         if curr_idx not in pass1_results:
@@ -122,7 +122,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
                (key_sec not in prev_lookup_sec) and \
                (key_soc not in prev_lookup_soc) and \
                (key_eoc not in prev_lookup_eoc):
-                pass1_results[curr_idx] = ("New Row", None, "")
+                pass1_results[curr_idx] = ("New Row", None, "", [])
 
         progress_count += 1
         if progress_count % 500 == 0 or progress_count == total_rows:
@@ -324,7 +324,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             prev_strorigin = safe_str(prev_row.get(COL_STRORIGIN, ""))
 
         # Store PASS 2 result
-        pass1_results[curr_idx] = (change_type, prev_idx, prev_strorigin)
+        pass1_results[curr_idx] = (change_type, prev_idx, prev_strorigin, [])
 
         progress_count += 1
         if progress_count % 500 == 0 or progress_count == total_rows:
@@ -345,7 +345,7 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
 
         # Get detection result
         if curr_idx in pass1_results:
-            change_type, prev_idx, prev_strorigin = pass1_results[curr_idx]
+            change_type, prev_idx, prev_strorigin, _ = pass1_results[curr_idx]
             previous_strorigins.append(prev_strorigin)
         else:
             # Shouldn't happen
