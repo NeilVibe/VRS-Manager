@@ -26,7 +26,7 @@ from src.io.summary import create_working_summary, create_working_update_history
 from src.history.history_manager import add_working_update_record
 from src.config import (
     COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
-    COL_STRORIGIN, COL_PREVIOUSDATA
+    COL_STRORIGIN, COL_PREVIOUSDATA, COL_PREVIOUS_STRORIGIN
 )
 from src.utils.strorigin_analysis import StrOriginAnalyzer
 from src.io.excel_writer import write_super_group_word_analysis
@@ -129,12 +129,15 @@ class WorkingProcessor(BaseProcessor):
              self.prev_lookup_soc, self.prev_lookup_eoc) = build_working_lookups(self.df_prev, "PREVIOUS")
 
             # Process comparison and import (TWO-PASS algorithm)
-            self.df_result, self.counter, marked_prev_indices, self.pass1_results = process_working_comparison(
+            self.df_result, self.counter, marked_prev_indices, self.pass1_results, previous_strorigins = process_working_comparison(
                 self.df_curr, self.df_prev,
                 self.prev_lookup_se, self.prev_lookup_so, self.prev_lookup_sc,
                 self.prev_lookup_eo, self.prev_lookup_ec, self.prev_lookup_oc,
                 self.prev_lookup_seo, self.prev_lookup_sec, self.prev_lookup_soc, self.prev_lookup_eoc
             )
+
+            # Add Previous StrOrigin column (like RAW processor)
+            self.df_result[COL_PREVIOUS_STRORIGIN] = previous_strorigins
 
             # Find deleted rows (TWO-PASS algorithm)
             self.df_deleted = find_working_deleted_rows(self.df_prev, self.df_curr, marked_prev_indices)
@@ -217,15 +220,7 @@ class WorkingProcessor(BaseProcessor):
             # Analyze each row with progress tracking
             for row_num, (idx, row) in enumerate(df_strorigin_changes.iterrows(), start=1):
                 curr_strorigin = safe_str(row.get(COL_STRORIGIN, ""))
-
-                # Extract previous StrOrigin from PreviousData if it exists
-                prev_strorigin = ""
-                if COL_PREVIOUSDATA in row and pd.notna(row[COL_PREVIOUSDATA]):
-                    previous_data = str(row[COL_PREVIOUSDATA])
-                    # PreviousData format: "PrevStrOrigin | PrevSTATUS | PrevFREEMEMO"
-                    parts = previous_data.split(" | ")
-                    if len(parts) >= 1:
-                        prev_strorigin = parts[0]
+                prev_strorigin = safe_str(row.get(COL_PREVIOUS_STRORIGIN, ""))
 
                 # Store for columns
                 prev_strorigins.append(prev_strorigin)
