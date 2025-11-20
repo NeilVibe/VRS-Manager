@@ -75,6 +75,160 @@ python3 check_version_unified.py
 
 ---
 
+## 📋 Current Priority: Phase 3.1.3 - Processor Parity Update 🚀 IN PROGRESS
+
+**Status:** Preparation Phase
+**Version Target:** v11201322 (minor feature parity update)
+**Detailed Analysis:** See `PROCESSOR_PARITY_ANALYSIS.md`
+
+### 🎯 GOAL: Achieve Full Parity Between RAW and WORKING Processors
+
+### 📊 Parity Status
+
+| Feature | RAW Processor | WORKING Processor | Status |
+|---------|---------------|-------------------|--------|
+| StrOrigin Analysis Sheet | ✅ Implemented | ✅ Implemented | ✅ **PARITY** |
+| Super Group Word Analysis Sheet | ✅ Implemented | ❌ **MISSING** | ❌ **GAP** |
+
+### ⚠️ PROBLEM IDENTIFIED
+
+**WORKING processor is missing the "Super Group Word Analysis" sheet!**
+
+- **RAW processor** has 5 output sheets (includes Super Group Word Analysis)
+- **WORKING processor** has 4 output sheets (missing Super Group Word Analysis)
+- This is a feature gap that needs to be filled for consistency
+
+### 📝 Implementation Plan
+
+#### Phase 1: Update `process_working_comparison()` Return Value
+**File:** `src/core/working_comparison.py`
+
+**Current:**
+```python
+return pd.DataFrame(results), counter, marked_prev_indices
+```
+
+**New:**
+```python
+return pd.DataFrame(results), counter, marked_prev_indices, pass1_results
+```
+
+**Action:** Expose `pass1_results` (already collected internally) to calling code
+
+---
+
+#### Phase 2: Capture `pass1_results` in WorkingProcessor
+**File:** `src/processors/working_processor.py` (line 130-135)
+
+**Current:**
+```python
+self.df_result, self.counter, marked_prev_indices = process_working_comparison(...)
+```
+
+**New:**
+```python
+self.df_result, self.counter, marked_prev_indices, self.pass1_results = process_working_comparison(...)
+```
+
+**Action:** Store `pass1_results` for use in write_output()
+
+---
+
+#### Phase 3: Add Super Group Word Analysis to write_output()
+**File:** `src/processors/working_processor.py`
+
+**Add After Summary Report (before StrOrigin Analysis):**
+```python
+# Super Group Word Analysis (parity with RAW processor)
+if hasattr(self, 'pass1_results'):
+    log("Generating Super Group Word Analysis...")
+    super_group_analysis, migration_details = aggregate_to_super_groups(
+        self.df_curr,
+        self.df_prev,
+        self.pass1_results
+    )
+    write_super_group_word_analysis(writer, super_group_analysis, migration_details)
+    log(f"  → {len(super_group_analysis)} super groups analyzed")
+    if migration_details:
+        log(f"  → {len(migration_details)} migrations detected")
+```
+
+**Required Imports:**
+```python
+from src.io.excel_writer import write_super_group_word_analysis
+from src.utils.super_groups import aggregate_to_super_groups
+```
+
+---
+
+### ✅ Implementation Checklist
+
+**Preparation (IN PROGRESS):**
+- [x] Analyze RAW vs WORKING processor differences
+- [x] Document findings in PROCESSOR_PARITY_ANALYSIS.md
+- [x] Create detailed plan of action
+- [x] Update roadmap.md with Phase 3.1.3
+- [ ] Commit preparation documents
+- [ ] Push preparation commit
+
+**Phase 1: Update working_comparison.py**
+- [ ] Read complete file to understand pass1_results collection
+- [ ] Verify pass1_results is being built during comparison
+- [ ] Update return statement
+- [ ] Test compilation
+- [ ] Commit: "Phase 1: Update process_working_comparison to return pass1_results"
+
+**Phase 2: Update WorkingProcessor.process_data()**
+- [ ] Update unpacking statement
+- [ ] Store self.pass1_results
+- [ ] Test compilation
+- [ ] Commit: "Phase 2: Capture pass1_results in WorkingProcessor"
+
+**Phase 3: Add Super Group Analysis**
+- [ ] Add required imports
+- [ ] Insert Super Group Word Analysis code
+- [ ] Test compilation
+- [ ] Commit: "Phase 3: Add Super Group Word Analysis to Working processor"
+
+**Testing & Validation:**
+- [ ] Run RAW processor test (baseline)
+- [ ] Run WORKING processor test (verify Super Group sheet appears)
+- [ ] Compare RAW vs WORKING Super Group output
+- [ ] Run comprehensive test suite
+- [ ] Commit: "Tests: Verify Super Group parity achieved"
+
+**Documentation & Release:**
+- [ ] Update version to v11201322 (if releasing)
+- [ ] Update README.md
+- [ ] Final commit: "Complete: Working processor Super Group parity"
+- [ ] Git push
+
+---
+
+### 🎯 Expected Outcome
+
+**Before:**
+- RAW: 5 sheets (Comparison, Deleted, Summary, **Super Group**, StrOrigin)
+- WORKING: 4 sheets (Work Transform, History, Deleted, Summary, StrOrigin)
+
+**After:**
+- RAW: 5 sheets (unchanged)
+- WORKING: 5 sheets (Work Transform, History, Deleted, Summary, **Super Group**, StrOrigin)
+
+**Result:** ✅ **FULL FEATURE PARITY ACHIEVED**
+
+---
+
+### 📊 Impact Assessment
+
+- **Risk Level:** LOW (copying proven implementation)
+- **Files Modified:** 2 (working_comparison.py, working_processor.py)
+- **Code Changes:** ~16 lines total
+- **No Breaking Changes:** Existing functionality unchanged
+- **Testing Required:** Standard test suite + output verification
+
+---
+
 ## 📋 Next Priority: Phase 3.1.2 - AllLang Process Enhancement 🔜 NEXT
 
 ### ✅ Phase 3.1.1 COMPLETE - Word-Level Diff Enhancement
