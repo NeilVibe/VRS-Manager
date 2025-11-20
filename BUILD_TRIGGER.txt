@@ -45,3 +45,21 @@ FULL Version (~2.6GB):
 - Output: installer_output/VRSManager_v1.121.0_Full_Setup.exe
 
 This is Build #7 - Phase 3.1.1 Complete!
+
+Build v1.121.0 - Build #8
+Excel Guides Verification Build
+
+LIGHT Version:
+- Includes: VRS_Manager_Process_Guide_EN.xlsx
+- Includes: VRS_Manager_Process_Guide_KR.xlsx
+- Path: dist_light/VRSManager/VRSManager.exe
+- Output: installer_output/VRSManager_v1.121.0_Light_Setup.exe
+
+FULL Version:
+- Includes: VRS_Manager_Process_Guide_EN.xlsx
+- Includes: VRS_Manager_Process_Guide_KR.xlsx
+- BERT model bundled from LFS
+- Path: dist_full/VRSManager/VRSManager.exe
+- Output: installer_output/VRSManager_v1.121.0_Full_Setup.exe
+
+This is Build #8 - Excel Guides Verified!
