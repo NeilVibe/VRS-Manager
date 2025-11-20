@@ -81,7 +81,7 @@ jobs:
         with:
           name: VRSManager_Light_Setup
           path: installer_output/VRSManager_v1.121.0_Light_Setup.exe
-          retention-days: 90
+          retention-days: 7
 
   build-full:
     name: Build FULL Installer
@@ -184,7 +184,7 @@ jobs:
         with:
           name: VRSManager_Full_Setup
           path: installer_output/VRSManager_v1.121.0_Full_Setup.exe
-          retention-days: 90
+          retention-days: 7
 
   create-release:
     name: Create GitHub Release
