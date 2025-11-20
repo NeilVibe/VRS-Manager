@@ -1,203 +1,393 @@
-# Building VRS Manager Executable
+# Building VRS Manager - MODULAR BUILD SYSTEM
 
-This guide explains how to compile VRS Manager into a standalone executable.
+This guide explains how to build VRS Manager installers using the automated GitHub Actions workflow with **modular build selection**.
 
 ---
 
 ## ⚡ Automated Builds (Recommended)
 
-**GitHub Actions automatically builds executables for all platforms!**
+**GitHub Actions automatically builds Windows installers with MODULAR SELECTION!**
 
-### Get Pre-Built Executables
+### 🎯 Modular Build System - NEW!
 
-**Option 1: Latest Builds**
-1. Go to [Actions tab](https://github.com/NeilVibe/VRS-Manager/actions)
-2. Click latest successful "Build Executables" run
-3. Download artifacts:
-   - `VRSManager-Windows.zip` (Windows .exe with icon)
-   - `VRSManager-Linux.zip` (Linux executable)
-   - `VRSManager-macOS.zip` (macOS executable)
-
-**Option 2: Tagged Releases**
-1. Create a tag: `git tag v1.0.0 && git push origin v1.0.0`
-2. Go to [Releases page](https://github.com/NeilVibe/VRS-Manager/releases)
-3. Download release for your platform
-
-### What Gets Built Automatically
-- ✅ Windows executable with icon (`VRSManager.exe`)
-- ✅ Linux executable (`VRSManager`)
-- ✅ macOS executable (`VRSManager`)
-- ✅ All packaged with README and BUILD.md
-- ✅ Triggered on every push to main
-- ✅ Creates releases for version tags
+You can now choose **what to build**:
+- **LIGHT only** (~150MB) - Fast, lightweight version without BERT
+- **FULL only** (~2.6GB) - AI-powered version with Korean BERT model
+- **BOTH** - Build both installers (default)
 
 ---
 
-## 🔧 Manual Build (Local)
-
-If you prefer to build locally:
+## 🚀 How to Trigger Builds
 
 ### Prerequisites
+1. ✅ Version unified across all 12 files
+2. ✅ Version check passed: `python3 check_version_unified.py`
+3. ✅ All changes committed and pushed to main
 
-- Python 3.7+
-- PyInstaller installed: `pip install pyinstaller`
+### Build Commands
 
----
-
-## Quick Build
-
-### Linux / macOS
-
+#### Option 1: Build LIGHT Only
 ```bash
-# Make build script executable (first time only)
-chmod +x build_executable.sh
-
-# Run build
-./build_executable.sh
+# Append build trigger to BUILD_TRIGGER.txt
+echo "Build LIGHT v11201430" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger LIGHT build v11201430"
+git push origin main
 ```
 
-### Windows
-
-```cmd
-python -m PyInstaller VRSManager.spec --clean --noconfirm
-```
+**Use when:**
+- Only LIGHT version code changed
+- Testing LIGHT-specific features
+- Quick iteration (faster build ~5-10 min)
 
 ---
 
-## Build Output
-
-After successful build:
-
-```
-dist/
-└── VRSManager         # Standalone executable (Linux/macOS)
-    or
-    VRSManager.exe     # Standalone executable (Windows)
-```
-
----
-
-## Running the Executable
-
-### Linux / macOS
-
+#### Option 2: Build FULL Only
 ```bash
-cd dist
-./VRSManager
+# Append build trigger to BUILD_TRIGGER.txt
+echo "Build FULL v11201430" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger FULL build v11201430"
+git push origin main
 ```
 
-### Windows
-
-```cmd
-cd dist
-VRSManager.exe
-```
+**Use when:**
+- Only FULL version code changed
+- Testing BERT-related features
+- Don't need LIGHT version right now
 
 ---
 
-## What Gets Bundled
-
-The executable includes:
-- All Python code from `src/` modules
-- All dependencies (pandas, openpyxl, tkinter, etc.)
-- Application icon (`images/vrsmanager.ico`)
-- Runtime libraries
-
-**Note:** History JSON files (`*_update_history.json`) are created in the same directory as the executable when you run processes.
-
----
-
-## File Paths in Executable
-
-The application automatically handles file paths correctly whether running as:
-- Python script: Files saved in project root
-- Compiled executable: Files saved in same directory as `.exe`
-
-This is handled by `src/utils/helpers.py::get_script_dir()` which detects:
-- `sys.frozen = True` → Running as executable
-- `sys.frozen = False` → Running as script
-
----
-
-## Icon Support
-
-- **Windows**: Icon displays on executable and taskbar
-- **macOS**: Icon displays on application bundle
-- **Linux**: Icon not supported (warning can be ignored)
-
----
-
-## Troubleshooting
-
-### Build fails with "module not found"
-
-Add missing module to `hiddenimports` in `VRSManager.spec`:
-
-```python
-hiddenimports=[
-    'your_missing_module',
-    # ... existing imports
-],
-```
-
-### Executable won't run
-
-Check `build/VRSManager/warn-VRSManager.txt` for warnings about missing libraries.
-
-### Files not being created
-
-Ensure you have write permissions in the directory containing the executable.
-
----
-
-## Build Configuration
-
-The build is configured in `VRSManager.spec`:
-
-- **Entry point**: `main.py`
-- **Icon**: `images/vrsmanager.ico`
-- **Console**: `False` (GUI mode, no console window)
-- **Compression**: UPX enabled
-- **One-file**: Yes (single executable)
-
----
-
-## Distribution
-
-To distribute VRS Manager:
-
-1. Build the executable on the target platform
-2. Copy the entire `dist/` folder
-3. Share `dist/VRSManager` (or `VRSManager.exe`)
-
-**Note:** The executable is platform-specific:
-- Build on Windows for Windows users
-- Build on Linux for Linux users
-- Build on macOS for macOS users
-
----
-
-## Build System Details
-
-**Build Tool**: PyInstaller 6.16.0
-**Build Time**: ~15-30 seconds
-**Executable Size**: ~80-120 MB (includes Python runtime + dependencies)
-
----
-
-## Clean Build
-
-To force a complete rebuild:
-
+#### Option 3: Build BOTH (Default)
 ```bash
-# Clean all build artifacts
-rm -rf build/ dist/ __pycache__/
-find . -type d -name "__pycache__" -exec rm -rf {} +
+# Append build trigger to BUILD_TRIGGER.txt
+echo "Build BOTH v11201430" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger BOTH builds v11201430"
+git push origin main
+```
 
-# Rebuild
-./build_executable.sh
+**Use when:**
+- Releasing new version
+- Core code changed (affects both versions)
+- Need complete distribution package
+
+---
+
+## 📊 Build Workflow Details
+
+### What Gets Built
+
+#### LIGHT Version (~150MB)
+**Includes:**
+- All VRS Check processors (RAW, Working, Master, AllLang, DailyWord)
+- Core data processing (10-Key TWO-PASS algorithm)
+- Excel I/O, formatting, update history
+- Punctuation/Space detection for StrOrigin Analysis
+- Super Group Word Analysis
+- EN/KR Excel process guides
+
+**StrOrigin Analysis:**
+- Punctuation-only changes: "Punctuation/Space Change"
+- Content changes: "Content Change" (no similarity %)
+
+**Output:** `VRSManager_v11201430_Light_Setup.exe`
+
+---
+
+#### FULL Version (~2.6GB)
+**Includes:**
+- Everything in LIGHT version
+- PyTorch (CPU version)
+- Korean SBERT model (447MB, stored in LFS)
+- AI semantic similarity analysis
+- Complete offline operation
+
+**StrOrigin Analysis:**
+- Punctuation-only changes: "Punctuation/Space Change"
+- Content changes: Shows BERT similarity % (e.g., "94.5% similar")
+
+**Output:** `VRSManager_v11201430_Full_Setup.exe`
+
+---
+
+## 🔄 Build Process Flow
+
+### GitHub Actions Workflow
+
+```mermaid
+graph TD
+    A[Push to main with BUILD_TRIGGER.txt change] --> B[Check Build Type]
+    B --> C{Parse BUILD_TRIGGER.txt}
+    C -->|LIGHT| D[Build LIGHT only]
+    C -->|FULL| E[Build FULL only]
+    C -->|BOTH| F[Build LIGHT + FULL]
+    D --> G[Create GitHub Release]
+    E --> G
+    F --> G
+```
+
+### Build Steps (Automated)
+
+1. **Check Build Type** - Parse BUILD_TRIGGER.txt for LIGHT/FULL/BOTH
+2. **Checkout Code** - Pull latest from main (includes LFS for FULL)
+3. **Setup Python 3.10** - Install Python environment
+4. **Install Dependencies**
+   - LIGHT: `pandas`, `openpyxl`, `numpy`, `pyinstaller`
+   - FULL: All requirements.txt (includes PyTorch, transformers)
+5. **Verify BERT Model** (FULL only) - Check LFS model exists
+6. **Build Executable** - PyInstaller with .spec file
+7. **Verify Build** - Check .exe exists and log size
+8. **Compile Installer** - Inno Setup creates Windows installer
+9. **Upload Artifacts** - Store installers (7-day retention)
+10. **Create GitHub Release** - Publish release with downloadable installers
+
+**Build Time:**
+- LIGHT: ~5-10 minutes
+- FULL: ~15-20 minutes
+- BOTH: ~25-30 minutes (parallel execution)
+
+---
+
+## 📦 Getting Pre-Built Installers
+
+### Option 1: Latest Artifacts (7-day retention)
+1. Go to [Actions tab](https://github.com/NeilVibe/VRS-Manager/actions)
+2. Click latest successful "Build LIGHT and FULL Installers" run
+3. Download artifacts:
+   - `VRSManager_Light_Setup` (if LIGHT was built)
+   - `VRSManager_Full_Setup` (if FULL was built)
+
+### Option 2: GitHub Releases (Permanent)
+1. Go to [Releases page](https://github.com/NeilVibe/VRS-Manager/releases)
+2. Find version tag (e.g., `v11201430`)
+3. Download installer(s):
+   - `VRSManager_v11201430_Light_Setup.exe`
+   - `VRSManager_v11201430_Full_Setup.exe`
+
+---
+
+## 🛠 Manual Build (Advanced - Local Development)
+
+For local testing, you can build manually:
+
+### Prerequisites
+- Python 3.10
+- PyInstaller: `pip install pyinstaller`
+- Inno Setup (Windows only)
+
+### Build LIGHT Locally
+```bash
+# Install LIGHT dependencies
+pip install pandas openpyxl numpy pyinstaller
+
+# Build with PyInstaller
+pyinstaller VRSManager_light.spec --clean --noconfirm --distpath dist_light
+
+# Verify
+ls -lh dist_light/VRSManager/VRSManager.exe
+```
+
+### Build FULL Locally
+```bash
+# Install FULL dependencies
+pip install -r requirements.txt
+pip install pyinstaller
+
+# Download BERT model (if not already present)
+python3 download_bert_model.py
+
+# Build with PyInstaller
+pyinstaller VRSManager.spec --clean --noconfirm --distpath dist_full
+
+# Verify
+ls -lh dist_full/VRSManager/VRSManager.exe
+```
+
+### Compile Installer (Windows)
+```bash
+# LIGHT installer
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\vrsmanager_light.iss
+
+# FULL installer
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\vrsmanager_full.iss
 ```
 
 ---
 
-**Last Updated**: November 15, 2024
+## 📋 Build Checklist
+
+Before triggering builds, ensure:
+
+- [ ] **Version unified** across all 12 files
+- [ ] **Version check passed**: `python3 check_version_unified.py`
+- [ ] **All tests passing**:
+  - `python3 tests/test_accuracy.py`
+  - `python3 tests/test_5000_perf.py`
+  - `python3 tests/test_working_processor_super_group.py`
+- [ ] **Excel guides updated** (if needed): `python3 update_excel_guides.py`
+- [ ] **Roadmap updated** with latest changes
+- [ ] **All changes committed and pushed** to main
+- [ ] **Decided which to build**: LIGHT, FULL, or BOTH
+
+---
+
+## 🔍 Monitoring Builds
+
+### Check Build Progress
+1. Go to [GitHub Actions](https://github.com/NeilVibe/VRS-Manager/actions)
+2. Click on the running workflow
+3. Watch live logs for each job
+
+### Build Jobs
+- **check-build-type** - Determines what to build (LIGHT/FULL/BOTH)
+- **build-light** - Builds LIGHT installer (if triggered)
+- **build-full** - Builds FULL installer (if triggered)
+- **create-release** - Creates GitHub Release with installers
+
+### Build Success Indicators
+✅ All jobs green (passed)
+✅ Artifacts uploaded
+✅ GitHub Release created
+✅ Installers downloadable
+
+### Build Failure Troubleshooting
+❌ **Job failed** - Click job to see error logs
+❌ **Model not found (FULL)** - Check Git LFS setup
+❌ **Import errors** - Check dependencies in requirements.txt
+❌ **Installer compile failed** - Check .iss file version numbers
+
+---
+
+## 📝 Build Examples
+
+### Example 1: Quick LIGHT Build for Testing
+```bash
+# Scenario: Fixed a bug in Working processor, only need LIGHT version
+echo "Build LIGHT v11201450" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger LIGHT build v11201450 - Bug fix in Working processor"
+git push origin main
+```
+
+**Result:** Only LIGHT installer built (~5-10 min), saves time and storage
+
+---
+
+### Example 2: FULL Build for BERT Feature
+```bash
+# Scenario: Improved BERT similarity algorithm, only FULL version affected
+echo "Build FULL v11201510" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger FULL build v11201510 - Enhanced BERT similarity"
+git push origin main
+```
+
+**Result:** Only FULL installer built (~15-20 min)
+
+---
+
+### Example 3: Release Build (BOTH)
+```bash
+# Scenario: New version release with core features affecting both versions
+echo "Build BOTH v11201530" >> BUILD_TRIGGER.txt
+git add BUILD_TRIGGER.txt
+git commit -m "Trigger BOTH builds v11201530 - Phase 3.1.3 Release"
+git push origin main
+```
+
+**Result:** Both installers built (~25-30 min), complete distribution ready
+
+---
+
+## 🎯 Best Practices
+
+### When to Build LIGHT Only
+- Bug fixes in core logic (not BERT-specific)
+- UI/UX improvements
+- Data processing optimizations
+- Quick iteration during development
+- Testing installer creation process
+
+### When to Build FULL Only
+- BERT model updates
+- Similarity algorithm improvements
+- FULL-specific feature additions
+- PyTorch dependency updates
+
+### When to Build BOTH
+- **New version releases** (recommended)
+- Core architecture changes
+- Shared utility updates
+- Excel guide updates
+- Before announcing new version to users
+
+---
+
+## 📊 Storage & Retention
+
+### GitHub Artifacts
+- **Retention:** 7 days (configurable in workflow)
+- **Purpose:** Temporary testing, debugging
+- **Auto-cleanup:** Yes, after 7 days
+
+### GitHub Releases
+- **Retention:** Permanent
+- **Purpose:** Official distribution to users
+- **Auto-cleanup:** No, must delete manually
+
+**Recommendation:** Use artifacts for testing, releases for distribution
+
+---
+
+## 🚀 Distribution
+
+### For End Users
+1. Direct them to [Releases page](https://github.com/NeilVibe/VRS-Manager/releases)
+2. Recommend LIGHT version for most users
+3. FULL version for advanced users needing AI similarity
+
+### Installation Paths
+- **Default:** `C:\Users\[Username]\Desktop\VRS Manager`
+- **No admin required** (lowest privileges)
+- **100% portable** - Can move folder anywhere after installation
+
+### Offline Distribution
+1. Download installer from Releases
+2. Transfer to offline computer via USB
+3. Run installer on offline machine
+4. Works 100% offline (BERT model bundled in FULL)
+
+---
+
+## 🔧 Technical Details
+
+### Build Configuration Files
+- **VRSManager_light.spec** - LIGHT version PyInstaller config
+- **VRSManager.spec** - FULL version PyInstaller config
+- **installer/vrsmanager_light.iss** - LIGHT Inno Setup script
+- **installer/vrsmanager_full.iss** - FULL Inno Setup script
+- **.github/workflows/build-installers.yml** - GitHub Actions workflow
+
+### Version Numbers in Build Files
+**IMPORTANT:** Version appears in multiple places in build files:
+- Installer filenames: `VRSManager_v11201430_Light_Setup.exe`
+- .iss AppVersion: `#define MyAppVersion "11201430"`
+- Artifact paths in workflow
+- Release tag: `v11201430`
+
+**Always verify** these match using `check_version_unified.py` before building!
+
+---
+
+## 📖 See Also
+
+- **CLAUDE.md** - Developer quick reference
+- **roadmap.md** - Complete version history
+- **BUILD_TRIGGER.txt** - Build trigger file with examples
+- **README.md** - Project overview
+
+---
+
+**Last Updated:** 2025-11-20 (v11201321)
+**Build System Version:** Modular (LIGHT/FULL/BOTH selection)

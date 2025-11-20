@@ -11,9 +11,54 @@ permissions:
   contents: write
 
 jobs:
+  check-build-type:
+    name: Determine Build Type
+    runs-on: ubuntu-latest
+    outputs:
+      build-light: ${{ steps.check.outputs.build-light }}
+      build-full: ${{ steps.check.outputs.build-full }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check BUILD_TRIGGER.txt
+        id: check
+        run: |
+          TRIGGER=$(cat BUILD_TRIGGER.txt | grep -E "Build (LIGHT|FULL|BOTH)" | tail -1)
+          echo "Trigger line: $TRIGGER"
+
+          # Extract version
+          VERSION=$(echo "$TRIGGER" | grep -oE 'v[0-9]+' | sed 's/v//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+          # Check build type
+          if echo "$TRIGGER" | grep -q "LIGHT"; then
+            echo "build-light=true" >> $GITHUB_OUTPUT
+            echo "Build type: LIGHT only"
+          else
+            echo "build-light=false" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$TRIGGER" | grep -q "FULL"; then
+            echo "build-full=true" >> $GITHUB_OUTPUT
+            echo "Build type: FULL only"
+          else
+            echo "build-full=false" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$TRIGGER" | grep -q "BOTH"; then
+            echo "build-light=true" >> $GITHUB_OUTPUT
+            echo "build-full=true" >> $GITHUB_OUTPUT
+            echo "Build type: BOTH"
+          fi
+
   build-light:
     name: Build LIGHT Installer
     runs-on: windows-latest
+    needs: check-build-type
+    if: needs.check-build-type.outputs.build-light == 'true'
 
     steps:
       - name: Checkout code
@@ -86,6 +131,8 @@ jobs:
   build-full:
     name: Build FULL Installer
     runs-on: windows-latest
+    needs: check-build-type
+    if: needs.check-build-type.outputs.build-full == 'true'
 
     steps:
       - name: Checkout code
@@ -188,9 +235,9 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [build-light, build-full]
+    needs: [check-build-type, build-light, build-full]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && always() && (needs.build-light.result == 'success' || needs.build-full.result == 'success')
 
     steps:
       - name: Checkout code
@@ -199,12 +246,14 @@ jobs:
           lfs: true
 
       - name: Download LIGHT installer
+        if: needs.check-build-type.outputs.build-light == 'true'
         uses: actions/download-artifact@v4
         with:
           name: VRSManager_Light_Setup
           path: ./artifacts/light
 
       - name: Download FULL installer
+        if: needs.check-build-type.outputs.build-full == 'true'
         uses: actions/download-artifact@v4
         with:
           name: VRSManager_Full_Setup
@@ -213,13 +262,19 @@ jobs:
       - name: List artifacts
         run: |
           echo "Downloaded artifacts:"
-          ls -lh artifacts/light/
-          ls -lh artifacts/full/
+          if [ -d "artifacts/light" ]; then
+            echo "LIGHT installer:"
+            ls -lh artifacts/light/
+          fi
+          if [ -d "artifacts/full" ]; then
+            echo "FULL installer:"
+            ls -lh artifacts/full/
+          fi
 
       - name: Extract version from BUILD_TRIGGER.txt
         id: version
         run: |
-          VERSION=$(grep "Build v" BUILD_TRIGGER.txt | head -1 | sed 's/.*Build v//' | cut -d' ' -f1)
+          VERSION="${{ needs.check-build-type.outputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
@@ -291,8 +346,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/light/VRSManager_v11201321_Light_Setup.exe
-            artifacts/full/VRSManager_v11201321_Full_Setup.exe
+            artifacts/light/*.exe
+            artifacts/full/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -301,5 +356,9 @@ jobs:
           echo "✓ GitHub Release v${{ steps.version.outputs.version }} created successfully!"
           echo ""
           echo "Assets uploaded:"
-          echo "  - LIGHT installer: VRSManager_v${{ steps.version.outputs.version }}_Light_Setup.exe"
-          echo "  - FULL installer: VRSManager_v${{ steps.version.outputs.version }}_Full_Setup.exe"
+          if [ "${{ needs.check-build-type.outputs.build-light }}" == "true" ]; then
+            echo "  - LIGHT installer: VRSManager_v${{ steps.version.outputs.version }}_Light_Setup.exe"
+          fi
+          if [ "${{ needs.check-build-type.outputs.build-full }}" == "true" ]; then
+            echo "  - FULL installer: VRSManager_v${{ steps.version.outputs.version }}_Full_Setup.exe"
+          fi

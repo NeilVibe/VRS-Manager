@@ -1,8 +1,27 @@
-Build Trigger File
-==================
+Build Trigger File - MODULAR BUILD SYSTEM
+==========================================
 
-This file is used to trigger GitHub Actions builds.
-When this file is updated and pushed to main, a build will automatically start.
+USAGE:
+------
+Add a line with the build command, then commit & push to main.
+
+FORMATS:
+  Build LIGHT v[version]  → Build LIGHT installer only (~150MB)
+  Build FULL v[version]   → Build FULL installer only (~2.6GB)
+  Build BOTH v[version]   → Build BOTH installers (default)
+
+EXAMPLES:
+  Build LIGHT v11201430   → Only builds LIGHT version
+  Build FULL v11201430    → Only builds FULL version
+  Build BOTH v11201430    → Builds both LIGHT and FULL
+
+WORKFLOW:
+1. Update version across all 12 files (use check_version_unified.py)
+2. Add build command to this file
+3. Commit and push to main
+4. GitHub Actions will automatically build specified version(s)
+
+The latest "Build" line will be used to determine what to build.
 
 Build v1.121.0 - Phase 3.1.1 (Word-Level Diff Enhancement)
 -----------------------------------------------------------
