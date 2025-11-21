@@ -100,6 +100,7 @@ VRS Manager has **4 main processes**. Each serves a different purpose but shares
 **Output**:
 - Main Sheet: All current rows with CHANGES column
 - Deleted Rows: Rows removed from PREVIOUS
+- StrOrigin Analysis: Detailed comparison of text changes (NEW in v11202116)
 - Summary: Statistics and word counts
 
 ---
@@ -128,6 +129,7 @@ VRS Manager has **4 main processes**. Each serves a different purpose but shares
 **Output**:
 - Main Sheet: Current rows enriched with PREVIOUS data
 - Deleted Rows: Rows removed from PREVIOUS
+- StrOrigin Analysis: Detailed comparison of text changes (NEW in v11202116)
 - Summary: Statistics
 
 ---
@@ -284,6 +286,97 @@ Based on which keys match, the system classifies changes:
 
 ---
 
+## StrOrigin Analysis Sheet
+
+**NEW in v11202116** - Phase 3.1.1: Word-Level Diff Enhancement
+
+### What is StrOrigin Analysis?
+
+When running **Raw Process** or **Working Process**, VRS Manager automatically generates a **separate "StrOrigin Analysis" sheet** that provides detailed comparison of Korean text changes. This helps you understand exactly what changed in the dialogue and whether changes are trivial (punctuation) or substantial (content).
+
+### Available in Two Versions
+
+VRS Manager comes in two installation versions with different analysis capabilities:
+
+| Version | Size | StrOrigin Analysis Output |
+|---------|------|---------------------------|
+| **LIGHT** | ~150MB | Shows "Punctuation/Space Change" or "Content Change" |
+| **FULL** | ~2.6GB | Shows semantic similarity percentages (e.g., "79.8% similar", "94.5% similar") using Korean BERT AI model |
+
+Both versions work offline and provide accurate change detection—FULL version just gives more detailed similarity scoring.
+
+### 4-Column Layout
+
+The StrOrigin Analysis sheet uses a **4-column layout** for easy comparison:
+
+| Column | Content | Example |
+|--------|---------|---------|
+| **Previous StrOrigin** | Text from PREVIOUS file | `"플레이어가 게임에서 이겼다"` |
+| **Current StrOrigin** | Text from CURRENT file | `"적이 전투에서 졌다"` |
+| **Analysis** | Similarity or change type | `"79.8% similar"` or `"Content Change"` |
+| **Diff Detail** | Word-level changes | `"[플레이어가→적이] [게임→전투] [이겼다→졌다]"` |
+
+**Column widths optimized**: 25% | 25% | 20% | 35% for best readability.
+
+### Word-Level Diff
+
+The **Diff Detail** column uses **word-level diff** (similar to WinMerge) instead of character-level diff:
+
+**Before (character-level)**: `[플→적] [이→이] [어→] [가→] [게→전] [임→투]`
+**After (word-level)**: `[플레이어가→적이] [게임→전투] [이겼다→졌다]`
+
+Much cleaner and easier to understand!
+
+### Example Outputs
+
+**Punctuation-only changes** (both versions):
+```
+Analysis: "Punctuation/Space Change"
+Diff Detail: (empty - no content change)
+```
+
+**Content changes** (LIGHT version):
+```
+Analysis: "Content Change"
+Diff Detail: "[player→enemy] [won→lost]"
+```
+
+**Content changes** (FULL version):
+```
+Analysis: "79.8% similar"
+Diff Detail: "[player→enemy] [won→lost]"
+```
+
+### Progress Bar
+
+During StrOrigin Analysis, a **progress bar with filling animation** shows real-time progress:
+
+```
+Performing StrOrigin Analysis... [████████░░] 82% (164/200 rows)
+```
+
+This helps you track analysis progress, especially for large files.
+
+### When Does It Appear?
+
+The StrOrigin Analysis sheet appears when:
+- Running **Raw Process** (detects StrOrigin changes)
+- Running **Working Process** (imports and analyzes StrOrigin changes)
+- ❌ **NOT** in All Language Process yet (planned for Phase 3.1.2)
+- ❌ **NOT** in Master File Update (not applicable)
+
+### What Gets Analyzed?
+
+Only rows where **StrOrigin changed** between PREVIOUS and CURRENT:
+- StrOrigin Change
+- StrOrigin+EventName Change
+- StrOrigin+CastingKey Change
+- Any composite change involving StrOrigin
+
+Rows with "No Change" or changes that don't affect StrOrigin (like TimeFrame Change, EventName Change) are excluded from the analysis sheet.
+
+---
+
 ## Import Logic Rules
 
 Import logic applies to: **Working Process**, **All Language Process**, **Master File Update**
@@ -393,6 +486,13 @@ This formula always holds true thanks to:
 **Current Version**: 11202116 (Production Ready - All Core Features Implemented)
 
 **Key Features**:
+- ✅ **Phase 3.1.1 - Word-Level Diff Enhancement** (v11202116) - StrOrigin Analysis with detailed comparison
+  - Word-level diff (cleaner output than character-level)
+  - Separate "StrOrigin Analysis" sheet with 4-column layout
+  - "Diff Detail" column showing exact changes [old→new]
+  - Progress bar with filling animation during analysis
+  - Works in BOTH Raw and Working Process
+  - LIGHT version: Punctuation detection / FULL version: BERT semantic similarity percentages
 - ✅ **Super Group Analysis Improvements** (v1118.4 - Phase 2.2.1) - Enhanced clarity and tracking
   - Removed "Others" super group and stageclosedialog check
   - Reordered super groups: AI Dialog before Quest Dialog
@@ -426,4 +526,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: November 20, 2025 | Version 11202116*
+*Last Updated: November 21, 2025 | Version 11202116*
