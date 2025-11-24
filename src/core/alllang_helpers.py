@@ -651,8 +651,30 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
                 candidate_idx = prev_lookup_sec[key_sec]
                 if candidate_idx not in marked_prev_indices:
                     prev_row = df_kr.loc[candidate_idx]
-                    if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
-                        change_type = "StrOrigin Change"
+
+                    # Check for StrOrigin and other field changes
+                    # Only compare columns that exist in BOTH dataframes
+                    common_cols = [col for col in df_curr.columns if col in df_kr.columns]
+                    differences = [
+                        col for col in common_cols
+                        if safe_str(curr_row[col]) != safe_str(prev_row[col])
+                    ]
+
+                    # Build important changes list
+                    important_changes = []
+                    if COL_STRORIGIN in differences:
+                        important_changes.append("StrOrigin")
+                    if COL_DESC in differences:
+                        important_changes.append("Desc")
+                    if COL_STARTFRAME in differences:
+                        important_changes.append("TimeFrame")
+                    if COL_DIALOGTYPE in differences:
+                        important_changes.append("DialogType")
+                    if COL_GROUP in differences:
+                        important_changes.append("Group")
+
+                    if important_changes:
+                        change_type = "+".join(important_changes) + " Change"
                     else:
                         change_type = "No Change"
 
@@ -688,13 +710,40 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
                 candidate_idx = prev_lookup_se[key_se]
                 if candidate_idx not in marked_prev_indices:
                     prev_row = df_kr.loc[candidate_idx]
-                    changes = []
-                    if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
-                        changes.append("StrOrigin")
-                    if C != safe_str(prev_row.get(COL_CASTINGKEY, "")):
-                        changes.append("CastingKey")
 
-                    change_type = "+".join(changes) + " Change" if changes else "No Change"
+                    # Only compare columns that exist in BOTH dataframes
+                    common_cols = [col for col in df_curr.columns if col in df_kr.columns]
+                    differences = [
+                        col for col in common_cols
+                        if safe_str(curr_row[col]) != safe_str(prev_row[col])
+                    ]
+
+                    # Check for Character Group changes first (highest priority for SE match)
+                    from src.config import CHAR_GROUP_COLS
+                    char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
+                    if char_group_diffs:
+                        change_type = "Character Group Change"
+                    else:
+                        # Build important changes list
+                        important_changes = []
+                        if COL_STRORIGIN in differences:
+                            important_changes.append("StrOrigin")
+                        if COL_CASTINGKEY in differences:
+                            important_changes.append("CastingKey")
+                        if COL_DESC in differences:
+                            important_changes.append("Desc")
+                        if COL_STARTFRAME in differences:
+                            important_changes.append("TimeFrame")
+                        if COL_DIALOGTYPE in differences:
+                            important_changes.append("DialogType")
+                        if COL_GROUP in differences:
+                            important_changes.append("Group")
+
+                        if important_changes:
+                            change_type = "+".join(important_changes) + " Change"
+                        else:
+                            change_type = "No Change"
+
                     prev_idx = candidate_idx
                     marked_prev_indices.add(candidate_idx)
                     matched = True
