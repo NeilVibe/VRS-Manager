@@ -20,6 +20,26 @@
 
 **Version:** v11241313 (DateTime Versioning - November 24, 2025 at 1:13 PM)
 
+### ✅ Phase 3.1.1a COMPLETE - Standalone Change Detection Fix
+
+**Released:** v11241313 (Critical Bug Fix)
+
+**What Was Fixed:**
+- ✅ **PASS 1 Bug (All Processors):** Perfect match scenario now checks ALL metadata fields
+  - Fixed: TimeFrame, Desc, DialogType, Group, Character Groups detection when standalone
+  - Before: Only detected in composite changes (e.g., "TimeFrame+EventName")
+  - After: Correctly detected when alone (e.g., "TimeFrame Change")
+- ✅ **PASS 2 Bug (WORKING & ALLLANG):** Added missing metadata field checks in SEC/SE matches
+  - Achieved full parity with RAW processor's comprehensive detection
+- ✅ **Documentation:** Created `docs/CHANGE_TYPES_REFERENCE.md` - single source of truth for all 9 change types
+
+**Impact:**
+- All 9 change types now detected correctly when standalone across all 3 processors (RAW, WORKING, ALLLANG)
+- 100% test accuracy maintained
+- No breaking changes
+
+---
+
 ### ✅ Phase 3.0 COMPLETE - Professional Installer System
 
 **GitHub Release:** https://github.com/NeilVibe/VRS-Manager/releases/tag/v1.120.0
@@ -237,7 +257,7 @@ from src.utils.super_groups import aggregate_to_super_groups
 
 ### ✅ Phase 3.1.1 COMPLETE - Word-Level Diff Enhancement
 
-**Released:** v11241313
+**Released:** v11201321
 
 **Implemented Features:**
 - ✅ Word-level diff algorithm (WinMerge-style automatic chunking)
@@ -679,6 +699,18 @@ def process(self):
 ---
 
 ## Version History
+
+### v11241313 (Released - 2025-11-24) ✅
+- **Phase 3.1.1a**: Standalone Change Detection Fix (Critical Bug Fix)
+- **FIXED**: PASS 1 perfect match scenario now checks ALL metadata fields (all processors)
+  - TimeFrame, Desc, DialogType, Group, Character Groups now detected when standalone
+  - Bug: Only worked in composite changes, not when alone
+- **FIXED**: PASS 2 metadata detection in WORKING and ALLLANG processors (SEC/SE matches)
+  - Achieved full parity with RAW processor's comprehensive field checking
+- **NEW**: Documentation - `docs/CHANGE_TYPES_REFERENCE.md` (complete change type reference)
+- **VERIFIED**: All 9 change types work standalone across all 3 processors
+- **TESTED**: 100% accuracy maintained, no regressions
+- **COMMITS**: 8fb70c5 (docs), c4373aa (PASS 2 fix), 28b047b (PASS 1 fix)
 
 ### v11201321 (Released - 2025-11-20) ✅
 - **Phase 3.1.1 COMPLETE**: Word-Level Diff Enhancement
