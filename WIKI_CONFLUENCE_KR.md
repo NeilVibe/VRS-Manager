@@ -385,14 +385,20 @@ PREVIOUS와 CURRENT 사이에 **StrOrigin이 변경된** 행만 분석됩니다:
 
 | 변경 유형 | 임포트되는 것 | 이유 |
 |----------|-------------|------|
-| **변경 없음** | ✅ STATUS, Text, FREEMEMO | PREVIOUS의 모든 것 (완료된 작업) |
-| **StrOrigin 변경** | ✅ STATUS, FREEMEMO<br>📝 PreviousData<br>❌ Text | 상태는 보존하지만 텍스트는 재번역 필요 |
+| **변경 없음** | ✅ STATUS, Text, Desc, FREEMEMO | PREVIOUS의 모든 것 (완료된 작업) |
+| **StrOrigin 변경** | ✅ STATUS, FREEMEMO, Desc<br>📝 PreviousData<br>❌ Text | 상태는 보존하지만 텍스트는 재번역 필요 |
 | **Desc 변경** | ✅ STATUS, Text, FREEMEMO | 설명이 바뀌었지만 내용은 동일 |
-| **TimeFrame 변경** | ✅ STATUS, Text, FREEMEMO | 타이밍이 바뀌었지만 내용은 동일 |
-| **EventName 변경** | ✅ STATUS, Text, FREEMEMO | 이벤트 ID가 바뀌었지만 내용은 대체로 동일 |
-| **SequenceName 변경** | ✅ STATUS, Text, FREEMEMO | 씬이 이동했지만 내용은 동일 |
+| **TimeFrame 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 타이밍이 바뀌었지만 내용은 동일 |
+| **EventName 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 이벤트 ID가 바뀌었지만 내용은 대체로 동일 |
+| **SequenceName 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 씬이 이동했지만 내용은 동일 |
+| **CastingKey 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 성우가 바뀌었지만 작업 보존 |
+| **DialogType 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 분류가 바뀌었지만 작업 보존 |
+| **Group 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 그룹 할당이 바뀌었지만 작업 보존 |
+| **Character Group 변경** | ✅ STATUS, Text, Desc, FREEMEMO | 캐릭터 속성이 바뀌었지만 작업 보존 |
 | **복합 변경** | StrOrigin 변경 여부에 따라 다름 | StrOrigin이 변경에 포함되면 → PreviousData 생성 |
 | **새 행** | ❌ 없음 | 완전히 새로운 콘텐츠는 새 번역 필요 |
+
+**전체 변경 유형 목록**: 9개의 핵심 변경 유형, 복합 및 감지 세부 정보는 `docs/CHANGE_TYPES_REFERENCE.md`를 참조하세요.
 
 **PreviousData 형식**: `"{이전StrOrigin} | {이전STATUS} | {이전FREEMEMO}"`
 

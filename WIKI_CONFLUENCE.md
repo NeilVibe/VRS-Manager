@@ -385,14 +385,20 @@ Import logic applies to: **Working Process**, **All Language Process**, **Master
 
 | Change Type | What Gets Imported | Why |
 |-------------|-------------------|-----|
-| **No Change** | ✅ STATUS, Text, FREEMEMO | Everything from PREVIOUS (completed work) |
-| **StrOrigin Change** | ✅ STATUS, FREEMEMO<br>📝 PreviousData<br>❌ Text | Preserve status, but text needs re-translation |
+| **No Change** | ✅ STATUS, Text, Desc, FREEMEMO | Everything from PREVIOUS (completed work) |
+| **StrOrigin Change** | ✅ STATUS, FREEMEMO, Desc<br>📝 PreviousData<br>❌ Text | Preserve status, but text needs re-translation |
 | **Desc Change** | ✅ STATUS, Text, FREEMEMO | Description changed, but content same |
-| **TimeFrame Change** | ✅ STATUS, Text, FREEMEMO | Timing changed, but content same |
-| **EventName Change** | ✅ STATUS, Text, FREEMEMO | Event ID changed, but content likely same |
-| **SequenceName Change** | ✅ STATUS, Text, FREEMEMO | Scene moved, but content same |
+| **TimeFrame Change** | ✅ STATUS, Text, Desc, FREEMEMO | Timing changed, but content same |
+| **EventName Change** | ✅ STATUS, Text, Desc, FREEMEMO | Event ID changed, but content likely same |
+| **SequenceName Change** | ✅ STATUS, Text, Desc, FREEMEMO | Scene moved, but content same |
+| **CastingKey Change** | ✅ STATUS, Text, Desc, FREEMEMO | Voice actor changed, preserve work |
+| **DialogType Change** | ✅ STATUS, Text, Desc, FREEMEMO | Classification changed, preserve work |
+| **Group Change** | ✅ STATUS, Text, Desc, FREEMEMO | Group assignment changed, preserve work |
+| **Character Group Change** | ✅ STATUS, Text, Desc, FREEMEMO | Character attributes changed, preserve work |
 | **Composite Changes** | Depends on whether StrOrigin changed | If StrOrigin in change → PreviousData created |
 | **New Row** | ❌ Nothing | Brand new content needs fresh translation |
+
+**Complete Change Type List**: See `docs/CHANGE_TYPES_REFERENCE.md` for all 9 core change types, composites, and detection details.
 
 **PreviousData Format**: `"{PreviousStrOrigin} | {PreviousSTATUS} | {PreviousFREEMEMO}"`
 

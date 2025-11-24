@@ -275,17 +275,42 @@ vrs-manager/
 
 The tool detects and classifies the following change types:
 
+### Core Field Changes
+
 | Change Type | Description | Color |
 |-------------|-------------|-------|
+| **StrOrigin Change** | Dialogue text changed | Yellow |
+| **EventName Change** | EventName identifier changed | Light Yellow |
+| **SequenceName Change** | Sequence/scene reorganized | Light Blue |
+| **CastingKey Change** | Voice actor assignment changed | Orange |
+
+### Metadata Field Changes
+
+| Change Type | Description | Color |
+|-------------|-------------|-------|
+| **TimeFrame Change** | StartFrame/EndFrame timing changed | Red-Orange |
+| **Desc Change** | Description/context changed | Purple |
+| **DialogType Change** | Dialogue type classification changed | (Composite) |
+| **Group Change** | Group assignment changed | (Composite) |
+| **Character Group Change** | Character attributes changed (Tribe/Age/Gender/Job/Region) | Light Sky Blue |
+
+### System States
+
+| Classification | Description | Color |
+|---------------|-------------|-------|
 | **New Row** | Row exists in CURRENT but not in PREVIOUS | Green |
 | **Deleted Row** | Row exists in PREVIOUS but not in CURRENT | Red |
-| **StrOrigin Change** | Dialogue text changed | Yellow |
-| **Desc Change** | Description changed | Purple |
-| **TimeFrame Change** | StartFrame/EndFrame changed | Orange |
-| **EventName Change** | EventName changed | Pink |
-| **SequenceName Change** | SequenceName changed | Yellow |
-| **Combined Changes** | Multiple changes (e.g., "StrOrigin+Desc Change") | Cyan |
-| **No Change** | Identical rows | (no color) |
+| **No Change** | Perfect match (all 4 core keys identical) | Light Gray |
+| **No Relevant Change** | Changes only in non-Korean text (ignored) | Dark Gray |
+
+### Composite Changes
+
+The system can detect 100+ combinations when multiple fields change together:
+- **Example:** "StrOrigin+Desc Change" (text and description both changed)
+- **Example:** "EventName+CastingKey Change" (event renamed AND actor changed)
+- **Example:** "StrOrigin+Desc+TimeFrame Change" (major revision)
+
+**Note:** See `docs/CHANGE_TYPES_REFERENCE.md` for complete details on all change types, detection logic, and processor compatibility.
 
 ---
 
@@ -295,13 +320,20 @@ The tool detects and classifies the following change types:
 
 | Change Type | Source for Data | Notes |
 |-------------|----------------|-------|
-| **No Change** | PREVIOUS | Full import (STATUS, Text, FREEMEMO) |
-| **StrOrigin Change** | PREVIOUS → PreviousData<br>CURRENT → Text | Preserves STATUS, FREEMEMO from PREVIOUS |
+| **No Change** | PREVIOUS | Full import (STATUS, Text, Desc, FREEMEMO) |
+| **StrOrigin Change** | PREVIOUS → PreviousData<br>CURRENT → Text | Preserves STATUS, FREEMEMO, Desc from PREVIOUS |
 | **Desc Change** | PREVIOUS → PreviousData<br>PREVIOUS → Text | Full import including Text |
-| **TimeFrame Change** | PREVIOUS → PreviousData<br>PREVIOUS → full import | Full import of STATUS, Text, FREEMEMO |
+| **TimeFrame Change** | PREVIOUS → PreviousData<br>PREVIOUS → full import | Full import of STATUS, Text, Desc, FREEMEMO |
 | **EventName Change** | PREVIOUS → full import | Everything from PREVIOUS |
 | **SequenceName Change** | PREVIOUS → full import | Everything from PREVIOUS |
+| **CastingKey Change** | PREVIOUS → full import | Everything from PREVIOUS |
+| **DialogType Change** | PREVIOUS → full import | Everything from PREVIOUS |
+| **Group Change** | PREVIOUS → full import | Everything from PREVIOUS |
+| **Character Group Change** | PREVIOUS → full import | Everything from PREVIOUS |
+| **Composite Changes** | Depends on StrOrigin | If StrOrigin in change → PreviousData created |
 | **New Row** | CURRENT only | No import (new content) |
+
+**Special Rule:** If PREVIOUS STATUS is after-recording (RECORDED, FINAL, etc.), always preserve STATUS regardless of change type.
 
 ### Master File Update
 

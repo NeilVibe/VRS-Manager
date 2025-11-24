@@ -6,6 +6,14 @@
 **Last Major Feature:** Word-Level Diff Enhancement for StrOrigin Analysis
 **Next Priority:** Phase 3.1.2 (Expand to AllLang Process) - see roadmap.md
 
+## CRITICAL DOCUMENTATION REFERENCE
+**⭐ NEW: Comprehensive Change Types Reference** → `docs/CHANGE_TYPES_REFERENCE.md`
+- **Single source of truth** for all 9 core change types + composites
+- Detection logic by processor (RAW, WORKING, ALLLANG, MASTER)
+- Import logic rules for each change type
+- Known bugs and implementation details
+- **READ THIS FIRST** when working on change detection!
+
 ## VERSIONING SCHEME (NEW!)
 
 **Format:** `MMDDHHMM` (DateTime-based versioning)

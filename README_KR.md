@@ -183,17 +183,42 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 도구가 감지하고 분류하는 변경 유형:
 
+### 핵심 필드 변경
+
 | 변경 유형 | 설명 | 색상 |
 |-------------|-------------|-------|
+| **StrOrigin Change** | 대사 텍스트 변경 | 노란색 |
+| **EventName Change** | EventName 식별자 변경 | 연한 노란색 |
+| **SequenceName Change** | 시퀀스/장면 재구성 | 연한 파란색 |
+| **CastingKey Change** | 성우 할당 변경 | 주황색 |
+
+### 메타데이터 필드 변경
+
+| 변경 유형 | 설명 | 색상 |
+|-------------|-------------|-------|
+| **TimeFrame Change** | StartFrame/EndFrame 타이밍 변경 | 빨강-주황색 |
+| **Desc Change** | 설명/컨텍스트 변경 | 보라색 |
+| **DialogType Change** | 대화 유형 분류 변경 | (복합) |
+| **Group Change** | 그룹 할당 변경 | (복합) |
+| **Character Group Change** | 캐릭터 속성 변경 (Tribe/Age/Gender/Job/Region) | 연한 하늘색 |
+
+### 시스템 상태
+
+| 분류 | 설명 | 색상 |
+|---------------|-------------|-------|
 | **New Row** | CURRENT에 있지만 PREVIOUS에 없는 행 | 녹색 |
 | **Deleted Row** | PREVIOUS에 있지만 CURRENT에 없는 행 | 빨간색 |
-| **StrOrigin Change** | 대사 텍스트 변경 | 노란색 |
-| **Desc Change** | 설명 변경 | 보라색 |
-| **TimeFrame Change** | StartFrame/EndFrame 변경 | 주황색 |
-| **EventName Change** | EventName 변경 | 분홍색 |
-| **SequenceName Change** | SequenceName 변경 | 노란색 |
-| **복합 변경** | 여러 변경 (예: "StrOrigin+Desc Change") | 청록색 |
-| **No Change** | 동일한 행 | (색상 없음) |
+| **No Change** | 완벽한 일치 (4개 핵심 키 모두 동일) | 연한 회색 |
+| **No Relevant Change** | 한국어가 아닌 텍스트만 변경 (무시됨) | 진한 회색 |
+
+### 복합 변경
+
+시스템은 여러 필드가 함께 변경될 때 100개 이상의 조합을 감지할 수 있습니다:
+- **예시:** "StrOrigin+Desc Change" (텍스트와 설명 모두 변경됨)
+- **예시:** "EventName+CastingKey Change" (이벤트 이름 변경 AND 성우 변경)
+- **예시:** "StrOrigin+Desc+TimeFrame Change" (주요 수정)
+
+**참고:** 모든 변경 유형, 감지 로직 및 프로세서 호환성에 대한 자세한 내용은 `docs/CHANGE_TYPES_REFERENCE.md`를 참조하세요.
 
 ---
 
@@ -203,13 +228,20 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 | 변경 유형 | 데이터 소스 | 비고 |
 |-------------|----------------|-------|
-| **No Change** | PREVIOUS | 전체 Import (STATUS, Text, FREEMEMO) |
-| **StrOrigin Change** | PREVIOUS → PreviousData<br>CURRENT → Text | PREVIOUS의 STATUS, FREEMEMO 보존 |
+| **No Change** | PREVIOUS | 전체 Import (STATUS, Text, Desc, FREEMEMO) |
+| **StrOrigin Change** | PREVIOUS → PreviousData<br>CURRENT → Text | PREVIOUS의 STATUS, FREEMEMO, Desc 보존 |
 | **Desc Change** | PREVIOUS → PreviousData<br>PREVIOUS → Text | Text 포함 전체 Import |
-| **TimeFrame Change** | PREVIOUS → PreviousData<br>PREVIOUS → 전체 Import | STATUS, Text, FREEMEMO 전체 Import |
+| **TimeFrame Change** | PREVIOUS → PreviousData<br>PREVIOUS → 전체 Import | STATUS, Text, Desc, FREEMEMO 전체 Import |
 | **EventName Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
 | **SequenceName Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
+| **CastingKey Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
+| **DialogType Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
+| **Group Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
+| **Character Group Change** | PREVIOUS → 전체 Import | PREVIOUS의 모든 것 |
+| **복합 변경** | StrOrigin에 따라 다름 | StrOrigin이 변경에 포함되면 → PreviousData 생성 |
 | **New Row** | CURRENT만 | Import 없음 (새 콘텐츠) |
+
+**특별 규칙:** PREVIOUS STATUS가 녹음 후 상태 (RECORDED, FINAL 등)인 경우 변경 유형에 관계없이 항상 STATUS를 보존합니다.
 
 ### Master File Update
 
