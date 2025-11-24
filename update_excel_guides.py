@@ -13,9 +13,9 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # CONFIGURATION - EDIT THIS SECTION FOR EACH UPDATE
 # ============================================================================
 
-VERSION = "11202116"
-VERSION_TEXT_EN = "Version 11202116 (DateTime Versioning Build)"
-VERSION_TEXT_KR = "버전 11202116 (날짜시간 버전 빌드)"
+VERSION = "11241313"
+VERSION_TEXT_EN = "Version 11241313 (Standalone Change Detection Fix)"
+VERSION_TEXT_KR = "버전 11241313 (독립 변경 감지 수정)"
 
 # English content to add
 EN_HEADER = "WHAT'S NEW IN v1.121.0?"
