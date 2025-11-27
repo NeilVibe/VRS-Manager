@@ -72,7 +72,7 @@ Source: "..\dist_light\VRSManager\_internal\*"; DestDir: "{app}\_internal"; Flag
 
 ; Documentation
 Source: "..\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\BERT_MODEL_SETUP.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\BERT_MODEL_SETUP.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Assets
