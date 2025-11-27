@@ -35,6 +35,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from datetime import datetime
 
 # Set headless mode for GUI import testing
 os.environ['HEADLESS'] = '1'
@@ -109,6 +110,27 @@ def get_source_version():
     return match.group(1)
 
 
+def check_version_date(version):
+    """Check if version date matches today. Returns (is_current, message)."""
+    if len(version) != 8:
+        return False, f"Invalid version format: {version} (expected MMDDHHMM)"
+
+    try:
+        version_month = int(version[0:2])
+        version_day = int(version[2:4])
+
+        today = datetime.now()
+        today_month = today.month
+        today_day = today.day
+
+        if version_month == today_month and version_day == today_day:
+            return True, f"Version date matches today ({today_month:02d}/{today_day:02d})"
+        else:
+            return False, f"Version date OUTDATED: {version_month:02d}/{version_day:02d} but today is {today_month:02d}/{today_day:02d}"
+    except ValueError:
+        return False, f"Could not parse version date from: {version}"
+
+
 def check_file_versions(file_path, patterns, source_version):
     """Check all version patterns in a file"""
     mismatches = []
@@ -158,6 +180,22 @@ def main():
     source_version = get_source_version()
     print(f"✓ Source of truth: {CONFIG_FILE}")
     print(f"✓ Expected version: {source_version}")
+    print()
+
+    # Check if version date is current
+    print("Checking version date...")
+    is_current, date_message = check_version_date(source_version)
+    if is_current:
+        print(f"✓ {date_message}")
+    else:
+        print(f"❌ {date_message}")
+        print(f"   Run: NEW_VERSION=$(date '+%m%d%H%M') && echo $NEW_VERSION")
+        print(f"   Then update all 12 files with new version")
+        print()
+        print("=" * 70)
+        print("⚠️  VERSION DATE OUTDATED! Update version before building.")
+        print("=" * 70)
+        return 1
     print()
 
     # Test runtime import (GUI, processors use this)

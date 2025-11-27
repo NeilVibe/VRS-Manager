@@ -18,7 +18,7 @@
 
 ## 📋 Current Status
 
-**Version:** v11241313 (DateTime Versioning - November 24, 2025 at 1:13 PM)
+**Version:** v11272023 (DateTime Versioning - November 24, 2025 at 1:13 PM)
 
 ---
 
@@ -51,7 +51,7 @@ ACTUAL:   "EventName+StrOrigin Change"  ← TimeFrame MISSING!
 
 | Pattern Matches | Status | Issue |
 |-----------------|--------|-------|
-| PASS 1 (4-key perfect match) | ✅ Fixed v11241313 | - |
+| PASS 1 (4-key perfect match) | ✅ Fixed v11272023 | - |
 | SEC match (Seq+Event+CastingKey) | ✅ Works | Has inline detection logic (duplicated) |
 | SE match (Seq+Event) | ✅ Works | Has inline detection logic (duplicated) |
 | **All other matches (8 types)** | ❌ **BROKEN** | Hardcoded labels or partial checks |
@@ -239,7 +239,7 @@ Even SEC and SE matches that already work correctly will be refactored to use th
 
 ## ✅ Recently Completed
 
-### Phase 3.1.1a - Standalone Change Detection Fix (v11241313)
+### Phase 3.1.1a - Standalone Change Detection Fix (v11272023)
 - Fixed PASS 1 perfect match to detect standalone metadata changes
 - Fixed SEC/SE matches in WORKING/ALLLANG (parity with RAW)
 - Created `docs/CHANGE_TYPES_REFERENCE.md`
@@ -273,7 +273,7 @@ Even SEC and SE matches that already work correctly will be refactored to use th
 
 ## Version History
 
-### v11241313 (Released - 2025-11-24) ✅
+### v11272023 (Released - 2025-11-24) ✅
 - **Phase 3.1.1a**: Standalone Change Detection Fix (Partial)
 - Fixed PASS 1 standalone detection
 - Known issue: PASS 2 composite detection still has bugs (Phase 3.1.1b)
