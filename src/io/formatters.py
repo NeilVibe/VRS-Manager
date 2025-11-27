@@ -13,7 +13,12 @@ from src.config import CHAR_GROUP_COLS
 
 def generate_color_for_value(value):
     """
-    Generate a consistent color for a given value using hashing.
+    Generate a unique, consistent color for a given value using deterministic HSL-based generation.
+
+    This function generates visually distinct colors for different values by:
+    1. Using a stable hash of the value to generate a hue (0-360 degrees)
+    2. Using golden ratio distribution for better hue spread
+    3. Keeping saturation and lightness in visually pleasant ranges
 
     Args:
         value: Any value to generate a color for
@@ -21,12 +26,55 @@ def generate_color_for_value(value):
     Returns:
         str: Hex color code (without #)
     """
-    fallback_colors = [
-        "FFB3BA", "BAFFC9", "BAE1FF", "FFFFBA", "FFD9BA",
-        "E0BBE4", "FFDFD3", "D4F1F4", "C9E4DE", "F7D9C4",
-    ]
-    hash_val = hash(str(value))
-    return fallback_colors[hash_val % len(fallback_colors)]
+    import hashlib
+
+    # Use hashlib for consistent hashing across Python sessions
+    value_str = str(value)
+    hash_bytes = hashlib.md5(value_str.encode()).digest()
+
+    # Extract 3 bytes for H, S, L components
+    h_raw = hash_bytes[0]  # 0-255
+    s_raw = hash_bytes[1]  # 0-255
+    l_raw = hash_bytes[2]  # 0-255
+
+    # Golden ratio for better hue distribution
+    golden_ratio = 0.618033988749895
+    hue = (h_raw / 255.0 + golden_ratio * (hash_bytes[3] % 20)) % 1.0  # 0-1
+
+    # Saturation: 40-70% for pastel colors (readable on white background)
+    saturation = 0.40 + (s_raw / 255.0) * 0.30  # 0.40-0.70
+
+    # Lightness: 70-85% for light pastel colors (readable text on top)
+    lightness = 0.70 + (l_raw / 255.0) * 0.15  # 0.70-0.85
+
+    # Convert HSL to RGB
+    def hsl_to_rgb(h, s, l):
+        if s == 0:
+            r = g = b = l
+        else:
+            def hue_to_rgb(p, q, t):
+                if t < 0:
+                    t += 1
+                if t > 1:
+                    t -= 1
+                if t < 1/6:
+                    return p + (q - p) * 6 * t
+                if t < 1/2:
+                    return q
+                if t < 2/3:
+                    return p + (q - p) * (2/3 - t) * 6
+                return p
+
+            q = l * (1 + s) if l < 0.5 else l + s - l * s
+            p = 2 * l - q
+            r = hue_to_rgb(p, q, h + 1/3)
+            g = hue_to_rgb(p, q, h)
+            b = hue_to_rgb(p, q, h - 1/3)
+
+        return int(r * 255), int(g * 255), int(b * 255)
+
+    r, g, b = hsl_to_rgb(hue, saturation, lightness)
+    return f"{r:02X}{g:02X}{b:02X}"
 
 
 def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
@@ -152,15 +200,6 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
             if cell_value in changes_fills:
                 cell.fill = changes_fills[cell_value]
                 colored_count += 1
-
-                # Highlight specific CharacterGroup columns (works for standalone and composite)
-                if "CharacterGroup" in str(cell_value) and changed_columns_map and row_idx in changed_columns_map:
-                    changed_cols = changed_columns_map[row_idx]
-                    for col_name in changed_cols:
-                        if col_name in char_group_col_indices:
-                            col_idx = char_group_col_indices[col_name]
-                            char_cell = ws.cell(row=row_idx + 2, column=col_idx)
-                            char_cell.fill = char_group_change_fill
             elif cell_value and str(cell_value).strip() and "Change" in str(cell_value):
                 # Fallback: Auto-generate color for unlisted composite changes
                 cell.fill = PatternFill(
@@ -168,6 +207,16 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
                     fill_type="solid"
                 )
                 colored_count += 1
+
+            # Highlight specific CharacterGroup columns (works for standalone and composite)
+            # This is OUTSIDE if/elif to work for ALL change types that include CharacterGroup
+            if "CharacterGroup" in str(cell_value) and changed_columns_map and row_idx in changed_columns_map:
+                changed_cols = changed_columns_map[row_idx]
+                for col_name in changed_cols:
+                    if col_name in char_group_col_indices:
+                        col_idx = char_group_col_indices[col_name]
+                        char_cell = ws.cell(row=row_idx + 2, column=col_idx)
+                        char_cell.fill = char_group_change_fill
 
         ws.column_dimensions[get_column_letter(changes_col_idx)].width = 40
 
