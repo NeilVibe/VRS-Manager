@@ -16,6 +16,7 @@ from src.utils.helpers import safe_str, contains_korean, log, generate_previous_
 from src.utils.progress import print_progress, finalize_progress
 from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
+from src.core.change_detection import detect_all_field_changes
 
 
 def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_sc,
@@ -206,188 +207,120 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
         change_type = None
         prev_idx = None
 
-        # LEVEL 1: 3-Key Matches (One field changed)
+        # ========================================
+        # LEVEL 1: 3-Key Matches (One core field changed)
+        # ========================================
+
+        # SEO Match: Same Sequence + Event + StrOrigin
         if not matched and key_seo in prev_lookup_seo:
             candidate_idx = prev_lookup_seo[key_seo]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                prev_castingkey = safe_str(safe_str(prev_row.get(COL_CASTINGKEY, "")))
-
-                if C == prev_castingkey:
-                    change_type = "No Change"
-                else:
-                    change_type = "CastingKey Change"
-
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # SEC Match: Same Sequence + Event + CastingKey
         if not matched and key_sec in prev_lookup_sec:
             candidate_idx = prev_lookup_sec[key_sec]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-
-                # Check for StrOrigin and other field changes
-                # Only compare columns that exist in BOTH dataframes
-                common_cols = [col for col in df_curr.columns if col in df_prev.columns]
-                differences = [
-                    col for col in common_cols
-                    if safe_str(curr_row[col]) != safe_str(prev_row[col])
-                ]
-
-                # Build important changes list
-                important_changes = []
-                if COL_STRORIGIN in differences:
-                    important_changes.append("StrOrigin")
-                if COL_DESC in differences:
-                    important_changes.append("Desc")
-                if COL_STARTFRAME in differences:
-                    important_changes.append("TimeFrame")
-                if COL_DIALOGTYPE in differences:
-                    important_changes.append("DialogType")
-                if COL_GROUP in differences:
-                    important_changes.append("Group")
-
-                if important_changes:
-                    change_type = "+".join(important_changes) + " Change"
-                else:
-                    change_type = "No Change"
-
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # SOC Match: Same Sequence + StrOrigin + CastingKey
         if not matched and key_soc in prev_lookup_soc:
             candidate_idx = prev_lookup_soc[key_soc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-
-                if contains_korean(O):
-                    change_type = "EventName Change"
-                else:
-                    change_type = "No Relevant Change"
-
+                # Use universal detection with Korean relevance filter
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korean=O)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # EOC Match: Same Event + StrOrigin + CastingKey
         if not matched and key_eoc in prev_lookup_eoc:
             candidate_idx = prev_lookup_eoc[key_eoc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                change_type = "SequenceName Change"
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
-        # LEVEL 2: 2-Key Matches (Two+ fields changed)
+        # ========================================
+        # LEVEL 2: 2-Key Matches (Two+ core fields changed)
+        # ========================================
+
+        # SE Match: Same Sequence + Event
         if not matched and key_se in prev_lookup_se:
             candidate_idx = prev_lookup_se[key_se]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-
-                # Only compare columns that exist in BOTH dataframes
-                common_cols = [col for col in df_curr.columns if col in df_prev.columns]
-                differences = [
-                    col for col in common_cols
-                    if safe_str(curr_row[col]) != safe_str(prev_row[col])
-                ]
-
-                # Check for Character Group changes first (highest priority for SE match)
-                from src.config import CHAR_GROUP_COLS
-                char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
-                if char_group_diffs:
-                    change_type = "Character Group Change"
-                else:
-                    # Build important changes list
-                    important_changes = []
-                    if COL_STRORIGIN in differences:
-                        important_changes.append("StrOrigin")
-                    if COL_CASTINGKEY in differences:
-                        important_changes.append("CastingKey")
-                    if COL_DESC in differences:
-                        important_changes.append("Desc")
-                    if COL_STARTFRAME in differences:
-                        important_changes.append("TimeFrame")
-                    if COL_DIALOGTYPE in differences:
-                        important_changes.append("DialogType")
-                    if COL_GROUP in differences:
-                        important_changes.append("Group")
-
-                    if important_changes:
-                        change_type = "+".join(important_changes) + " Change"
-                    else:
-                        change_type = "No Change"
-
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # OC Match: Same StrOrigin + CastingKey
         if not matched and key_oc in prev_lookup_oc:
             candidate_idx = prev_lookup_oc[key_oc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                changes = []
-                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
-                    changes.append("SequenceName")
-                if E != safe_str(prev_row.get(COL_EVENTNAME, "")):
-                    changes.append("EventName")
-
-                change_type = "+".join(changes) + " Change" if changes else "No Relevant Change"
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # EC Match: Same Event + CastingKey
         if not matched and key_ec in prev_lookup_ec:
             candidate_idx = prev_lookup_ec[key_ec]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                changes = []
-                if S != safe_str(prev_row.get(COL_SEQUENCE, "")):
-                    changes.append("SequenceName")
-                if O != safe_str(prev_row.get(COL_STRORIGIN, "")):
-                    changes.append("StrOrigin")
-
-                change_type = "+".join(changes) + " Change" if changes else "No Relevant Change"
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # SC Match: Same Sequence + CastingKey
         if not matched and key_sc in prev_lookup_sc:
             candidate_idx = prev_lookup_sc[key_sc]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                change_type = "EventName+StrOrigin Change"
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # SO Match: Same Sequence + StrOrigin
         if not matched and key_so in prev_lookup_so:
             candidate_idx = prev_lookup_so[key_so]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                old_eventname = safe_str(prev_row.get(COL_EVENTNAME, ""))
-
-                changes = []
-                if E != old_eventname:
-                    changes.append("EventName")
-                if C != safe_str(prev_row.get(COL_CASTINGKEY, "")):
-                    changes.append("CastingKey")
-
-                if changes and contains_korean(O):
-                    change_type = "+".join(changes) + " Change"
-                else:
-                    change_type = "No Relevant Change"
-
+                # Use universal detection with Korean relevance filter
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korean=O)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
 
+        # EO Match: Same Event + StrOrigin
         if not matched and key_eo in prev_lookup_eo:
             candidate_idx = prev_lookup_eo[key_eo]
             if candidate_idx not in marked_prev_indices:
                 prev_row = df_prev.loc[candidate_idx]
-                change_type = "SequenceName Change"
+                # Use universal detection
+                change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
                 prev_idx = candidate_idx
                 marked_prev_indices.add(candidate_idx)
                 matched = True
