@@ -131,3 +131,4 @@ Build LIGHT v11272023
 Build LIGHT v11272028 - CharacterGroup fix
 Build LIGHT v11272023 - Final with CharacterGroup fix
 Build LIGHT v11272115
+Build LIGHT v11272145
