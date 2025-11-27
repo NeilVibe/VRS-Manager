@@ -1,6 +1,6 @@
 # VRS Manager - User Guide
 
-**Version:** 11272145 | **Status:** Production Ready | **Date:** November 2025
+**Version:** 11272210 | **Status:** Production Ready | **Date:** November 2025
 
 ---
 
@@ -489,7 +489,7 @@ This formula always holds true thanks to:
 
 ## Version Information
 
-**Current Version**: 11272145 (Production Ready - CharacterGroup Highlight Fix + Unique Colors)
+**Current Version**: 11272210 (Production Ready - CharacterGroup Highlight Fix + Unique Colors)
 
 **Key Features**:
 - ✅ **Phase 3.1.1 - Word-Level Diff Enhancement** (v11202116) - StrOrigin Analysis with detailed comparison
@@ -532,4 +532,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: November 27, 2025 | Version 11272145*
+*Last Updated: November 27, 2025 | Version 11272210*

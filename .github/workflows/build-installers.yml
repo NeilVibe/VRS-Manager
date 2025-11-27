@@ -112,12 +112,12 @@ jobs:
 
       - name: Verify LIGHT installer
         run: |
-          if (!(Test-Path "installer_output\VRSManager_v11272145_Light_Setup.exe")) {
+          if (!(Test-Path "installer_output\VRSManager_v11272210_Light_Setup.exe")) {
             Write-Error "LIGHT installer compilation failed"
             exit 1
           }
           Write-Host "✓ LIGHT installer compiled successfully"
-          $size = (Get-Item "installer_output\VRSManager_v11272145_Light_Setup.exe").length / 1MB
+          $size = (Get-Item "installer_output\VRSManager_v11272210_Light_Setup.exe").length / 1MB
           Write-Host "  Size: $([math]::Round($size, 1)) MB"
         shell: pwsh
 
@@ -125,7 +125,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: VRSManager_Light_Setup
-          path: installer_output/VRSManager_v11272145_Light_Setup.exe
+          path: installer_output/VRSManager_v11272210_Light_Setup.exe
           retention-days: 7
 
   build-full:
@@ -217,12 +217,12 @@ jobs:
 
       - name: Verify FULL installer
         run: |
-          if (!(Test-Path "installer_output\VRSManager_v11272145_Full_Setup.exe")) {
+          if (!(Test-Path "installer_output\VRSManager_v11272210_Full_Setup.exe")) {
             Write-Error "FULL installer compilation failed"
             exit 1
           }
           Write-Host "✓ FULL installer compiled successfully"
-          $size = (Get-Item "installer_output\VRSManager_v11272145_Full_Setup.exe").length / 1GB
+          $size = (Get-Item "installer_output\VRSManager_v11272210_Full_Setup.exe").length / 1GB
           Write-Host "  Size: $([math]::Round($size, 2)) GB"
         shell: pwsh
 
@@ -230,7 +230,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: VRSManager_Full_Setup
-          path: installer_output/VRSManager_v11272145_Full_Setup.exe
+          path: installer_output/VRSManager_v11272210_Full_Setup.exe
           retention-days: 7
 
   create-release:
