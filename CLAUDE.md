@@ -41,12 +41,12 @@ echo "New version: $NEW_VERSION"
 #    - README.md, README_KR.md
 #    - installer/*.iss
 #    - .github/workflows/build-installers.yml
-#    - update_excel_guides.py
-#    - CLAUDE.md, roadmap.md, WIKI_CONFLUENCE.md
+#    - scripts/update_excel_guides.py
+#    - CLAUDE.md, roadmap.md, docs/WIKI_CONFLUENCE.md
 #    - src/processors/master_processor.py
 
 # 3. RUN CHECK BEFORE COMMIT! (This catches mistakes!)
-python3 check_version_unified.py
+python3 scripts/check_version_unified.py
 
 # 4. Only if check passes (exit code 0), then commit
 git add -A
@@ -60,7 +60,7 @@ git commit -m "Trigger build v$NEW_VERSION"
 git push origin main
 ```
 
-**Golden Rule:** Never commit version changes without running `check_version_unified.py` first!
+**Golden Rule:** Never commit version changes without running `scripts/check_version_unified.py` first!
 
 ## BUILD ("build it", "trigger build") - MODULAR SYSTEM
 
@@ -140,7 +140,7 @@ gh run view [run-id] --log-failed | grep "LFS\|error"
 
 **AUTOMATED CHECK - COMPREHENSIVE MONITORING:**
 ```bash
-python3 check_version_unified.py
+python3 scripts/check_version_unified.py
 ```
 
 **What it checks (THOROUGH COVERAGE):**
@@ -156,7 +156,7 @@ python3 check_version_unified.py
 
 **⚠️ MANDATORY WORKFLOW:**
 1. Update version in all 12 files
-2. **RUN THIS CHECK** → `python3 check_version_unified.py`
+2. **RUN THIS CHECK** → `python3 scripts/check_version_unified.py`
 3. Only if exit code 0 (success) → commit and push
 4. Then trigger build
 
@@ -169,8 +169,8 @@ python3 check_version_unified.py
 # 3. README.md - Version (line 3)
 # 4. README_KR.md - Version (line 3)
 # 5. roadmap.md - Current Status header + Version History
-# 6. update_excel_guides.py - VERSION, VERSION_TEXT_EN/KR, content
-# 7. WIKI_CONFLUENCE.md - Version references
+# 6. scripts/update_excel_guides.py - VERSION, VERSION_TEXT_EN/KR, content
+# 7. docs/WIKI_CONFLUENCE.md - Version references
 # 8. CLAUDE.md - Current Version (line 4 and line 23)
 # 9. src/processors/master_processor.py - Version comment (line 5)
 ```
@@ -183,7 +183,7 @@ grep -r "1118\." --include="*.py" --include="*.md" | grep -v test | grep -v ".gi
 **VERIFY:** All 10 files listed above MUST show the same version. Any mismatch means incomplete update!
 
 ## UPDATE EXCEL GUIDES
-**Script:** `update_excel_guides.py`
+**Script:** `scripts/update_excel_guides.py`
 **Purpose:** Updates EN/KR Excel guides with new version info
 
 **Edit these variables:**
@@ -197,7 +197,7 @@ KR_CONTENT = [...]  # Add Korean translation
 
 **Run:**
 ```bash
-python3 update_excel_guides.py
+python3 scripts/update_excel_guides.py
 git add VRS_Manager_Process_Guide_*.xlsx
 git commit -m "Update Excel guides to v1118.X"
 ```
@@ -233,7 +233,7 @@ python3 tests/test_math_verify.py    # Math verification
 
 **One-time setup (if models/ directory missing):**
 ```bash
-python3 download_bert_model.py
+python3 scripts/download_bert_model.py
 ```
 
 **Why not in git?** Model is 447MB - exceeds GitHub's 100MB file size limit. Must download locally on each machine.
