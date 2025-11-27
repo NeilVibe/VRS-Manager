@@ -56,15 +56,15 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
            safe_str(prev_row.get(col, "") if hasattr(prev_row, 'get') else prev_row[col])
     ]
 
-    # 2. Check Character Groups first (special priority - takes precedence)
+    # 2. Build change list from ACTUAL differences (CANONICAL ORDER)
+    #    Order: CharacterGroup → EventName → StrOrigin → SequenceName → CastingKey → Desc → TimeFrame → DialogType → Group
+    important_changes = []
+
+    # Character Groups (checked first, but INCLUDED in composite - not early return!)
     existing_char_cols = [col for col in CHAR_GROUP_COLS if col in df_curr.columns]
     char_group_diffs = [col for col in differences if col in existing_char_cols]
     if char_group_diffs:
-        return "Character Group Change"
-
-    # 3. Build change list from ACTUAL differences (CANONICAL ORDER)
-    #    Order: EventName → StrOrigin → SequenceName → CastingKey → Desc → TimeFrame → DialogType → Group
-    important_changes = []
+        important_changes.append("CharacterGroup")
 
     # Core keys (in canonical order)
     if COL_EVENTNAME in differences:
@@ -153,14 +153,15 @@ def detect_dict_field_changes(curr_dict, prev_dict, require_korean=None):
         if safe_str(curr_dict.get(key, "")) != safe_str(prev_dict.get(key, ""))
     ]
 
-    # Check Character Groups first
+    # Build change list from ACTUAL differences (CANONICAL ORDER)
+    #    Order: CharacterGroup → EventName → StrOrigin → SequenceName → CastingKey → Desc → TimeFrame → DialogType → Group
+    important_changes = []
+
+    # Character Groups (INCLUDED in composite - not early return!)
     char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
     if char_group_diffs:
-        return "Character Group Change"
+        important_changes.append("CharacterGroup")
 
-    # Build change list from ACTUAL differences (CANONICAL ORDER)
-    #    Order: EventName → StrOrigin → SequenceName → CastingKey → Desc → TimeFrame → DialogType → Group
-    important_changes = []
     if COL_EVENTNAME in differences:
         important_changes.append("EventName")
     if COL_STRORIGIN in differences:
