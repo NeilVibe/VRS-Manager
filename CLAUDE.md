@@ -6,13 +6,17 @@
 **Last Major Feature:** CharacterGroup Highlight Fix + Unique Colors
 **Next Priority:** Phase 3.1.2 (Expand to AllLang Process) - see roadmap.md
 
-## CRITICAL DOCUMENTATION REFERENCE
-**⭐ NEW: Comprehensive Change Types Reference** → `docs/CHANGE_TYPES_REFERENCE.md`
-- **Single source of truth** for all 9 core change types + composites
-- Detection logic by processor (RAW, WORKING, ALLLANG, MASTER)
-- Import logic rules for each change type
-- Known bugs and implementation details
-- **READ THIS FIRST** when working on change detection!
+## DOCUMENTATION HUB
+
+| Topic | File | When to Read |
+|-------|------|--------------|
+| **Change Detection** | `docs/CHANGE_TYPES_REFERENCE.md` | Working on change types, composites, detection logic |
+| **Build/Release** | `docs/BUILD.md` | Building installers, triggering releases |
+| **Project Status** | `roadmap.md` | Current version, priorities, what's next |
+| **Developer Setup** | `docs/DEVELOPER_GUIDE.md` | New developer onboarding |
+| **Quick Start** | `docs/QUICK_START.md` | Basic usage overview |
+
+**Key source file:** `src/core/change_detection.py` → `detect_all_field_changes()` (unified detection)
 
 ## VERSIONING SCHEME (NEW!)
 
@@ -221,9 +225,9 @@ git commit -m "Update Excel guides to v1118.X"
 
 ## TESTING
 ```bash
-python3 tests/test_5000_perf.py      # Performance (879 rows/sec expected)
-python3 tests/test_accuracy.py       # Accuracy (100% expected)
-python3 tests/test_math_verify.py    # Math verification
+python3 tests/test_unified_change_detection.py  # PRIMARY - 518 test cases, all change types
+python3 tests/test_5000_perf.py                 # Performance (879 rows/sec expected)
+python3 tests/test_accuracy.py                  # Accuracy verification
 ```
 
 ## BERT MODEL SETUP (Phase 2.3)
@@ -253,6 +257,7 @@ value = row[COL_NAME]  # ✗ Can cause dict errors
 ```
 
 ## CORE FILES
+- `src/core/change_detection.py` - **Unified change detection** (single source of truth)
 - `src/core/comparison.py` - Raw VRS Check
 - `src/core/working_comparison.py` - Working VRS Check
 - `src/core/lookups.py` - 10-key lookups (Raw)
