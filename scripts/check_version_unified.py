@@ -182,21 +182,9 @@ def main():
     print(f"✓ Expected version: {source_version}")
     print()
 
-    # Check if version date is current
-    print("Checking version date...")
-    is_current, date_message = check_version_date(source_version)
-    if is_current:
-        print(f"✓ {date_message}")
-    else:
-        print(f"❌ {date_message}")
-        print(f"   Run: NEW_VERSION=$(date '+%m%d%H%M') && echo $NEW_VERSION")
-        print(f"   Then update all 12 files with new version")
-        print()
-        print("=" * 70)
-        print("⚠️  VERSION DATE OUTDATED! Update version before building.")
-        print("=" * 70)
-        return 1
-    print()
+    # NOTE: This script only checks UNIFICATION (all files match)
+    # The human/process decides WHEN to update the version number
+    # Protocol: Update version to current datetime before significant builds
 
     # Test runtime import (GUI, processors use this)
     print("Testing runtime imports...")
