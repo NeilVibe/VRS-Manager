@@ -52,15 +52,15 @@ ACTUAL:   "EventName+StrOrigin Change"  ← TimeFrame MISSING!
 | Pattern Matches | Status | Issue |
 |-----------------|--------|-------|
 | PASS 1 (4-key perfect match) | ✅ Fixed v11241313 | - |
-| SEC match (Seq+Event+CastingKey) | ✅ Always correct | Uses general detection |
-| SE match (Seq+Event) | ✅ Always correct | Uses general detection |
+| SEC match (Seq+Event+CastingKey) | ✅ Works | Has inline detection logic (duplicated) |
+| SE match (Seq+Event) | ✅ Works | Has inline detection logic (duplicated) |
 | **All other matches (8 types)** | ❌ **BROKEN** | Hardcoded labels or partial checks |
 
 **Bug Count:**
-- RAW processor: 8 locations
-- WORKING processor: 8 locations
-- ALLLANG processor: 18 locations (2 functions)
-- **TOTAL: 34 locations need fixing**
+- RAW processor: 8 broken + 2 working (duplicated) = 10 locations
+- WORKING processor: 8 broken + 2 working (duplicated) = 10 locations
+- ALLLANG processor: 18 broken + 4 working (duplicated) = 22 locations
+- **TOTAL: 42 locations to update**
 
 ---
 
@@ -124,7 +124,24 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
 - ✅ **Handles standalone** - 1 field changed → "TimeFrame Change"
 - ✅ **Handles composite** - 3 fields changed → "EventName+StrOrigin+TimeFrame Change"
 - ✅ **Future-proof** - Add new field in ONE place
-- ✅ **Easy to maintain** - ONE function, not 34 copies
+- ✅ **Easy to maintain** - ONE function, not 42 copies
+
+---
+
+### ⚠️ IMPORTANT: Update ALL Matches (Including Working Ones!)
+
+**We will update EVERYTHING - not just the broken matches.**
+
+Even SEC and SE matches that already work correctly will be refactored to use the helper function. This ensures:
+
+| Before | After |
+|--------|-------|
+| SEC/SE: 20+ lines of inline detection code | SEC/SE: 1 line calling helper |
+| Other matches: Hardcoded labels | Other matches: 1 line calling helper |
+| 42 different code paths | 1 universal code path |
+| Add new field → Update 42 places | Add new field → Update 1 place |
+
+**Result:** Clean, organized, consistent codebase where ALL pattern matches use the SAME universal detection function.
 
 ---
 
@@ -139,18 +156,22 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
 #### Phase 2: Update RAW Processor
 **File:** `src/core/comparison.py`
 
-| Line | Match | Current (WRONG) | Action |
-|------|-------|-----------------|--------|
-| 202-229 | SEO | Partial check | Add full detection |
-| 261-275 | SOC | `"EventName Change"` hardcoded | Replace with helper |
-| 277-286 | EOC | `"SequenceName Change"` hardcoded | Replace with helper |
-| 335-351 | OC | Only core keys | Replace with helper |
-| 353-369 | EC | Only core keys | Replace with helper |
-| 371-380 | SC | `"EventName+StrOrigin Change"` hardcoded | Replace with helper |
-| 382-403 | SO | Only core keys | Replace with helper |
-| 405-414 | EO | `"SequenceName Change"` hardcoded | Replace with helper |
+| Line | Match | Current Status | Action |
+|------|-------|----------------|--------|
+| 231-259 | SEC | ✅ Works (duplicated code) | **Refactor to use helper** |
+| 289-333 | SE | ✅ Works (duplicated code) | **Refactor to use helper** |
+| 202-229 | SEO | ⚠️ Partial check | Replace with helper |
+| 261-275 | SOC | ❌ Hardcoded | Replace with helper |
+| 277-286 | EOC | ❌ Hardcoded | Replace with helper |
+| 335-351 | OC | ❌ Only core keys | Replace with helper |
+| 353-369 | EC | ❌ Only core keys | Replace with helper |
+| 371-380 | SC | ❌ Hardcoded | Replace with helper |
+| 382-403 | SO | ❌ Only core keys | Replace with helper |
+| 405-414 | EO | ❌ Hardcoded | Replace with helper |
 
 - [ ] Import helper function
+- [ ] Update SEC match (lines 231-259) - **WORKING → REFACTOR**
+- [ ] Update SE match (lines 289-333) - **WORKING → REFACTOR**
 - [ ] Update SEO match (lines 202-229)
 - [ ] Update SOC match (lines 261-275)
 - [ ] Update EOC match (lines 277-286)
@@ -164,6 +185,8 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
 **File:** `src/core/working_comparison.py`
 
 - [ ] Import helper function
+- [ ] Update SEC match (lines 225-258) - **WORKING → REFACTOR**
+- [ ] Update SE match (lines 284-324) - **WORKING → REFACTOR**
 - [ ] Update SEO match (lines 210-223)
 - [ ] Update SOC match (lines 260-272)
 - [ ] Update EOC match (lines 274-281)
@@ -177,10 +200,15 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
 **File:** `src/core/alllang_helpers.py`
 
 **Old function (lines ~320-410):**
-- [ ] Update all pattern matches
+- [ ] Import helper function
+- [ ] Update SEC match - **WORKING → REFACTOR**
+- [ ] Update SE match - **WORKING → REFACTOR**
+- [ ] Update all other pattern matches (SEO, SOC, EOC, OC, EC, SC, SO, EO)
 
 **TWO-PASS function (lines ~665-850):**
-- [ ] Update all pattern matches
+- [ ] Update SEC match (lines 680-713) - **WORKING → REFACTOR**
+- [ ] Update SE match (lines 739-779) - **WORKING → REFACTOR**
+- [ ] Update all other pattern matches (SEO, SOC, EOC, OC, EC, SC, SO, EO)
 
 #### Phase 5: Testing & Verification
 - [ ] Run `tests/test_composite_timeframe_bug.py` - should PASS
