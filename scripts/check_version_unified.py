@@ -68,7 +68,7 @@ VERSION_FILES = {
         r'VRSManager_v(\d+)_Light_Setup\.exe',
         r'VRSManager_v(\d+)_Full_Setup\.exe',
     ],
-    "update_excel_guides.py": [
+    "scripts/update_excel_guides.py": [
         r'VERSION = "(\d+)"',
         r'Version (\d+)',
     ],
@@ -82,7 +82,7 @@ VERSION_FILES = {
         r'\*\*Released:\*\* v(\d+)',
         r'### v(\d+)',
     ],
-    "WIKI_CONFLUENCE.md": [
+    "docs/WIKI_CONFLUENCE.md": [
         r'\*\*Version:\*\* (\d+)',
         r'\*\*Current Version\*\*: (\d+)',
         r'Version (\d+)\*$',
@@ -231,7 +231,7 @@ def main():
         print("  ✓ Processor Comments: master_processor.py version header")
         print("  ✓ Documentation: README, roadmap, WIKI, CLAUDE.md")
         print("  ✓ Build System: Installers + GitHub workflows")
-        print("  ✓ Excel Guides: update_excel_guides.py")
+        print("  ✓ Excel Guides: scripts/update_excel_guides.py")
         print()
         print("All version references unified and consistent!")
         print("=" * 70)
