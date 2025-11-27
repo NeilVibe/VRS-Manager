@@ -1,15 +1,110 @@
 # Change Types Reference
 
-**Version:** v11202116
-**Last Updated:** 2025-01-24
+**Version:** v11241313
+**Last Updated:** 2025-11-27
 
 This document serves as the **single source of truth** for all change detection in VRS Manager.
+
+---
+
+## 🚨 CRITICAL: Known Bug (Phase 3.1.1b)
+
+**Status:** BUG IDENTIFIED - FIX PENDING
+
+Many PASS 2 pattern matches use **hardcoded labels** instead of checking actual field differences. This causes **TimeFrame, Desc, and other metadata changes to be MISSED** in composite scenarios.
+
+**Example:** EventName + StrOrigin + TimeFrame all change → Output shows only "EventName+StrOrigin Change" (missing TimeFrame!)
+
+**See:** `roadmap.md` for full bug list and fix plan.
 
 ---
 
 ## Overview
 
 VRS Manager uses a **10-Key Pattern Matching + TWO-PASS Algorithm** to detect changes between previous and current VRS files. This system identifies 9 core change types, plus combinations, for precise change tracking.
+
+---
+
+## ⭐ CORRECT Detection Pattern (MUST USE EVERYWHERE)
+
+**This is the ONLY correct way to detect changes.** All pattern matches MUST use this logic:
+
+```python
+def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev):
+    """
+    Universal change detection - checks ALL field differences.
+
+    This function MUST be called after ANY pattern match to detect
+    what actually changed between the rows.
+
+    Returns: change_label (str) - e.g., "EventName+StrOrigin+TimeFrame Change"
+    """
+    # 1. Find ALL differences between current and previous
+    common_cols = [col for col in df_curr.columns if col in df_prev.columns]
+    differences = [
+        col for col in common_cols
+        if safe_str(curr_row[col]) != safe_str(prev_row[col])
+    ]
+
+    # 2. Check Character Groups first (special priority - takes precedence)
+    char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
+    if char_group_diffs:
+        return "Character Group Change"
+
+    # 3. Build change list from ACTUAL differences (order matters for consistency)
+    important_changes = []
+
+    # Core keys (in standard order)
+    if COL_STRORIGIN in differences:
+        important_changes.append("StrOrigin")
+    if COL_EVENTNAME in differences:
+        important_changes.append("EventName")
+    if COL_SEQUENCE in differences:
+        important_changes.append("SequenceName")
+    if COL_CASTINGKEY in differences:
+        important_changes.append("CastingKey")
+
+    # Metadata fields (in standard order)
+    if COL_DESC in differences:
+        important_changes.append("Desc")
+    if COL_STARTFRAME in differences:
+        important_changes.append("TimeFrame")
+    if COL_DIALOGTYPE in differences:
+        important_changes.append("DialogType")
+    if COL_GROUP in differences:
+        important_changes.append("Group")
+
+    # 4. Build label dynamically
+    if important_changes:
+        return "+".join(important_changes) + " Change"
+    else:
+        return "No Change"
+```
+
+### Why This Pattern?
+
+1. **No hardcoding** - Always checks what ACTUALLY changed
+2. **Handles ANY combination** - Works for all possible composite changes
+3. **Future-proof** - Add new fields by adding one line
+4. **Consistent** - Same logic everywhere = predictable results
+
+### ❌ WRONG: Hardcoded Labels (DO NOT USE)
+
+```python
+# WRONG - Assumes only these fields changed
+change_label = "EventName+StrOrigin Change"
+
+# WRONG - Doesn't check for additional metadata changes
+if E != prev_eventname:
+    change_label = "EventName Change"
+```
+
+### ✅ CORRECT: Dynamic Detection
+
+```python
+# CORRECT - Always check actual differences
+change_label = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
+```
 
 ---
 
@@ -76,7 +171,7 @@ When multiple fields change together, the system creates composite labels (e.g.,
 
 ## Detection by Processor
 
-This table shows which processors detect which change types:
+### Current Status (With Known Bugs)
 
 | Change Type | RAW | WORKING | ALLLANG | MASTER |
 |-------------|-----|---------|---------|--------|
@@ -84,27 +179,51 @@ This table shows which processors detect which change types:
 | **EventName** | ✅ | ✅ | ✅ | N/A¹ |
 | **SequenceName** | ✅ | ✅ | ✅ | N/A¹ |
 | **CastingKey** | ✅ | ✅ | ✅ | N/A¹ |
-| **TimeFrame** | ✅ | ❌ BUG | ❌ BUG | ⚠️² |
-| **Desc** | ✅ | ❌ BUG | ❌ BUG | N/A¹ |
-| **DialogType** | ✅ | ⚠️³ | ❌ BUG | N/A¹ |
-| **Group** | ✅ | ⚠️³ | ❌ BUG | N/A¹ |
-| **Character Groups** | ✅ | ❌ BUG | ❌ BUG | N/A¹ |
+| **TimeFrame** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️² |
+| **Desc** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | N/A¹ |
+| **DialogType** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | N/A¹ |
+| **Group** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | N/A¹ |
+| **Character Groups** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | N/A¹ |
 | **No Change** | ✅ | ✅ | ✅ | N/A¹ |
 | **New Row** | ✅ | ✅ | ✅ | ✅ |
 | **Deleted Row** | ✅ | ✅ | ✅ | ✅ |
-| **Composites** | ✅ | ⚠️⁴ | ❌ BUG | N/A¹ |
+| **Composites** | ⚠️ BUG⁵ | ⚠️ BUG⁵ | ⚠️ BUG⁵ | N/A¹ |
 
 **Legend:**
 - ✅ = Fully detected during pattern matching
-- ❌ BUG = Not detected (needs fix)
-- ⚠️ = Partially working (see notes)
+- ⚠️ BUG = Works in SOME scenarios, broken in others (see note 5)
 - N/A = Different purpose (not applicable)
 
 **Notes:**
 1. **MASTER:** Pass-through processor - receives CHANGES from SOURCE (Working Process), doesn't detect changes itself
 2. **MASTER TimeFrame:** Preserves TARGET TimeFrame when StrOrigin unchanged (preservation logic, not detection)
-3. **WORKING DialogType/Group:** Detected in post-processing only (after pattern matching), may miss some composite scenarios
-4. **WORKING Composites:** Partial - only StrOrigin/EventName/SequenceName/CastingKey combos work
+5. **Phase 3.1.1b Bug:** Metadata fields (TimeFrame, Desc, etc.) are ONLY detected correctly in:
+   - PASS 1 (perfect 4-key match) - ✅ Fixed in v11241313
+   - PASS 2 SEC match (Seq+Event+CastingKey same) - ✅ Was always correct
+   - PASS 2 SE match (Seq+Event same) - ✅ Was always correct
+   - **All other PASS 2 matches use hardcoded labels - metadata fields MISSED!**
+
+---
+
+### Pattern Match Bug Status (Phase 3.1.1b)
+
+| Pattern | Keys Same | RAW | WORKING | ALLLANG | Bug Type |
+|---------|-----------|-----|---------|---------|----------|
+| **PASS 1** | All 4 keys | ✅ | ✅ | ✅ | Fixed v11241313 |
+| **SEC** | Seq+Event+CastingKey | ✅ | ✅ | ✅ | Always correct |
+| **SE** | Seq+Event | ✅ | ✅ | ✅ | Always correct |
+| **SEO** | Seq+Event+StrOrigin | ⚠️ | ❌ | ❌ | Missing TimeFrame/Desc |
+| **SOC** | Seq+StrOrigin+CastingKey | ❌ | ❌ | ❌ | Hardcoded "EventName Change" |
+| **EOC** | Event+StrOrigin+CastingKey | ❌ | ❌ | ❌ | Hardcoded "SequenceName Change" |
+| **OC** | StrOrigin+CastingKey | ❌ | ❌ | ❌ | Missing metadata check |
+| **EC** | Event+CastingKey | ❌ | ❌ | ❌ | Missing metadata check |
+| **SC** | Seq+CastingKey | ❌ | ❌ | ❌ | **HARDCODED label!** |
+| **SO** | Seq+StrOrigin | ❌ | ❌ | ❌ | Missing metadata check |
+| **EO** | Event+StrOrigin | ❌ | ❌ | ❌ | Hardcoded "SequenceName Change" |
+
+**Total bugs:** 34 locations across all processors need fixing.
+
+**See `roadmap.md` for fix plan.**
 
 ---
 
