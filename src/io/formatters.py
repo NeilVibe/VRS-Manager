@@ -102,7 +102,7 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
         "SequenceName+CastingKey+Desc+TimeFrame Change": PatternFill(start_color="7FCCFF", fill_type="solid"),
 
         # Special cases
-        "Character Group Change": PatternFill(start_color="87CEFA", fill_type="solid"),
+        "CharacterGroup Change": PatternFill(start_color="87CEFA", fill_type="solid"),
         "New Row": PatternFill(start_color="90EE90", fill_type="solid"),
         "No Relevant Change": PatternFill(start_color="D3D3D3", fill_type="solid"),
         "No Change": PatternFill(start_color="E8E8E8", fill_type="solid"),
@@ -153,7 +153,8 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
                 cell.fill = changes_fills[cell_value]
                 colored_count += 1
 
-                if cell_value == "Character Group Change" and changed_columns_map and row_idx in changed_columns_map:
+                # Highlight specific CharacterGroup columns (works for standalone and composite)
+                if "CharacterGroup" in str(cell_value) and changed_columns_map and row_idx in changed_columns_map:
                     changed_cols = changed_columns_map[row_idx]
                     for col_name in changed_cols:
                         if col_name in char_group_col_indices:
