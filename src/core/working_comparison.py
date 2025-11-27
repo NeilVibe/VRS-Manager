@@ -16,7 +16,7 @@ from src.utils.helpers import safe_str, contains_korean, log, generate_previous_
 from src.utils.progress import print_progress, finalize_progress
 from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
-from src.core.change_detection import detect_all_field_changes
+from src.core.change_detection import detect_all_field_changes, get_changed_char_cols
 
 
 def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_sc,
@@ -108,38 +108,12 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
 
                 # Perfect match: All 4 keys identical
                 if S == prev_S and E == prev_E and O == prev_O and C == prev_C:
-                    # Check for ALL metadata/field changes
-                    # Only compare columns that exist in BOTH dataframes
-                    common_cols = [col for col in df_curr.columns if col in df_prev.columns]
-                    differences = [
-                        col for col in common_cols
-                        if safe_str(curr_row[col]) != safe_str(prev_row[col])
-                    ]
-
-                    # Check for Character Group changes first (highest priority)
-                    from src.config import CHAR_GROUP_COLS
-                    char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
-                    if char_group_diffs:
-                        change_type = "Character Group Change"
-                    else:
-                        # Build metadata changes list
-                        metadata_changes = []
-                        if COL_DESC in differences:
-                            metadata_changes.append("Desc")
-                        if COL_STARTFRAME in differences:
-                            metadata_changes.append("TimeFrame")
-                        if COL_DIALOGTYPE in differences:
-                            metadata_changes.append("DialogType")
-                        if COL_GROUP in differences:
-                            metadata_changes.append("Group")
-
-                        if metadata_changes:
-                            change_type = "+".join(metadata_changes) + " Change"
-                        else:
-                            change_type = "No Change"
+                    # Use universal detection for consistent labeling
+                    change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_prev)
+                    changed_char_cols = get_changed_char_cols(curr_row, prev_row, df_curr, df_prev)
 
                     marked_prev_indices.add(prev_idx)
-                    pass1_results[curr_idx] = (change_type, prev_idx, prev_strorigin, [])
+                    pass1_results[curr_idx] = (change_type, prev_idx, prev_strorigin, changed_char_cols)
 
         # Check if NEW row (all 10 keys missing)
         if curr_idx not in pass1_results:
@@ -391,37 +365,8 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             prev_row_dict, COL_TEXT, COL_STATUS, COL_FREEMEMO
         )
 
-        # Check for DialogType and Group changes (post-processing safety net)
-        # This catches DialogType/Group changes for pattern matches that don't check these fields
-        if prev_row_dict is not None and change_type != "New Row":
-            metadata_changes = []
-
-            # Check DialogType change (only if not already detected)
-            if "DialogType" not in change_type:
-                curr_dialogtype = safe_str(curr_dict.get(COL_DIALOGTYPE, ""))
-                prev_dialogtype = safe_str(prev_row_dict.get(COL_DIALOGTYPE, ""))
-                if curr_dialogtype != prev_dialogtype:
-                    metadata_changes.append("DialogType")
-
-            # Check Group change (only if not already detected)
-            if "Group" not in change_type:
-                curr_group = safe_str(curr_dict.get(COL_GROUP, ""))
-                prev_group = safe_str(prev_row_dict.get(COL_GROUP, ""))
-                if curr_group != prev_group:
-                    metadata_changes.append("Group")
-
-            # Add metadata changes to change_type
-            if metadata_changes:
-                if change_type == "No Change":
-                    # Only metadata changed
-                    change_type = "+".join(metadata_changes) + " Change"
-                else:
-                    # Composite: existing changes + metadata changes
-                    # Remove " Change" suffix, add metadata, re-add " Change"
-                    if change_type.endswith(" Change"):
-                        base_changes = change_type[:-7]  # Remove " Change"
-                        all_changes = base_changes + "+" + "+".join(metadata_changes)
-                        change_type = all_changes + " Change"
+        # NOTE: DialogType/Group detection is now handled by detect_all_field_changes()
+        # The old "safety net" code here was removed as it's now redundant
 
         # Set special columns
         curr_dict[COL_MAINLINE_TRANSLATION] = mainline_translation

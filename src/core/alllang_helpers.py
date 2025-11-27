@@ -540,35 +540,8 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
 
                     # Perfect match: All 4 keys identical
                     if S == prev_S and E == prev_E and O == prev_O and C == prev_C:
-                        # Check for ALL metadata/field changes
-                        # Only compare columns that exist in BOTH dataframes
-                        common_cols = [col for col in df_curr.columns if col in df_kr.columns]
-                        differences = [
-                            col for col in common_cols
-                            if safe_str(curr_row[col]) != safe_str(prev_row[col])
-                        ]
-
-                        # Check for Character Group changes first (highest priority)
-                        from src.config import CHAR_GROUP_COLS
-                        char_group_diffs = [col for col in differences if col in CHAR_GROUP_COLS]
-                        if char_group_diffs:
-                            change_type = "Character Group Change"
-                        else:
-                            # Build metadata changes list
-                            metadata_changes = []
-                            if COL_DESC in differences:
-                                metadata_changes.append("Desc")
-                            if COL_STARTFRAME in differences:
-                                metadata_changes.append("TimeFrame")
-                            if COL_DIALOGTYPE in differences:
-                                metadata_changes.append("DialogType")
-                            if COL_GROUP in differences:
-                                metadata_changes.append("Group")
-
-                            if metadata_changes:
-                                change_type = "+".join(metadata_changes) + " Change"
-                            else:
-                                change_type = "No Change"
+                        # Use universal detection for consistent labeling
+                        change_type = detect_all_field_changes(curr_row, prev_row, df_curr, df_kr)
 
                         marked_prev_indices.add(prev_idx)
                         pass1_results[curr_idx] = (change_type, prev_idx)

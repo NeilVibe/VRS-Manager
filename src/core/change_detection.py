@@ -41,7 +41,7 @@ def detect_all_field_changes(curr_row, prev_row, df_curr, df_prev, require_korea
             - "TimeFrame Change" - Only TimeFrame differs
             - "EventName+StrOrigin Change" - EventName and StrOrigin differ
             - "EventName+StrOrigin+TimeFrame Change" - All three differ
-            - "Character Group Change" - Character group fields differ
+            - "CharacterGroup Change" - Character group fields differ
             - "No Relevant Change" - Changes found but no Korean content
 
     Example:
