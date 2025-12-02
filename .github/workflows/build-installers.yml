@@ -109,7 +109,7 @@ jobs:
       - name: Run Core Tests
         run: |
           echo "=== Running unified change detection tests ==="
-          python -m pytest tests/test_unified_change_detection.py -v --tb=short -x
+          python tests/test_unified_change_detection.py
           echo "✓ Core tests passed"
 
       - name: Run Phase 4 Tests
