@@ -1,133 +1,140 @@
 # VRS Manager - Development Roadmap
 
-## 📝 Version Update Checklist
-
-**After completing any code work that changes the version, update ALL of these files:**
-
-```bash
-# 1. Run version check FIRST to see current state
-python3 scripts/check_version_unified.py
-
-# 2. Update files (see CLAUDE.md for full list)
-# 3. Run check again - must pass before commit
-```
-
----
-
 ## 📋 Current Status
 
-**Version:** v11272210 (November 27, 2025)
-**Status:** Production Ready - Unified Change Detection System
+**Version:** v11272210 (December 2, 2025)
+**Status:** Production Ready - All Phase 3.1 Complete
 
 ---
 
-## ✅ COMPLETED: Phase 3.1.1b - Unified Change Detection
+## 📋 Next Priority: Phase 4 - User Requested Features
 
-**Completed:** 2025-11-28
-**Status:** ✅ DONE - 518 test cases passing
+**Status:** Planning
+**Requested by:** 닐님, 레베카 (Rebecca)
+**Date:** 2025-12-02
 
-### What Was Done
+---
 
-1. **Created unified detection function:** `src/core/change_detection.py`
-   - Single source of truth: `detect_all_field_changes()`
-   - All 9 change types detected consistently
-   - CharacterGroup treated equally (no special early return)
-   - Canonical order: CharacterGroup → EventName → StrOrigin → SequenceName → CastingKey → Desc → TimeFrame → DialogType → Group
+### Feature 4.1: Previous EventName Column
 
-2. **Updated all processors to use unified detection:**
-   - RAW processor: ✅
-   - WORKING processor: ✅
-   - Both produce identical results
+**Requestor:** 닐님
+**Description:** When EventName changes in WORKING process, show the old EventName value.
 
-3. **Created comprehensive test:**
-   - `tests/test_unified_change_detection.py`
-   - 518 test cases covering all combinations
-   - Uses exact production code (no mocks)
-   - Row-by-row validation
+**Implementation:**
+- Add `PreviousEventName` column to output
+- Only populate when change type includes "EventName Change"
+- Place column on far right, near other Previous data columns
 
-4. **Cleaned up test infrastructure:**
-   - Archived 13 old/broken test files → `tests/archive/old_tests/`
-   - Archived 18 old Excel files → `tests/archive/old_excel_files/`
-   - Primary test: `test_unified_change_detection.py`
+**Files to modify:**
+- `src/core/working_comparison.py` - Extract and store previous EventName
+- `src/io/excel_writer.py` - Add column to output
 
-5. **Updated documentation:**
-   - `docs/CHANGE_TYPES_REFERENCE.md` - Complete rewrite
-   - `CLAUDE.md` - Updated hub references
+---
 
-### Test Results
+### Feature 4.2: Priority CHANGES Column
+
+**Requestor:** 레베카 (Rebecca)
+**Description:** Simplified priority-based change label at current CHANGES position. Move detailed changes to far right.
+
+**Priority Ranking (highest to lowest):**
 ```
-✅ RAW: 518/518 (100.0%)
-✅ WORKING: 518/518 (100.0%)
+1. New Row
+2. StrOrigin Change
+3. Desc Change
+4. CastingKey Change
+5. TimeFrame Change
+6. Group Change
+7. EventName Change
+8. CharacterGroup Change
+9. No Change
+```
+
+**Implementation:**
+- Create `get_priority_change()` function - extracts highest priority from composite
+- Add `CHANGES` column at current position (column N) - shows priority label only
+- Rename current detailed changes to `DETAILED_CHANGES` - move to far right
+- Reuse existing standalone color assignments for highlighting
+
+**Example:**
+```
+Composite detected: "EventName+StrOrigin+Desc Change"
+Priority label:     "StrOrigin Change" (rank 2 beats rank 7 and 3)
+```
+
+**Files to modify:**
+- `src/core/change_detection.py` - Add `get_priority_change()` function
+- `src/io/excel_writer.py` - Column positioning and naming
+- `src/processors/*.py` - Update column output order
+
+---
+
+### Feature 4.3: Previous Text Column
+
+**Requestor:** 레베카 (Rebecca)
+**Description:** Extract previous Text/Translation into its own column.
+
+**Implementation:**
+- Add `PreviousText` column to output
+- Extract text value from existing PreviousData or store separately during comparison
+- Place column on far right, near other Previous data columns
+
+**Files to modify:**
+- `src/core/working_comparison.py` - Store previous text separately
+- `src/io/excel_writer.py` - Add column to output
+
+---
+
+### Output Column Order (After Phase 4)
+
+**Front columns (existing + new):**
+```
+... [existing columns] ...
+CHANGES          ← NEW: Priority label only (was detailed)
+... [existing columns] ...
+```
+
+**Far right columns (grouped):**
+```
+... [existing columns] ...
+PreviousData     ← Existing
+PreviousText     ← NEW: Extracted text
+PreviousEventName ← NEW: When EventName changed
+DETAILED_CHANGES ← MOVED: Full composite label
 ```
 
 ---
 
-## ✅ COMPLETED: Phase 3.1.2 - Expand to AllLang Process
+### Implementation Order
 
-**Completed:** 2025-12-02
-**Status:** ✅ DONE - Already using unified detection
-
-### What Was Done
-- Verified ALLLANG processor already uses `detect_all_field_changes()`
-- `process_alllang_comparison_twopass()` was already calling unified detection
-- Cleaned up dead code:
-  - Removed old single-pass `process_alllang_comparison()` (~200 lines)
-  - Removed duplicate `build_working_lookups()` from `lookups.py`
-  - Cleaned up unused imports in `alllang_helpers.py`
-  - Fixed `__init__.py` exports
-- Moved `comparison.py.backup` to ARCHIVE
+1. **Phase 4.1** - PreviousEventName (simplest, isolated change)
+2. **Phase 4.3** - PreviousText (similar pattern to 4.1)
+3. **Phase 4.2** - Priority CHANGES (requires column reorg + new function)
 
 ---
 
-## ✅ COMPLETED: Phase 3.1.3 - Code Cleanup Audit
+## ✅ Completed Work
 
-**Completed:** 2025-12-02
-**Status:** ✅ DONE - Codebase cleaned
-
-### What Was Done
-- Global audit for deprecated/duplicate code
-- Removed ~290 lines of dead code total
-- Consolidated lookup functions to single location
-- All 518 tests still passing
-
----
-
-## 📋 Future Priorities
-
-### Phase 3.2 - Self-Monitoring Infrastructure
-- ✅ Version unification check script (DONE)
-- Additional monitoring tools TBD
-
-### Phase 4.0 - TBD
-- User feedback driven
-
----
-
-## Version History
-
-### v11272210 (Current - 2025-11-28) ✅
-- **Phase 3.1.1b COMPLETE**: Unified Change Detection
+### Phase 3.1 - Unified Change Detection (Nov 2025)
 - Single source of truth: `src/core/change_detection.py`
 - All 9 change types + 502 composites working
-- CharacterGroup included in composites (no special treatment)
-- 518 test cases passing for RAW and WORKING
-- Test infrastructure cleanup
+- 518 test cases passing (RAW, WORKING, ALLLANG)
+- Code cleanup: removed ~290 lines dead code
 
-### v11272115 (2025-11-27) ✅
-- **Phase 3.1.1a**: Standalone Change Detection Fix (Partial)
-- Fixed PASS 1 standalone detection
+### Phase 3.0 - Professional Installer System (Nov 2025)
+- LIGHT installer (~150MB, no BERT)
+- FULL installer (~2.6GB, with BERT)
+- Modular GitHub Actions build
 
-### v11201321 (2025-11-20) ✅
-- **Phase 3.1.1**: Word-Level Diff Enhancement
+### Phase 2.x - Core Features (Oct-Nov 2025)
+- TWO-PASS algorithm (prevents 1-to-many matching)
+- 10-Key matching system
+- Word-level diff highlighting
+- Version unification check script
 
-### v1.120.0 (2025-11-19) ✅
-- **Phase 3.0**: Professional Installer System
-- LIGHT (~150MB) and FULL (~2.6GB) installers
-
-### v1.119.0 and earlier
-- Core VRS Check features
-- 10-Key matching
-- TWO-PASS algorithm
+### Phase 1.x - Foundation (Earlier)
+- Core VRS Check functionality
+- RAW/WORKING/ALLLANG processors
+- Excel import/export
 
 ---
 
