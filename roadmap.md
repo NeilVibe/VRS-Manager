@@ -62,16 +62,33 @@ python3 scripts/check_version_unified.py
 
 ---
 
-## 📋 Next Priority: Phase 3.1.2 - Expand to AllLang Process
+## ✅ COMPLETED: Phase 3.1.2 - Expand to AllLang Process
 
-**Status:** Not Started
+**Completed:** 2025-12-02
+**Status:** ✅ DONE - Already using unified detection
 
-### Scope
-- Apply unified detection to ALLLANG processor
-- Ensure same 518 test cases pass for ALLLANG
+### What Was Done
+- Verified ALLLANG processor already uses `detect_all_field_changes()`
+- `process_alllang_comparison_twopass()` was already calling unified detection
+- Cleaned up dead code:
+  - Removed old single-pass `process_alllang_comparison()` (~200 lines)
+  - Removed duplicate `build_working_lookups()` from `lookups.py`
+  - Cleaned up unused imports in `alllang_helpers.py`
+  - Fixed `__init__.py` exports
+- Moved `comparison.py.backup` to ARCHIVE
 
-### Files to Update
-- `src/core/alllang_helpers.py` - Use `detect_all_field_changes()`
+---
+
+## ✅ COMPLETED: Phase 3.1.3 - Code Cleanup Audit
+
+**Completed:** 2025-12-02
+**Status:** ✅ DONE - Codebase cleaned
+
+### What Was Done
+- Global audit for deprecated/duplicate code
+- Removed ~290 lines of dead code total
+- Consolidated lookup functions to single location
+- All 518 tests still passing
 
 ---
 
