@@ -27,8 +27,11 @@ from src.core.casting import generate_casting_key
 from src.config import (
     OUTPUT_COLUMNS_RAW,
     COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
-    COL_STRORIGIN, COL_PREVIOUS_STRORIGIN
+    COL_STRORIGIN, COL_PREVIOUS_STRORIGIN, COL_EVENTNAME, COL_TEXT,
+    COL_CHANGES, COL_DETAILED_CHANGES, COL_PREVIOUS_EVENTNAME, COL_PREVIOUS_TEXT,
+    COL_PREVIOUSDATA
 )
+from src.core.change_detection import get_priority_change
 from src.io.summary import create_raw_summary
 from src.utils.strorigin_analysis import StrOriginAnalyzer
 
@@ -144,7 +147,64 @@ class RawProcessor(BaseProcessor):
 
             # Build result dataframe (CastingKey already exists from read_files)
             self.df_result = self.df_curr.copy()
-            self.df_result["CHANGES"] = changes
+
+            # Phase 4: Add CHANGES (priority), DETAILED_CHANGES (full composite),
+            # PreviousEventName, PreviousText columns
+            from src.utils.helpers import safe_str
+
+            detailed_changes = []
+            priority_changes = []
+            previous_eventnames = []
+            previous_texts = []
+            previous_data_list = []
+
+            for curr_idx in self.df_result.index:
+                if curr_idx in pass1_results:
+                    change_label, prev_idx, prev_strorigin, _ = pass1_results[curr_idx]
+
+                    # Full composite label
+                    detailed_changes.append(change_label)
+
+                    # Priority label (extract highest priority from composite)
+                    priority_changes.append(get_priority_change(change_label))
+
+                    # Get previous row data if matched
+                    if prev_idx is not None:
+                        prev_row = self.df_prev.loc[prev_idx]
+
+                        # PreviousEventName - only when EventName changed
+                        if "EventName" in change_label:
+                            previous_eventnames.append(safe_str(prev_row.get(COL_EVENTNAME, "")))
+                        else:
+                            previous_eventnames.append("")
+
+                        # PreviousText - always for matched rows (not New Row)
+                        if change_label != "New Row":
+                            previous_texts.append(safe_str(prev_row.get(COL_TEXT, "")))
+                        else:
+                            previous_texts.append("")
+
+                        # PreviousData (existing functionality)
+                        from src.utils.helpers import generate_previous_data
+                        from src.config import COL_STATUS, COL_FREEMEMO
+                        prev_row_dict = prev_row.to_dict()
+                        previous_data_list.append(generate_previous_data(prev_row_dict, COL_TEXT, COL_STATUS, COL_FREEMEMO))
+                    else:
+                        previous_eventnames.append("")
+                        previous_texts.append("")
+                        previous_data_list.append("")
+                else:
+                    detailed_changes.append("ERROR: Missing Classification")
+                    priority_changes.append("ERROR: Missing Classification")
+                    previous_eventnames.append("")
+                    previous_texts.append("")
+                    previous_data_list.append("")
+
+            self.df_result[COL_CHANGES] = priority_changes
+            self.df_result[COL_DETAILED_CHANGES] = detailed_changes
+            self.df_result[COL_PREVIOUS_EVENTNAME] = previous_eventnames
+            self.df_result[COL_PREVIOUS_TEXT] = previous_texts
+            self.df_result[COL_PREVIOUSDATA] = previous_data_list
             self.df_result[COL_PREVIOUS_STRORIGIN] = previous_strorigins
 
             log("Filtering output columns...")

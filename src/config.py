@@ -27,6 +27,12 @@ COL_IMPORTANCE = "Importance"
 COL_DIALOGTYPE = "DialogType"
 COL_GROUP = "Group"
 
+# Phase 4 new columns
+COL_CHANGES = "CHANGES"
+COL_DETAILED_CHANGES = "DETAILED_CHANGES"
+COL_PREVIOUS_EVENTNAME = "PreviousEventName"
+COL_PREVIOUS_TEXT = "PreviousText"
+
 # ===========================================================================
 # CHARACTER GROUP COLUMNS
 # ===========================================================================
@@ -51,12 +57,15 @@ PRE_RECORDING_STATUSES = {
 # ===========================================================================
 # OUTPUT COLUMN STRUCTURES
 # ===========================================================================
+# Phase 4: CHANGES = priority label, DETAILED_CHANGES = full composite (far right)
+#          PreviousText, PreviousEventName also on far right
 OUTPUT_COLUMNS = [
     "DialogType", "Group", "SequenceName", "CharacterName", "CharacterKey",
     "DialogVoice", "CastingKey", "StrOrigin", "STATUS", "Text", "Desc",
     "FREEMEMO", "SubTimelineName", "CHANGES", "EventName", "StartFrame",
     "EndFrame", "Tribe", "Age", "Gender", "Job", "Region", "UpdateTime",
-    "PreviousData", "Previous StrOrigin", "Mainline Translation"
+    "PreviousData", "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
+    "Previous StrOrigin", "Mainline Translation"
 ]
 
 OUTPUT_COLUMNS_RAW = [
@@ -64,6 +73,7 @@ OUTPUT_COLUMNS_RAW = [
     "DialogVoice", "CastingKey", "StrOrigin", "STATUS", "Text", "Desc",
     "FREEMEMO", "SubTimelineName", "CHANGES", "EventName", "StartFrame",
     "EndFrame", "Tribe", "Age", "Gender", "Job", "Region", "UpdateTime",
+    "PreviousData", "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
     "Previous StrOrigin"
 ]
 

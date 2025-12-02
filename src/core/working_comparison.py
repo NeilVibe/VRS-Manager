@@ -10,13 +10,14 @@ from src.config import (
     COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY,
     COL_TEXT, COL_STATUS, COL_FREEMEMO, COL_PREVIOUSDATA, COL_MAINLINE_TRANSLATION,
     COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY, COL_DESC, COL_STARTFRAME,
-    COL_DIALOGTYPE, COL_GROUP
+    COL_DIALOGTYPE, COL_GROUP,
+    COL_CHANGES, COL_DETAILED_CHANGES, COL_PREVIOUS_EVENTNAME, COL_PREVIOUS_TEXT
 )
 from src.utils.helpers import safe_str, contains_korean, log, generate_previous_data
 from src.utils.progress import print_progress, finalize_progress
 from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
-from src.core.change_detection import detect_all_field_changes, get_changed_char_cols
+from src.core.change_detection import detect_all_field_changes, get_changed_char_cols, get_priority_change
 
 
 def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_sc,
@@ -370,7 +371,22 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
 
         # Set special columns
         curr_dict[COL_MAINLINE_TRANSLATION] = mainline_translation
-        curr_dict["CHANGES"] = change_type
+
+        # Phase 4: CHANGES = priority label, DETAILED_CHANGES = full composite
+        curr_dict[COL_DETAILED_CHANGES] = change_type
+        curr_dict[COL_CHANGES] = get_priority_change(change_type)
+
+        # Phase 4.1: PreviousEventName - only when EventName changed
+        if prev_row_dict and "EventName" in change_type:
+            curr_dict[COL_PREVIOUS_EVENTNAME] = safe_str(prev_row_dict.get(COL_EVENTNAME, ""))
+        else:
+            curr_dict[COL_PREVIOUS_EVENTNAME] = ""
+
+        # Phase 4.3: PreviousText - always for matched rows (not New Row)
+        if prev_row_dict and change_type != "New Row":
+            curr_dict[COL_PREVIOUS_TEXT] = safe_str(prev_row_dict.get(COL_TEXT, ""))
+        else:
+            curr_dict[COL_PREVIOUS_TEXT] = ""
 
         results.append(curr_dict)
         counter[change_type] = counter.get(change_type, 0) + 1

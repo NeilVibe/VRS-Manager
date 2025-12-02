@@ -449,6 +449,8 @@ class TestDataGenerator:
 
 def run_raw_processor(df_prev: pd.DataFrame, df_curr: pd.DataFrame) -> Tuple[pd.DataFrame, Counter]:
     """Run RAW processor using production code."""
+    from src.core.change_detection import get_priority_change
+
     df_prev = normalize_dataframe_status(df_prev.copy())
     df_curr = normalize_dataframe_status(df_curr.copy())
     df_prev = remove_full_duplicates(df_prev, "PREVIOUS")
@@ -468,9 +470,10 @@ def run_raw_processor(df_prev: pd.DataFrame, df_curr: pd.DataFrame) -> Tuple[pd.
     changes, prev_origins, cols, counter, marked, groups, pass1 = compare_rows(
         df_curr, df_prev, *lookups)
 
-    # Add CHANGES column to result
+    # Add Phase 4 columns to result
     df_result = df_curr.copy()
-    df_result['CHANGES'] = changes
+    df_result['DETAILED_CHANGES'] = changes  # Full composite
+    df_result['CHANGES'] = [get_priority_change(c) for c in changes]  # Priority label
 
     return df_result, counter
 
@@ -510,8 +513,9 @@ def validate_results(test_cases: List[Dict], df_result: pd.DataFrame, processor_
     print(f"VALIDATING {processor_name} PROCESSOR RESULTS")
     print(f"{'=' * 70}")
 
-    # Get CHANGES column as list (by row index)
-    changes_list = df_result['CHANGES'].tolist()
+    # Phase 4: Use DETAILED_CHANGES for full composite validation (CHANGES now has priority label)
+    changes_col = 'DETAILED_CHANGES' if 'DETAILED_CHANGES' in df_result.columns else 'CHANGES'
+    changes_list = df_result[changes_col].tolist()
 
     results = {'passed': 0, 'failed': 0, 'errors': []}
 
