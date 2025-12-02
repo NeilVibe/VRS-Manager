@@ -44,7 +44,9 @@
 4. TimeFrame Change
 5. Group Change
 6. EventName Change
-7. CharacterGroup Change (lowest priority)
+7. SequenceName Change
+8. DialogType Change
+9. CharacterGroup Change (lowest priority)
 ```
 
 **Note:** "New Row" and "No Change" are never composites - they display as-is.
@@ -104,11 +106,36 @@ DETAILED_CHANGES ← MOVED: Full composite label
 
 ---
 
-### Implementation Order
+### Implementation Order & Plan of Action
 
-1. **Phase 4.1** - PreviousEventName (simplest, isolated change)
-2. **Phase 4.3** - PreviousText (similar pattern to 4.1)
-3. **Phase 4.2** - Priority CHANGES (requires column reorg + new function)
+**Phase 4.1 - PreviousEventName** (simplest, isolated change)
+```
+Step 1: Add PreviousEventName extraction in working_comparison.py
+Step 2: Add column to excel_writer.py output (far right)
+Step 3: Test with WORKING process
+```
+
+**Phase 4.3 - PreviousText** (similar pattern to 4.1)
+```
+Step 1: Add PreviousText extraction in working_comparison.py
+Step 2: Add column to excel_writer.py output (far right, next to PreviousEventName)
+Step 3: Test with WORKING process
+```
+
+**Phase 4.2 - Priority CHANGES** (requires column reorg + new function)
+```
+Step 1: Add PRIORITY_RANKING dict and get_priority_change() in change_detection.py
+Step 2: Rename current CHANGES → DETAILED_CHANGES, move to far right
+Step 3: Add new CHANGES column at current position with priority label
+Step 4: Update excel_writer.py column ordering
+Step 5: Update all processors to use new column structure
+Step 6: Test all 9 standalone + composite scenarios
+```
+
+**Final Column Order (far right):**
+```
+PreviousData → PreviousText → PreviousEventName → DETAILED_CHANGES
+```
 
 ---
 
