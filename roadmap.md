@@ -15,10 +15,12 @@
 
 ---
 
-### Feature 4.1: Previous EventName Column
+### Feature 4.1: PreviousEventName Column
 
 **Requestor:** 닐님
-**Description:** When EventName changes in WORKING process, show the old EventName value.
+**Description:** When EventName changes, show the old EventName value.
+
+**When to populate:** Only when change type includes "EventName Change"
 
 **Implementation:**
 - Add `PreviousEventName` column to output
@@ -70,14 +72,16 @@ Priority label:     "StrOrigin Change" (rank 2 beats rank 7 and 3)
 
 ---
 
-### Feature 4.3: Previous Text Column
+### Feature 4.3: PreviousText Column
 
 **Requestor:** 레베카 (Rebecca)
 **Description:** Extract previous Text/Translation into its own column.
 
+**When to populate:** Always (any matched row, regardless of change type)
+
 **Implementation:**
 - Add `PreviousText` column to output
-- Extract text value from existing PreviousData or store separately during comparison
+- Always populate for matched rows (not "New Row")
 - Place column on far right, near other Previous data columns
 
 **Files to modify:**
