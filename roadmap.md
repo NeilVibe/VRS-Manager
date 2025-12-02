@@ -36,18 +36,18 @@
 **Requestor:** 레베카 (Rebecca)
 **Description:** Simplified priority-based change label at current CHANGES position. Move detailed changes to far right.
 
-**Priority Ranking (highest to lowest):**
+**Priority Ranking (for composites only):**
 ```
-1. New Row
-2. StrOrigin Change
-3. Desc Change
-4. CastingKey Change
-5. TimeFrame Change
-6. Group Change
-7. EventName Change
-8. CharacterGroup Change
-9. No Change
+1. StrOrigin Change      (highest priority)
+2. Desc Change
+3. CastingKey Change
+4. TimeFrame Change
+5. Group Change
+6. EventName Change
+7. CharacterGroup Change (lowest priority)
 ```
+
+**Note:** "New Row" and "No Change" are never composites - they display as-is.
 
 **Implementation:**
 - Create `get_priority_change()` function - extracts highest priority from composite
