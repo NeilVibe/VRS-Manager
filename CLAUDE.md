@@ -2,9 +2,9 @@
 
 ## QUICK PROJECT STATUS
 **Current Version:** v12021800
-**Status:** Production Ready - DateTime Versioning Build
-**Last Major Feature:** CharacterGroup Highlight Fix + Unique Colors
-**Next Priority:** Phase 3.1.2 (Expand to AllLang Process) - see roadmap.md
+**Status:** Production Ready - Phase 4 Complete
+**Last Major Feature:** Phase 4 (Priority CHANGES, PreviousEventName, PreviousText)
+**Build Safety:** CI/CD with mandatory safety checks before build
 
 ## DOCUMENTATION HUB
 
@@ -26,7 +26,7 @@
 - HH = Hour (13 = 1 PM)
 - MM = Minute (14)
 
-**Example:** `12021800` = November 27, 2025 at 9:45 PM
+**Example:** `12021800` = December 2, 2025 at 6:00 PM
 
 **Why?** Clear, sortable, and shows when each version was created.
 
@@ -97,6 +97,30 @@ git push origin main
 - Faster iteration when only one version changed
 
 Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actions
+
+## BUILD SAFETY CHECKS (NEW!)
+
+Build now includes **mandatory safety checks** before proceeding:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SAFETY CHECKS (must pass or build is blocked)              │
+├─────────────────────────────────────────────────────────────┤
+│  1. Version Unification Check                               │
+│     → All 12 files must have same version                   │
+│                                                             │
+│  2. Core Tests (518 test cases)                             │
+│     → RAW + WORKING processor tests                         │
+│                                                             │
+│  3. Phase 4 Tests (48 test cases)                           │
+│     → Priority ranking + column tests                       │
+│                                                             │
+│  4. Security Audit (pip-audit)                              │
+│     → Informational only                                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Build is blocked if:** Version mismatch OR any test fails.
 
 ## BUILD TROUBLESHOOTING
 
@@ -226,6 +250,7 @@ git commit -m "Update Excel guides to v1118.X"
 ## TESTING
 ```bash
 python3 tests/test_unified_change_detection.py  # PRIMARY - 518 test cases, all change types
+python3 tests/test_phase4_comprehensive.py      # Phase 4 - 48 test cases
 python3 tests/test_5000_perf.py                 # Performance (879 rows/sec expected)
 python3 tests/test_accuracy.py                  # Accuracy verification
 ```
@@ -257,11 +282,26 @@ value = row[COL_NAME]  # ✗ Can cause dict errors
 ```
 
 ## CORE FILES
-- `src/core/change_detection.py` - **Unified change detection** (single source of truth)
+- `src/core/change_detection.py` - **Unified change detection** + `get_priority_change()` (Phase 4)
 - `src/core/comparison.py` - Raw VRS Check
-- `src/core/working_comparison.py` - Working VRS Check
+- `src/core/working_comparison.py` - Working VRS Check (Phase 4 columns)
+- `src/core/alllang_helpers.py` - AllLang Check (Phase 4 columns)
 - `src/core/lookups.py` - 10-key lookups (Raw)
 - `src/core/working_helpers.py` - 10-key lookups (Working)
+
+## PHASE 4 COLUMNS (NEW!)
+```
+CHANGES          → Priority label only (e.g., "StrOrigin Change")
+DETAILED_CHANGES → Full composite (e.g., "EventName+StrOrigin+Desc Change")
+PreviousText     → Always for matched rows
+PreviousEventName → Only when EventName changes
+```
+
+**Priority Ranking (1=highest, 9=lowest):**
+```
+1. StrOrigin  2. Desc  3. CastingKey  4. TimeFrame  5. Group
+6. EventName  7. SequenceName  8. DialogType  9. CharacterGroup
+```
 
 ## FRESH CLAUDE SETUP
 **When starting fresh, read these in order:**

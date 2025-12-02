@@ -113,34 +113,65 @@ git push origin main
 
 ## 🔄 Build Process Flow
 
-### GitHub Actions Workflow
+### GitHub Actions Workflow (with Safety Checks)
 
 ```mermaid
 graph TD
     A[Push to main with BUILD_TRIGGER.txt change] --> B[Check Build Type]
-    B --> C{Parse BUILD_TRIGGER.txt}
-    C -->|LIGHT| D[Build LIGHT only]
-    C -->|FULL| E[Build FULL only]
-    C -->|BOTH| F[Build LIGHT + FULL]
-    D --> G[Create GitHub Release]
-    E --> G
-    F --> G
+    B --> C[Safety Checks]
+    C -->|Pass| D{Parse BUILD_TRIGGER.txt}
+    C -->|Fail| X[Build Blocked!]
+    D -->|LIGHT| E[Build LIGHT only]
+    D -->|FULL| F[Build FULL only]
+    D -->|BOTH| G[Build LIGHT + FULL]
+    E --> H[Create GitHub Release]
+    F --> H
+    G --> H
 ```
+
+### Safety Checks (NEW - Mandatory Before Build)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SAFETY CHECKS (must pass or build is blocked)              │
+├─────────────────────────────────────────────────────────────┤
+│  1. Version Unification Check                               │
+│     → All 12 files must have same version                   │
+│     → Blocks build on mismatch                              │
+│                                                             │
+│  2. Core Tests (518 test cases)                             │
+│     → RAW processor tests                                   │
+│     → WORKING processor tests                               │
+│                                                             │
+│  3. Phase 4 Tests (48 test cases)                           │
+│     → Priority ranking validation                           │
+│     → New column tests                                      │
+│                                                             │
+│  4. Security Audit (pip-audit)                              │
+│     → Checks for vulnerable dependencies                    │
+│     → Informational only (doesn't block)                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Build is blocked if:**
+- Version mismatch detected across files
+- Any test fails
 
 ### Build Steps (Automated)
 
 1. **Check Build Type** - Parse BUILD_TRIGGER.txt for LIGHT/FULL/BOTH
-2. **Checkout Code** - Pull latest from main (includes LFS for FULL)
-3. **Setup Python 3.10** - Install Python environment
-4. **Install Dependencies**
+2. **Safety Checks (NEW!)** - Run version check, tests, security audit
+3. **Checkout Code** - Pull latest from main (includes LFS for FULL)
+4. **Setup Python 3.10** - Install Python environment
+5. **Install Dependencies**
    - LIGHT: `pandas`, `openpyxl`, `numpy`, `pyinstaller`
    - FULL: All requirements.txt (includes PyTorch, transformers)
-5. **Verify BERT Model** (FULL only) - Check LFS model exists
-6. **Build Executable** - PyInstaller with .spec file
-7. **Verify Build** - Check .exe exists and log size
-8. **Compile Installer** - Inno Setup creates Windows installer
-9. **Upload Artifacts** - Store installers (7-day retention)
-10. **Create GitHub Release** - Publish release with downloadable installers
+6. **Verify BERT Model** (FULL only) - Check LFS model exists
+7. **Build Executable** - PyInstaller with .spec file
+8. **Verify Build** - Check .exe exists and log size
+9. **Compile Installer** - Inno Setup creates Windows installer
+10. **Upload Artifacts** - Store installers (7-day retention)
+11. **Create GitHub Release** - Publish release with downloadable installers
 
 **Build Time:**
 - LIGHT: ~5-10 minutes
@@ -220,15 +251,16 @@ ls -lh dist_full/VRSManager/VRSManager.exe
 Before triggering builds, ensure:
 
 - [ ] **Version unified** across all 12 files
-- [ ] **Version check passed**: `python3 check_version_unified.py`
-- [ ] **All tests passing**:
-  - `python3 tests/test_accuracy.py`
-  - `python3 tests/test_5000_perf.py`
-  - `python3 tests/test_working_processor_super_group.py`
-- [ ] **Excel guides updated** (if needed): `python3 update_excel_guides.py`
+- [ ] **Version check passed**: `python3 scripts/check_version_unified.py`
+- [ ] **All tests passing** (now checked automatically in CI!):
+  - `python3 tests/test_unified_change_detection.py` (518 cases)
+  - `python3 tests/test_phase4_comprehensive.py` (48 cases)
+- [ ] **Excel guides updated** (if needed): `python3 scripts/update_excel_guides.py`
 - [ ] **Roadmap updated** with latest changes
 - [ ] **All changes committed and pushed** to main
 - [ ] **Decided which to build**: LIGHT, FULL, or BOTH
+
+**Note:** Safety checks now run automatically in CI - if any fail, build is blocked!
 
 ---
 
@@ -241,6 +273,7 @@ Before triggering builds, ensure:
 
 ### Build Jobs
 - **check-build-type** - Determines what to build (LIGHT/FULL/BOTH)
+- **safety-checks** - Version check, tests, security audit (NEW!)
 - **build-light** - Builds LIGHT installer (if triggered)
 - **build-full** - Builds FULL installer (if triggered)
 - **create-release** - Creates GitHub Release with installers
@@ -424,5 +457,5 @@ git push origin main
 
 ---
 
-**Last Updated:** 2025-11-20 (v11201321)
-**Build System Version:** Modular (LIGHT/FULL/BOTH selection)
+**Last Updated:** 2025-12-02 (v12021800)
+**Build System Version:** Modular with Safety Checks (LIGHT/FULL/BOTH selection)
