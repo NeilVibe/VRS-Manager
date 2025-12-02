@@ -10,7 +10,8 @@ import pandas as pd
 from src.config import (
     COL_SEQUENCE, COL_EVENTNAME, COL_STRORIGIN, COL_CASTINGKEY,
     COL_TEXT, COL_STATUS, COL_FREEMEMO, COL_CHARACTERNAME, COL_CHARACTERKEY,
-    COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
+    COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
+    COL_CHANGES, COL_DETAILED_CHANGES, COL_PREVIOUS_EVENTNAME, COL_PREVIOUS_TEXT
 )
 from src.utils.helpers import safe_str, log, get_script_dir, generate_previous_data
 from src.utils.progress import print_progress, finalize_progress
@@ -18,7 +19,7 @@ from src.io.excel_reader import safe_read_excel
 from src.utils.data_processing import normalize_dataframe_status, remove_full_duplicates
 from src.core.casting import generate_casting_key
 from src.core.import_logic import is_after_recording_status
-from src.core.change_detection import detect_all_field_changes
+from src.core.change_detection import detect_all_field_changes, get_priority_change
 
 
 def find_alllang_files():
@@ -603,11 +604,26 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
         else:
             curr_dict["PreviousData_CN"] = ""
 
-        # Set change type column
-        curr_dict["CHANGES"] = change_type if has_kr else "No Change"
+        # Phase 4: Set change type columns
+        actual_change = change_type if has_kr else "No Change"
+        curr_dict[COL_DETAILED_CHANGES] = actual_change
+        curr_dict[COL_CHANGES] = get_priority_change(actual_change)
+
+        # Phase 4.1: PreviousEventName - only when EventName changed
+        if prev_kr_dict and "EventName" in actual_change:
+            curr_dict[COL_PREVIOUS_EVENTNAME] = safe_str(prev_kr_dict.get(COL_EVENTNAME, ""))
+        else:
+            curr_dict[COL_PREVIOUS_EVENTNAME] = ""
+
+        # Phase 4.3: PreviousText - always for matched rows (not New Row)
+        # For ALLLANG, store KR previous text
+        if prev_kr_dict and actual_change != "New Row":
+            curr_dict[COL_PREVIOUS_TEXT] = safe_str(prev_kr_dict.get(COL_TEXT, ""))
+        else:
+            curr_dict[COL_PREVIOUS_TEXT] = ""
 
         results.append(curr_dict)
-        counter[change_type if has_kr else "No Change"] = counter.get(change_type if has_kr else "No Change", 0) + 1
+        counter[actual_change] = counter.get(actual_change, 0) + 1
 
     import pandas as pd
     return pd.DataFrame(results), counter, marked_prev_indices

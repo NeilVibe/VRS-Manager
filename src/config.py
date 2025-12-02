@@ -87,6 +87,7 @@ OUTPUT_COLUMNS_MASTER = [
     "SubTimelineName", "CHANGES", "EventName", "StartFrame", "EndFrame",
     "Tribe", "Age", "Gender", "Job", "Region", "UpdateTime",
     "PreviousData_KR", "PreviousData_EN", "PreviousData_CN",
+    "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
     "Mainline Translation_KR", "Mainline Translation_EN", "Mainline Translation_CN"
 ]
 
