@@ -1,7 +1,7 @@
 """
 Comprehensive Change Detection Test - RAW & WORKING Processors
 ==============================================================
-Version: v11272210
+Version: v12021800
 Created: 2025-11-28
 
 PURPOSE:

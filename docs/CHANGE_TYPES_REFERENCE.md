@@ -1,6 +1,6 @@
 # Change Types Reference
 
-**Version:** v11272210
+**Version:** v12021800
 **Last Updated:** 2025-11-28
 
 This document serves as the **single source of truth** for all change detection in VRS Manager.
@@ -140,7 +140,7 @@ When multiple fields change together, the system creates composite labels dynami
 
 ## Detection by Processor
 
-### Current Status (v11272210) - ALL FIXED
+### Current Status (v12021800) - ALL FIXED
 
 | Change Type | RAW | WORKING | Notes |
 |-------------|-----|---------|-------|
@@ -263,7 +263,7 @@ RESULT:   "New Row" (no lookup can match when all 4 core keys change)
 
 ## Version History
 
-### v11272210 (Current)
+### v12021800 (Current)
 - ✅ Unified change detection system implemented
 - ✅ CharacterGroup treated equally (no special early return)
 - ✅ All 518 test cases passing for RAW and WORKING

@@ -13,9 +13,9 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # CONFIGURATION - EDIT THIS SECTION FOR EACH UPDATE
 # ============================================================================
 
-VERSION = "11272210"
-VERSION_TEXT_EN = "Version 11272210 (CharacterGroup Highlight Fix + Unique Colors)"
-VERSION_TEXT_KR = "버전 11272210 (캐릭터 그룹 하이라이트 수정 + 고유 색상)"
+VERSION = "12021800"
+VERSION_TEXT_EN = "Version 12021800 (CharacterGroup Highlight Fix + Unique Colors)"
+VERSION_TEXT_KR = "버전 12021800 (캐릭터 그룹 하이라이트 수정 + 고유 색상)"
 
 # English content to add
 EN_HEADER = "WHAT'S NEW IN v1.121.0?"
