@@ -66,35 +66,29 @@ git push origin main
 
 **Golden Rule:** Never commit version changes without running `scripts/check_version_unified.py` first!
 
-## BUILD ("build it", "trigger build") - MODULAR SYSTEM
+## BUILD ("build it", "trigger build") - LIGHT BY DEFAULT
 
-**NEW:** Choose what to build - LIGHT only, FULL only, or BOTH!
+**DEFAULT:** When user says "build" → Build LIGHT only (no BERT needed)
 
 ```bash
-# Option 1: Build LIGHT only (~150MB, no BERT)
+# DEFAULT: Build LIGHT only (~150MB, no BERT)
 echo "Build LIGHT v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
 git add BUILD_TRIGGER.txt
 git commit -m "Trigger LIGHT build v$(date '+%m%d%H%M')"
 git push origin main
 
-# Option 2: Build FULL only (~2.6GB, with BERT)
+# ONLY if explicitly requested: Build FULL (~2.6GB, with BERT)
 echo "Build FULL v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
 git add BUILD_TRIGGER.txt
 git commit -m "Trigger FULL build v$(date '+%m%d%H%M')"
 git push origin main
-
-# Option 3: Build BOTH (default)
-echo "Build BOTH v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
-git add BUILD_TRIGGER.txt
-git commit -m "Trigger BOTH builds v$(date '+%m%d%H%M')"
-git push origin main
 ```
 
-**Why MODULAR?**
-- Build only what you need (saves time & storage)
+**Why LIGHT by default?**
 - LIGHT builds ~5-10 min, FULL builds ~15-20 min
 - GitHub artifact storage: LIGHT ~150MB, FULL ~2.6GB
-- Faster iteration when only one version changed
+- FULL only needed if BERT semantic analysis required
+- Faster iteration for most use cases
 
 Build starts automatically, check: https://github.com/NeilVibe/VRS-Manager/actions
 
