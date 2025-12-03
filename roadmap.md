@@ -2,7 +2,7 @@
 
 ## 📋 Current Status
 
-**Version:** v12031321 (December 2, 2025)
+**Version:** v12031411 (December 2, 2025)
 **Status:** Production Ready - Phase 4 Complete
 
 ---
@@ -87,41 +87,52 @@ DETAILED_CHANGES: "EventName+StrOrigin+Desc Change" (full composite)
 
 ### Feature 4.5.1: CastingKey Source Column Validation ✅
 
-**Problem:** CastingKey is generated from source columns (CharacterKey, DialogVoice, Speaker|CharacterGroupKey, DialogType). If these columns are missing in one file but present in another, false "CastingKey Change" flags occur.
+**Problem:** CastingKey is generated from source columns. Missing columns cause false positives.
 
 **Solution:**
-1. **Terminal Warning:** When source columns are missing, log a clear error explaining:
-   - Which columns are missing
-   - Which file is affected
-   - How this impacts CastingKey comparison
+1. **Terminal Warning:** Log missing columns with clear explanation
+2. **Error Label:** "CastingKey Change" → "CastingKey Error" when data incomplete
 
-2. **Error Label:** Instead of flagging "CastingKey Change" when data is incomplete:
-   - Change label to "CastingKey Error"
-   - Prevents false positives from polluting results
-   - Makes it clear the issue is data quality, not actual changes
-
-**Required Columns for CastingKey Generation:**
-```
-- CharacterKey
-- DialogVoice
-- Speaker|CharacterGroupKey
-- DialogType
-```
-
-**Files Modified:**
-- `src/core/casting.py` - Added `validate_castingkey_columns()` function
-- `src/processors/raw_processor.py` - Added validation + error label conversion
-- `src/processors/working_processor.py` - Added validation + error label conversion
-
-**Status:** ✅ Implemented and tested
+**Status:** ✅ Implemented
 
 ### Feature 4.5.2: CastingKey Case Normalization ✅
 
-**Problem:** Different branches in `generate_casting_key()` returned different cases (original vs lowercase), causing false mismatches.
+**Problem:** Different branches returned different cases (original vs lowercase).
 
 **Solution:** All branches now return lowercase for consistent comparison.
 
-**Status:** ✅ Fixed in `src/core/casting.py`
+**Status:** ✅ Fixed
+
+### Feature 4.5.3: Speaker|CharacterGroupKey from CURRENT Only ✅ (CRITICAL)
+
+**Problem:** `Speaker|CharacterGroupKey` may not exist or be reliable in PREVIOUS file.
+
+**Solution - CRITICAL CHANGE:**
+- `Speaker|CharacterGroupKey` is read **ONLY from CURRENT file**
+- This same value is used to generate CastingKey for **BOTH** PREVIOUS and CURRENT rows
+- Lookup by (SequenceName, EventName) to match PREVIOUS rows to CURRENT's Speaker|CharacterGroupKey
+
+**CastingKey Column Requirements:**
+
+| Column | PREVIOUS | CURRENT | Notes |
+|--------|----------|---------|-------|
+| CharacterKey | ✅ Required | ✅ Required | From each file |
+| DialogVoice | ✅ Required | ✅ Required | From each file |
+| DialogType | ✅ Required | ✅ Required | From each file |
+| Speaker\|CharacterGroupKey | ❌ Not needed | ✅ Required | **CURRENT only, used for BOTH** |
+
+**Output Columns:**
+- `Speaker|CharacterGroupKey` is **NOT** in output columns (used internally only)
+- `CastingKey` **IS** in output columns (the generated result)
+
+**Files Modified:**
+- `src/core/casting.py` - Updated validation with `is_current` parameter
+- `src/processors/raw_processor.py` - Build lookup from CURRENT, use for BOTH
+- `src/processors/working_processor.py` - Build lookup from CURRENT, use for BOTH
+
+**Test File:** `tests/test_castingkey_speaker_gk.py` (6 test cases)
+
+**Status:** ✅ Implemented and tested (518/518 + 48/48 + 6/6 tests pass)
 
 ---
 

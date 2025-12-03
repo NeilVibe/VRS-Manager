@@ -89,22 +89,37 @@ class WorkingProcessor(BaseProcessor):
             self.df_curr = remove_full_duplicates(self.df_curr, "CURRENT")
 
             # Validate CastingKey source columns
+            # Note: Speaker|CharacterGroupKey only needed in CURRENT (used for BOTH)
             log("Validating CastingKey source columns...")
-            self.castingkey_valid_prev, missing_prev = validate_castingkey_columns(self.df_prev, "PREVIOUS")
-            self.castingkey_valid_curr, missing_curr = validate_castingkey_columns(self.df_curr, "CURRENT")
+            self.castingkey_valid_prev, missing_prev = validate_castingkey_columns(self.df_prev, "PREVIOUS", is_current=False)
+            self.castingkey_valid_curr, missing_curr = validate_castingkey_columns(self.df_curr, "CURRENT", is_current=True)
 
             if self.castingkey_valid_prev and self.castingkey_valid_curr:
-                log("  ✓ All CastingKey source columns present in both files")
+                log("  ✓ All CastingKey source columns present")
+                log("  ✓ Speaker|CharacterGroupKey from CURRENT will be used for BOTH files")
             elif not self.castingkey_valid_prev or not self.castingkey_valid_curr:
                 log("  ⚠️  CastingKey changes will be flagged as 'CastingKey Error'")
 
-            log("Generating CastingKey column for PREVIOUS...")
+            # Build Speaker|CharacterGroupKey lookup from CURRENT
+            # (Speaker|CharacterGroupKey from CURRENT is used for BOTH files)
+            log("Building Speaker|CharacterGroupKey lookup from CURRENT...")
+            from src.config import COL_SEQUENCE, COL_EVENTNAME
+            speaker_gk_lookup = {}
+            for idx, row in self.df_curr.iterrows():
+                key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                speaker_gk_lookup[key] = safe_str(row.get(COL_SPEAKER_GROUPKEY, ""))
+            log(f"  → Indexed {len(speaker_gk_lookup):,} Speaker|CharacterGroupKey values from CURRENT")
+
+            log("Generating CastingKey column for PREVIOUS (using CURRENT's Speaker|CharacterGroupKey)...")
             casting_keys_prev = []
             for idx, row in self.df_prev.iterrows():
+                # Look up Speaker|CharacterGroupKey from CURRENT by (Sequence, EventName)
+                key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                speaker_gk_from_curr = speaker_gk_lookup.get(key, "")
                 casting_key = generate_casting_key(
                     row.get(COL_CHARACTERKEY, ""),
                     row.get(COL_DIALOGVOICE, ""),
-                    row.get(COL_SPEAKER_GROUPKEY, ""),
+                    speaker_gk_from_curr,  # From CURRENT, not PREVIOUS
                     row.get("DialogType", "")
                 )
                 casting_keys_prev.append(casting_key)
