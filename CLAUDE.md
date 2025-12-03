@@ -3,61 +3,74 @@
 ## QUICK STATUS
 **Version:** v12031417 | **Status:** Production Ready
 
-## DOCUMENTATION HUB
+---
 
-| Topic | File |
-|-------|------|
-| **Change Detection** | `docs/CHANGE_TYPES_REFERENCE.md` |
-| **User Guide** | `docs/WIKI_CONFLUENCE.md` |
-| **Version History** | `roadmap.md` |
-| **Build/Release** | `docs/BUILD.md` |
+## 📚 DOCUMENTATION HUB
 
-## BUILD (Default: LIGHT)
+### User Documentation
+| Doc | Purpose |
+|-----|---------|
+| `README.md` | Project overview, features, installation |
+| `README_KR.md` | Korean version |
+| `docs/WIKI_CONFLUENCE.md` | Complete user guide |
+| `docs/QUICK_START.md` | Basic usage |
 
+### Developer Documentation
+| Doc | Purpose |
+|-----|---------|
+| `docs/CHANGE_TYPES_REFERENCE.md` | Change detection logic, all 9 types, composites |
+| `docs/DEVELOPER_GUIDE.md` | Developer onboarding |
+| `docs/BUILD.md` | Build system, installers, CI/CD |
+| `docs/BERT_MODEL_SETUP.md` | Korean BERT setup (FULL build only) |
+
+### Project Status
+| Doc | Purpose |
+|-----|---------|
+| `roadmap.md` | Version history, current status |
+
+---
+
+## 🔧 COMMON TASKS
+
+### Build (Default: LIGHT)
 ```bash
-# Trigger LIGHT build
 echo "Trigger LIGHT build v$(date '+%m%d%H%M')" >> BUILD_TRIGGER.txt
 git add BUILD_TRIGGER.txt && git commit -m "Trigger LIGHT build" && git push
-
 # Check: https://github.com/NeilVibe/VRS-Manager/actions
 ```
 
-## VERSION UPDATE WORKFLOW
-
-```bash
-# 1. Update version in all files
-NEW_VERSION=$(date '+%m%d%H%M')
-
-# 2. Files to update (12 total):
-#    src/config.py, main.py, README.md, README_KR.md,
-#    installer/*.iss, .github/workflows/build-installers.yml,
-#    scripts/update_excel_guides.py, CLAUDE.md, roadmap.md,
-#    docs/WIKI_CONFLUENCE.md, src/processors/master_processor.py
-
-# 3. ALWAYS run check before commit
-python3 scripts/check_version_unified.py
-
-# 4. If pass → commit and push
-```
-
-## TESTING
-
+### Run Tests
 ```bash
 python3 tests/test_unified_change_detection.py  # 518 tests
 python3 tests/test_phase4_comprehensive.py      # 48 tests
-python3 scripts/check_version_unified.py        # Version check
 ```
 
-## CORE FILES
+### Version Update (12 files)
+```bash
+python3 scripts/check_version_unified.py  # Shows all files to update
+```
+
+### Update Excel Guides
+```bash
+python3 scripts/update_excel_guides.py
+```
+
+---
+
+## 📁 KEY SOURCE FILES
 
 | File | Purpose |
 |------|---------|
 | `src/core/change_detection.py` | Unified detection + `get_priority_change()` |
-| `src/core/comparison.py` | RAW processor |
-| `src/core/working_comparison.py` | WORKING processor |
-| `src/core/alllang_helpers.py` | ALLLANG processor |
+| `src/core/comparison.py` | RAW processor logic |
+| `src/core/working_comparison.py` | WORKING processor logic |
+| `src/core/alllang_helpers.py` | ALLLANG processor logic |
+| `src/config.py` | Column names, constants, output order |
+| `src/processors/*.py` | Processor orchestrators |
 
-## OUTPUT COLUMNS (v12031417)
+---
+
+## 📊 OUTPUT COLUMNS (v12031417)
 
 | Column | Description |
 |--------|-------------|
@@ -66,9 +79,11 @@ python3 scripts/check_version_unified.py        # Version check
 | **PreviousEventName** | Old EventName (when changed) |
 | **PreviousText** | Previous translation (all matched rows) |
 
-**Priority:** StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
+**Priority Order:** StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
 
-## CRITICAL PATTERNS
+---
+
+## ⚠️ CRITICAL PATTERNS
 
 ```python
 # DataFrame access - ALWAYS use:
@@ -78,9 +93,12 @@ value = safe_str(row.get(COL_NAME, ""))
 value = row[COL_NAME]  # Can cause dict errors
 ```
 
-## FRESH START
+---
 
-1. Read this file (CLAUDE.md)
-2. Check `roadmap.md` for current status
+## 🚀 FRESH START CHECKLIST
+
+1. Read this file (CLAUDE.md) - you're here
+2. Check `roadmap.md` for version history
 3. Run `git log --oneline -5` for recent changes
-4. Run tests to verify environment
+4. Run `python3 scripts/check_version_unified.py` to verify environment
+5. Run tests to confirm everything works
