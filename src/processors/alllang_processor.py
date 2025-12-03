@@ -19,8 +19,8 @@ from src.processors.base_processor import BaseProcessor
 from src.io.excel_reader import safe_read_excel
 from src.io.formatters import apply_direct_coloring, widen_summary_columns, format_update_history_sheet
 from src.utils.data_processing import normalize_dataframe_status, filter_output_columns, remove_full_duplicates
-from src.utils.helpers import log, get_script_dir
-from src.config import OUTPUT_COLUMNS_MASTER, COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY
+from src.utils.helpers import log, get_script_dir, safe_str
+from src.config import OUTPUT_COLUMNS_MASTER, COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY, COL_SEQUENCE, COL_EVENTNAME
 from src.core.alllang_helpers import (
     find_alllang_files,
     merge_current_files,
@@ -106,6 +106,15 @@ class AllLangProcessor(BaseProcessor):
             # Merge current files
             self.df_curr = merge_current_files(self.curr_kr, self.curr_en, self.curr_cn)
 
+            # Build Speaker|CharacterGroupKey lookup from CURRENT (used for ALL PREVIOUS files)
+            log("\nBuilding Speaker|CharacterGroupKey lookup from CURRENT...")
+            speaker_gk_lookup = {}
+            for idx, row in self.df_curr.iterrows():
+                key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                speaker_gk_lookup[key] = safe_str(row.get(COL_SPEAKER_GROUPKEY, ""))
+            log(f"  → Indexed {len(speaker_gk_lookup):,} Speaker|CharacterGroupKey values from CURRENT")
+            log("  → This will be used for ALL PREVIOUS files (KR/EN/CN)")
+
             # Read previous files and build lookups
             if self.has_kr:
                 log(f"\nReading KR Previous: {os.path.basename(self.prev_kr)}")
@@ -114,13 +123,16 @@ class AllLangProcessor(BaseProcessor):
                 log(f"  → {len(df_kr):,} rows")
                 df_kr = remove_full_duplicates(df_kr, "KR PREVIOUS")
                 log(f"  → After cleanup: {len(df_kr):,} rows")
-                log("  → Generating CastingKey for KR Previous...")
+                log("  → Generating CastingKey for KR Previous (using CURRENT's Speaker|CharacterGroupKey)...")
                 casting_keys_kr = []
                 for idx, row in df_kr.iterrows():
+                    # Look up Speaker|CharacterGroupKey from CURRENT
+                    key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                    speaker_gk_from_curr = speaker_gk_lookup.get(key, "")
                     casting_key = generate_casting_key(
                         row.get(COL_CHARACTERKEY, ""),
                         row.get(COL_DIALOGVOICE, ""),
-                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        speaker_gk_from_curr,  # From CURRENT, not PREVIOUS
                         row.get("DialogType", "")
                     )
                     casting_keys_kr.append(casting_key)
@@ -137,13 +149,16 @@ class AllLangProcessor(BaseProcessor):
                 log(f"  → {len(df_en):,} rows")
                 df_en = remove_full_duplicates(df_en, "EN PREVIOUS")
                 log(f"  → After cleanup: {len(df_en):,} rows")
-                log("  → Generating CastingKey for EN Previous...")
+                log("  → Generating CastingKey for EN Previous (using CURRENT's Speaker|CharacterGroupKey)...")
                 casting_keys_en = []
                 for idx, row in df_en.iterrows():
+                    # Look up Speaker|CharacterGroupKey from CURRENT
+                    key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                    speaker_gk_from_curr = speaker_gk_lookup.get(key, "")
                     casting_key = generate_casting_key(
                         row.get(COL_CHARACTERKEY, ""),
                         row.get(COL_DIALOGVOICE, ""),
-                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        speaker_gk_from_curr,  # From CURRENT, not PREVIOUS
                         row.get("DialogType", "")
                     )
                     casting_keys_en.append(casting_key)
@@ -158,13 +173,16 @@ class AllLangProcessor(BaseProcessor):
                 log(f"  → {len(df_cn):,} rows")
                 df_cn = remove_full_duplicates(df_cn, "CN PREVIOUS")
                 log(f"  → After cleanup: {len(df_cn):,} rows")
-                log("  → Generating CastingKey for CN Previous...")
+                log("  → Generating CastingKey for CN Previous (using CURRENT's Speaker|CharacterGroupKey)...")
                 casting_keys_cn = []
                 for idx, row in df_cn.iterrows():
+                    # Look up Speaker|CharacterGroupKey from CURRENT
+                    key = (safe_str(row.get(COL_SEQUENCE, "")), safe_str(row.get(COL_EVENTNAME, "")))
+                    speaker_gk_from_curr = speaker_gk_lookup.get(key, "")
                     casting_key = generate_casting_key(
                         row.get(COL_CHARACTERKEY, ""),
                         row.get(COL_DIALOGVOICE, ""),
-                        row.get(COL_SPEAKER_GROUPKEY, ""),
+                        speaker_gk_from_curr,  # From CURRENT, not PREVIOUS
                         row.get("DialogType", "")
                     )
                     casting_keys_cn.append(casting_key)

@@ -2,7 +2,7 @@
 
 ## 📋 Current Status
 
-**Version:** v12031411 (December 2, 2025)
+**Version:** v12031417 (December 2, 2025)
 **Status:** Production Ready - Phase 4 Complete
 
 ---
@@ -129,10 +129,18 @@ DETAILED_CHANGES: "EventName+StrOrigin+Desc Change" (full composite)
 - `src/core/casting.py` - Updated validation with `is_current` parameter
 - `src/processors/raw_processor.py` - Build lookup from CURRENT, use for BOTH
 - `src/processors/working_processor.py` - Build lookup from CURRENT, use for BOTH
+- `src/processors/alllang_processor.py` - Build lookup from CURRENT, use for KR/EN/CN PREVIOUS
+
+**All 3 Processors Unified:**
+```
+RAW:     speaker_gk_lookup from CURRENT → used for PREVIOUS
+WORKING: speaker_gk_lookup from CURRENT → used for PREVIOUS
+ALLLANG: speaker_gk_lookup from CURRENT → used for KR/EN/CN PREVIOUS
+```
 
 **Test File:** `tests/test_castingkey_speaker_gk.py` (6 test cases)
 
-**Status:** ✅ Implemented and tested (518/518 + 48/48 + 6/6 tests pass)
+**Status:** ✅ All 3 processors unified and tested (518/518 + 48/48 + 6/6 tests pass)
 
 ---
 
