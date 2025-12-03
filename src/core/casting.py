@@ -5,7 +5,45 @@ This module provides functionality to generate casting keys based on
 character information, dialog voice, and speaker group keys.
 """
 
-from src.utils.helpers import safe_str
+from src.utils.helpers import safe_str, log
+from src.config import COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY, COL_DIALOGTYPE
+
+# Required columns for proper CastingKey generation
+CASTINGKEY_SOURCE_COLUMNS = [
+    COL_CHARACTERKEY,      # CharacterKey
+    COL_DIALOGVOICE,       # DialogVoice
+    COL_SPEAKER_GROUPKEY,  # Speaker|CharacterGroupKey
+    COL_DIALOGTYPE,        # DialogType
+]
+
+
+def validate_castingkey_columns(df, file_label=""):
+    """
+    Validate that all required columns for CastingKey generation exist in DataFrame.
+
+    Args:
+        df: DataFrame to validate
+        file_label: Label for the file (e.g., "PREVIOUS", "CURRENT") for error messages
+
+    Returns:
+        tuple: (is_valid, missing_columns)
+            - is_valid: True if all required columns exist
+            - missing_columns: List of missing column names
+    """
+    missing = []
+    for col in CASTINGKEY_SOURCE_COLUMNS:
+        if col not in df.columns:
+            missing.append(col)
+
+    if missing:
+        log(f"⚠️  WARNING: {file_label} file missing CastingKey source columns:")
+        for col in missing:
+            log(f"     → Missing: {col}")
+        log(f"     CastingKey comparison may produce incorrect results!")
+        log(f"     Please ensure all these columns exist: {', '.join(CASTINGKEY_SOURCE_COLUMNS)}")
+        return False, missing
+
+    return True, []
 
 
 def generate_casting_key(character_key, dialog_voice, speaker_groupkey, dialog_type=""):

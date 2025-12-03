@@ -21,7 +21,7 @@ from src.utils.data_processing import normalize_dataframe_status, filter_output_
 from src.utils.helpers import log, get_script_dir, safe_str
 from src.core.working_helpers import build_working_lookups, find_working_deleted_rows
 from src.core.working_comparison import process_working_comparison
-from src.core.casting import generate_casting_key
+from src.core.casting import generate_casting_key, validate_castingkey_columns
 from src.io.summary import create_working_summary, create_working_update_history_sheet
 from src.history.history_manager import add_working_update_record
 from src.config import (
@@ -49,6 +49,8 @@ class WorkingProcessor(BaseProcessor):
         self.prev_lookup_cg = None
         self.prev_lookup_es = None
         self.prev_lookup_cs = None
+        self.castingkey_valid_prev = True
+        self.castingkey_valid_curr = True
 
     def get_process_name(self):
         """Get the process name."""
@@ -85,6 +87,16 @@ class WorkingProcessor(BaseProcessor):
             log("Removing full duplicate rows...")
             self.df_prev = remove_full_duplicates(self.df_prev, "PREVIOUS")
             self.df_curr = remove_full_duplicates(self.df_curr, "CURRENT")
+
+            # Validate CastingKey source columns
+            log("Validating CastingKey source columns...")
+            self.castingkey_valid_prev, missing_prev = validate_castingkey_columns(self.df_prev, "PREVIOUS")
+            self.castingkey_valid_curr, missing_curr = validate_castingkey_columns(self.df_curr, "CURRENT")
+
+            if self.castingkey_valid_prev and self.castingkey_valid_curr:
+                log("  ✓ All CastingKey source columns present in both files")
+            elif not self.castingkey_valid_prev or not self.castingkey_valid_curr:
+                log("  ⚠️  CastingKey changes will be flagged as 'CastingKey Error'")
 
             log("Generating CastingKey column for PREVIOUS...")
             casting_keys_prev = []
@@ -138,6 +150,29 @@ class WorkingProcessor(BaseProcessor):
 
             # Add Previous StrOrigin column (like RAW processor)
             self.df_result[COL_PREVIOUS_STRORIGIN] = previous_strorigins
+
+            # Post-process CastingKey labels if validation failed
+            castingkey_invalid = not self.castingkey_valid_prev or not self.castingkey_valid_curr
+            if castingkey_invalid:
+                log("Post-processing CastingKey labels due to missing source columns...")
+                from src.config import COL_CHANGES, COL_DETAILED_CHANGES
+                from src.core.change_detection import get_priority_change
+
+                def fix_castingkey_label(label):
+                    if "CastingKey" not in label:
+                        return label
+                    if label == "CastingKey Change":
+                        return "CastingKey Error"
+                    # For composites, remove CastingKey and add error note
+                    parts = label.replace(" Change", "").split("+")
+                    parts = [p for p in parts if p != "CastingKey"]
+                    if parts:
+                        return "+".join(parts) + " Change (CastingKey Error)"
+                    return "CastingKey Error"
+
+                self.df_result[COL_DETAILED_CHANGES] = self.df_result[COL_DETAILED_CHANGES].apply(fix_castingkey_label)
+                self.df_result[COL_CHANGES] = self.df_result[COL_DETAILED_CHANGES].apply(get_priority_change)
+                log("  → CastingKey labels converted to errors")
 
             # Find deleted rows (TWO-PASS algorithm)
             self.df_deleted = find_working_deleted_rows(self.df_prev, self.df_curr, marked_prev_indices)

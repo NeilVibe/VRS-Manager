@@ -23,7 +23,7 @@ from src.utils.helpers import log, get_script_dir
 from src.utils.super_groups import aggregate_to_super_groups
 from src.core.lookups import build_lookups
 from src.core.comparison import compare_rows, find_deleted_rows
-from src.core.casting import generate_casting_key
+from src.core.casting import generate_casting_key, validate_castingkey_columns
 from src.config import (
     OUTPUT_COLUMNS_RAW,
     COL_CASTINGKEY, COL_CHARACTERKEY, COL_DIALOGVOICE, COL_SPEAKER_GROUPKEY,
@@ -54,6 +54,8 @@ class RawProcessor(BaseProcessor):
         self.prev_lookup_es = None
         self.prev_lookup_cs = None
         self.changed_columns_map = None
+        self.castingkey_valid_prev = True
+        self.castingkey_valid_curr = True
 
     def get_process_name(self):
         """Get the process name."""
@@ -89,6 +91,16 @@ class RawProcessor(BaseProcessor):
             log("Removing full duplicate rows...")
             self.df_prev = remove_full_duplicates(self.df_prev, "PREVIOUS")
             self.df_curr = remove_full_duplicates(self.df_curr, "CURRENT")
+
+            # Validate CastingKey source columns
+            log("Validating CastingKey source columns...")
+            self.castingkey_valid_prev, missing_prev = validate_castingkey_columns(self.df_prev, "PREVIOUS")
+            self.castingkey_valid_curr, missing_curr = validate_castingkey_columns(self.df_curr, "CURRENT")
+
+            if self.castingkey_valid_prev and self.castingkey_valid_curr:
+                log("  ✓ All CastingKey source columns present in both files")
+            elif not self.castingkey_valid_prev or not self.castingkey_valid_curr:
+                log("  ⚠️  CastingKey changes will be flagged as 'CastingKey Error'")
 
             log("Generating CastingKey column for PREVIOUS...")
             casting_keys_prev = []
@@ -158,9 +170,27 @@ class RawProcessor(BaseProcessor):
             previous_texts = []
             previous_data_list = []
 
+            # Check if CastingKey validation failed
+            castingkey_invalid = not self.castingkey_valid_prev or not self.castingkey_valid_curr
+
             for curr_idx in self.df_result.index:
                 if curr_idx in pass1_results:
                     change_label, prev_idx, prev_strorigin, _ = pass1_results[curr_idx]
+
+                    # If CastingKey source columns were missing, convert CastingKey changes to errors
+                    if castingkey_invalid and "CastingKey" in change_label:
+                        # For standalone CastingKey Change, replace with error
+                        if change_label == "CastingKey Change":
+                            change_label = "CastingKey Error"
+                        else:
+                            # For composites, remove CastingKey and add error note
+                            # e.g., "EventName+CastingKey Change" → "EventName Change (CastingKey Error)"
+                            parts = change_label.replace(" Change", "").split("+")
+                            parts = [p for p in parts if p != "CastingKey"]
+                            if parts:
+                                change_label = "+".join(parts) + " Change (CastingKey Error)"
+                            else:
+                                change_label = "CastingKey Error"
 
                     # Full composite label
                     detailed_changes.append(change_label)
