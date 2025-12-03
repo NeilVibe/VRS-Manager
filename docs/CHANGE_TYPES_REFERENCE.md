@@ -1,7 +1,7 @@
 # Change Types Reference
 
-**Version:** v12021800
-**Last Updated:** 2025-11-28
+**Version:** v12031417
+**Last Updated:** 2025-12-03
 
 This document serves as the **single source of truth** for all change detection in VRS Manager.
 
@@ -138,9 +138,71 @@ When multiple fields change together, the system creates composite labels dynami
 
 ---
 
+## Priority Ranking System (v12031417)
+
+When multiple fields change together, the **CHANGES** column shows only the highest-priority change. The full composite is stored in **DETAILED_CHANGES**.
+
+### Priority Order
+
+| Rank | Change Type | Rationale |
+|------|-------------|-----------|
+| 1 | StrOrigin Change | Dialogue text changed - usually needs re-translation |
+| 2 | Desc Change | Description/context changed - may affect understanding |
+| 3 | CastingKey Change | Voice actor assignment changed |
+| 4 | TimeFrame Change | Timing changed - may need re-recording |
+| 5 | Group Change | Organizational change |
+| 6 | EventName Change | Event identifier changed |
+| 7 | SequenceName Change | Scene reorganized |
+| 8 | DialogType Change | Classification changed |
+| 9 | CharacterGroup Change | Character attributes changed |
+
+### How It Works
+
+```
+Composite detected: "EventName+StrOrigin+Desc Change"
+
+CHANGES column:          "StrOrigin Change"     (priority = 1, highest)
+DETAILED_CHANGES column: "EventName+StrOrigin+Desc Change" (full composite)
+```
+
+### Implementation
+
+```python
+# src/core/change_detection.py
+PRIORITY_RANKING = [
+    "StrOrigin", "Desc", "CastingKey", "TimeFrame", "Group",
+    "EventName", "SequenceName", "DialogType", "CharacterGroup"
+]
+
+def get_priority_change(change_label):
+    """Extract highest priority change from composite label."""
+    if "+" not in change_label:
+        return change_label  # Already a single change
+
+    changes = change_label.replace(" Change", "").split("+")
+    for priority_type in PRIORITY_RANKING:
+        if priority_type in changes:
+            return f"{priority_type} Change"
+    return change_label
+```
+
+---
+
+## Output Columns (v12031417)
+
+| Column | Description | When Populated |
+|--------|-------------|----------------|
+| **CHANGES** | Priority-based change label (most important change) | All rows |
+| **DETAILED_CHANGES** | Full composite label showing all changes | When multiple fields changed |
+| **PreviousEventName** | Old EventName value | Only when EventName changed |
+| **PreviousText** | Previous Text/Translation | All matched rows (not New Rows) |
+| **PreviousStrOrigin** | Old StrOrigin value | When StrOrigin changed |
+
+---
+
 ## Detection by Processor
 
-### Current Status (v12021800) - ALL FIXED
+### Current Status (v12031417) - ALL FIXED
 
 | Change Type | RAW | WORKING | Notes |
 |-------------|-----|---------|-------|
@@ -263,7 +325,15 @@ RESULT:   "New Row" (no lookup can match when all 4 core keys change)
 
 ## Version History
 
-### v12021800 (Current)
+### v12031417 (Current)
+- ✅ Priority-based CHANGES column (highest priority change shown)
+- ✅ New DETAILED_CHANGES column (full composite)
+- ✅ New PreviousEventName column (old EventName when changed)
+- ✅ New PreviousText column (previous translation for all matched rows)
+- ✅ Improved CastingKey handling (Speaker|CharacterGroupKey from CURRENT only)
+- ✅ 566 test cases passing (518 unified + 48 Phase 4)
+
+### v12021800 (Previous)
 - ✅ Unified change detection system implemented
 - ✅ CharacterGroup treated equally (no special early return)
 - ✅ All 518 test cases passing for RAW and WORKING

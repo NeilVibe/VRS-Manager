@@ -20,7 +20,16 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 ## 주요 기능
 
-### 🔑 10-Key 패턴 매칭 + TWO-PASS 알고리즘 (v1116 - 최신)
+### 🎯 스마트 변경 분류 (v12031417 - 최신)
+- **우선순위 기반 CHANGES 컬럼**: 가장 중요한 변경을 먼저 표시
+  - 우선순위: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
+  - 예시: EventName과 StrOrigin 모두 변경됨 → "StrOrigin Change" 표시
+- **새로운 DETAILED_CHANGES 컬럼**: 전체 복합 레이블로 완전한 그림 제공
+  - 예시: "EventName+StrOrigin+Desc Change"로 변경된 모든 필드 표시
+- **새로운 PreviousEventName 컬럼**: 이벤트 이름 변경 시 이전 EventName 확인
+- **새로운 PreviousText 컬럼**: 모든 매칭된 행에 대해 이전 번역 표시
+
+### 🔑 10-Key 패턴 매칭 + TWO-PASS 알고리즘
 - **초정밀 변경 감지** - 포괄적인 10-key 조합 사용:
   - **2-Key 조합 (6개)**: SE, SO, SC, EO, EC, OC
   - **3-Key 조합 (4개)**: SEO, SEC, SOC, EOC
@@ -220,6 +229,25 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 **참고:** 모든 변경 유형, 감지 로직 및 프로세서 호환성에 대한 자세한 내용은 `docs/CHANGE_TYPES_REFERENCE.md`를 참조하세요.
 
+### 출력 컬럼 (v12031417)
+
+| 컬럼 | 설명 | 채워지는 시점 |
+|--------|-------------|----------------|
+| **CHANGES** | 우선순위 기반 변경 레이블 (가장 중요한 변경) | 모든 행 |
+| **DETAILED_CHANGES** | 모든 변경을 보여주는 전체 복합 레이블 | 여러 필드 변경 시 |
+| **PreviousEventName** | 이전 EventName 값 | EventName 변경 시에만 |
+| **PreviousText** | 이전 Text/번역 | 모든 매칭된 행 (New Row 제외) |
+| **PreviousStrOrigin** | 이전 StrOrigin 값 | StrOrigin 변경 시 |
+
+**출력 예시:**
+```
+EventName + StrOrigin + Desc 모두 변경된 행:
+  CHANGES:          "StrOrigin Change"     (우선순위 = 가장 높음)
+  DETAILED_CHANGES: "EventName+StrOrigin+Desc Change"
+  PreviousEventName: "old_event_001"
+  PreviousText:      "이전 번역 텍스트"
+```
+
 ---
 
 ## Import 로직 규칙
@@ -260,7 +288,18 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 ## 버전 히스토리
 
-### v1117.1 (현재 - TimeFrame+StrOrigin 로직 + 컬럼 견고성)
+### v12031417 (현재 - 스마트 변경 분류 + 향상된 추적)
+- ✅ **우선순위 기반 CHANGES 컬럼** - 여러 필드가 다를 때 가장 중요한 변경 표시
+  - 우선순위: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
+  - 먼저 주의가 필요한 것을 빠르게 식별
+- ✅ **새로운 DETAILED_CHANGES 컬럼** - 전체 복합 레이블 (예: "EventName+StrOrigin+Desc Change")
+- ✅ **새로운 PreviousEventName 컬럼** - 이벤트 이름 변경 시 이전 EventName 표시
+- ✅ **새로운 PreviousText 컬럼** - 모든 매칭된 행에 대해 이전 번역
+- ✅ **개선된 CastingKey 처리** - CURRENT에서만 Speaker|CharacterGroupKey 사용
+- ✅ **CI/CD 안전 검사** - 빌드 전 버전 통합 + 566개 테스트 통과 필수
+- ✅ 모든 이전 기능 포함
+
+### v1117.1 (이전 - TimeFrame+StrOrigin 로직 + 컬럼 견고성)
 - ✅ **컬럼 견고성 수정** - 다른 컬럼 구조를 가진 파일 처리
   - 두 파일(PREVIOUS와 CURRENT)에 모두 존재하는 컬럼만 비교
   - 선택적 컬럼이 없어도 충돌 없음 (Desc, StartFrame, EndFrame, Text 등)

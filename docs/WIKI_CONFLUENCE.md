@@ -487,30 +487,81 @@ This formula always holds true thanks to:
 
 ---
 
+## Output Columns (v12031417)
+
+VRS Manager outputs several columns to help you understand and track changes:
+
+### CHANGES Column (Priority-Based)
+
+The **CHANGES** column shows the **most important change** when multiple fields are different. This helps you quickly identify what needs attention first.
+
+**Priority Order** (highest to lowest):
+1. StrOrigin Change (dialogue text changed - usually needs re-translation)
+2. Desc Change (description/context changed)
+3. CastingKey Change (voice actor assignment changed)
+4. TimeFrame Change (timing changed)
+5. Group Change (organizational change)
+6. EventName Change (event identifier changed)
+7. SequenceName Change (scene reorganized)
+8. DialogType Change (classification changed)
+9. CharacterGroup Change (character attributes changed)
+
+**Example**: If both EventName AND StrOrigin changed, the CHANGES column shows "StrOrigin Change" because StrOrigin has higher priority.
+
+### DETAILED_CHANGES Column
+
+The **DETAILED_CHANGES** column shows the **complete list** of all fields that changed. This appears at the far right of the output.
+
+**Example**: `"EventName+StrOrigin+Desc Change"` means all three fields changed.
+
+**When to use**:
+- CHANGES = Quick triage (what's most important?)
+- DETAILED_CHANGES = Full picture (what exactly changed?)
+
+### PreviousEventName Column
+
+Shows the **old EventName** when an event has been renamed or reorganized.
+
+- **When populated**: Only when EventName changed
+- **When empty**: No Change, New Row, or changes that don't involve EventName
+
+### PreviousText Column
+
+Shows the **previous Text/Translation** for all matched rows.
+
+- **When populated**: All rows that were matched (No Change, any Change type)
+- **When empty**: New Row (no previous data exists)
+
+**Useful for**: Quickly reviewing what the old translation was without searching the PREVIOUS file.
+
+---
+
 ## Version Information
 
-**Current Version**: 12031417 (Production Ready - CharacterGroup Highlight Fix + Unique Colors)
+**Current Version**: 12031417 (Production Ready - Smart Change Classification)
 
 **Key Features**:
-- ✅ **Phase 3.1.1 - Word-Level Diff Enhancement** (v11202116) - StrOrigin Analysis with detailed comparison
+- ✅ **Smart Change Classification** (v12031417) - Priority-based CHANGES column
+  - Shows most important change when multiple fields differ
+  - New DETAILED_CHANGES column for complete composite labels
+  - New PreviousEventName column for tracking event renames
+  - New PreviousText column for easy translation comparison
+  - Improved CastingKey handling across different file structures
+- ✅ **Word-Level Diff Enhancement** - StrOrigin Analysis with detailed comparison
   - Word-level diff (cleaner output than character-level)
   - Separate "StrOrigin Analysis" sheet with 4-column layout
   - "Diff Detail" column showing exact changes [old→new]
   - Progress bar with filling animation during analysis
   - Works in BOTH Raw and Working Process
   - LIGHT version: Punctuation detection / FULL version: BERT semantic similarity percentages
-- ✅ **Super Group Analysis Improvements** (v1118.4 - Phase 2.2.1) - Enhanced clarity and tracking
+- ✅ **Super Group Analysis Improvements** - Enhanced clarity and tracking
   - Removed "Others" super group and stageclosedialog check
   - Reordered super groups: AI Dialog before Quest Dialog
-  - Renamed column to "Not Translated" (simplified header)
   - Added detailed "Super Group Migrations" table below main table
-  - Shows source → destination pairs with word counts
-- ✅ **Simplified Master File Update** (v1118.2) - EventName-only matching, CHANGES preservation
+- ✅ **Simplified Master File Update** - EventName-only matching, CHANGES preservation
   - Simple data movement operation (not comparison)
   - CHANGES values always preserved from SOURCE
-  - Robust handling (works with or without CHANGES in TARGET)
-  - Single output sheet (HIGH + DELETED rows)
-- ✅ **Column Robustness** (v1117.1) - Handles files with different column structures
+- ✅ **Column Robustness** - Handles files with different column structures
 - ✅ 10-Key Pattern Matching System (Raw/Working/All Language processes)
 - ✅ TWO-PASS Algorithm (1-to-1 row matching)
 - ✅ 100% Correct Duplicate Handling
@@ -532,4 +583,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: November 27, 2025 | Version 12031417*
+*Last Updated: December 3, 2025 | Version 12031417*

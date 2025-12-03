@@ -14,116 +14,103 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # ============================================================================
 
 VERSION = "12031417"
-VERSION_TEXT_EN = "Version 12031417 (CharacterGroup Highlight Fix + Unique Colors)"
-VERSION_TEXT_KR = "버전 12031417 (캐릭터 그룹 하이라이트 수정 + 고유 색상)"
+VERSION_TEXT_EN = "Version 12031417 (Smarter Change Detection + Enhanced Tracking)"
+VERSION_TEXT_KR = "버전 12031417 (스마트 변경 감지 + 향상된 추적)"
 
 # English content to add
-EN_HEADER = "WHAT'S NEW IN v1.121.0?"
+EN_HEADER = "WHAT'S NEW IN v12031417?"
 EN_CONTENT = [
     {
-        "title": "✅ Phase 3.1.1 COMPLETED - Word-Level Diff Enhancement (v1.121.0)",
+        "title": "🎯 Smarter Change Classification",
         "items": [
-            "IMPROVED: Word-level diff (cleaner output than character-level)",
-            "NEW: Separate 'Diff Detail' column showing exact changes [old→new]",
-            "NEW: Progress bar with filling animation during analysis",
-            "NEW: StrOrigin Analysis now in BOTH Raw and Working Process",
-            "IMPROVED: 4-column layout for better readability",
-            "ANALYSIS: Shows which StrOrigin changes are trivial vs substantial",
+            "CHANGES column now shows the MOST IMPORTANT change when multiple fields change",
+            "Priority order: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup",
+            "Example: If EventName AND StrOrigin both changed → Shows 'StrOrigin Change' (higher priority)",
+            "Makes it easier to quickly identify what needs attention first",
         ]
     },
     {
-        "title": "✅ Critical Bug Fixes (v1118.6)",
+        "title": "📋 New DETAILED_CHANGES Column",
         "items": [
-            "FIXED: TypeError 'unhashable type: dict' in Working VRS Check",
-            "FIXED: All DataFrame column access now uses safe_str() pattern",
-            "FIXED: Lookup dictionaries now correctly store indices (not dict objects)",
-            "TESTED: 100% accuracy verified with 5000-row comprehensive test suite",
-            "TESTED: All processors (Raw, Working, All Language) passing with real data",
+            "Shows the FULL list of all changes when multiple fields changed",
+            "Example: 'EventName+StrOrigin+Desc Change' - all 3 fields changed",
+            "Located at the far right of the output for detailed review",
+            "CHANGES = quick view, DETAILED_CHANGES = complete picture",
         ]
     },
     {
-        "title": "✅ Phase 2.2.1 COMPLETED - Super Group Analysis Improvements (v1118.4)",
+        "title": "🔄 New PreviousEventName Column",
         "items": [
-            "REMOVED: 'Others' super group and stageclosedialog check entirely",
-            "REORDERED: Super groups - AI Dialog now appears before Quest Dialog",
-            "RENAMED: 'Untranslated Words (Remaining to Translate)' → 'Not Translated'",
-            "REMOVED: Migration columns from main table (Words Migrated In/Out)",
-            "ADDED: Detailed 'Super Group Migrations' table below main table",
-            "Shows source → destination pairs with word counts for all migrations",
-            "UPDATED: Explanatory notes below table (removed 'Others' references)",
-            "8 super groups total: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else",
+            "When EventName changes, you can now see what the OLD EventName was",
+            "Helps track row reorganization and event renaming",
+            "Only populated when EventName actually changed",
+            "Empty for New Rows and No Change rows",
         ]
     },
     {
-        "title": "Column Order (Reorganized for Better Readability):",
+        "title": "📝 New PreviousText Column",
         "items": [
-            "1. Super Group Name, Total Words (Current/Previous), Net Change, % Change",
-            "2. Translated/Untranslated words, Translation % (Current/Previous/Change)",
-            "3. Detailed breakdown: Words Added/Deleted/Changed/Unchanged/Migrated",
+            "Shows the previous Text/Translation for ALL matched rows",
+            "Instantly see what the old translation was without searching",
+            "Helpful for reviewing what needs re-translation",
+            "Empty only for New Rows (no previous data exists)",
         ]
     },
     {
-        "title": "✅ v1118.3 - Master File Update - TimeFrame Preservation Restored",
+        "title": "🔧 Improved CastingKey Accuracy",
         "items": [
-            "TimeFrame = StartFrame ONLY (EndFrame always updates from SOURCE)",
-            "IF StartFrame changed AND StrOrigin changed → Update StartFrame (use SOURCE)",
-            "IF StartFrame changed BUT StrOrigin NOT changed → Preserve StartFrame (keep TARGET)",
-            "Prevents unwanted timing updates when dialogue content unchanged",
+            "CastingKey comparison is now more reliable across files",
+            "Consistent handling even when files have different column structures",
+            "Warnings displayed when source data is incomplete",
         ]
     },
 ]
 
 # Korean content to add
-KR_HEADER = "v1.121.0의 새로운 기능"
+KR_HEADER = "v12031417의 새로운 기능"
 KR_CONTENT = [
     {
-        "title": "✅ Phase 3.1.1 완료 - 단어 수준 비교 개선 (v1.121.0)",
+        "title": "🎯 스마트 변경 분류",
         "items": [
-            "개선: 단어 수준 비교 (문자 수준보다 깔끔한 출력)",
-            "새로운 기능: 정확한 변경사항을 보여주는 별도 'Diff Detail' 컬럼 [이전→현재]",
-            "새로운 기능: 분석 중 진행률 표시 막대",
-            "새로운 기능: Raw와 Working Process 모두에서 StrOrigin 분석 제공",
-            "개선: 가독성을 위한 4컬럼 레이아웃",
+            "CHANGES 컬럼이 이제 여러 필드가 변경되었을 때 가장 중요한 변경만 표시",
+            "우선순위: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup",
+            "예시: EventName과 StrOrigin 모두 변경됨 → 'StrOrigin Change' 표시 (더 높은 우선순위)",
+            "어떤 작업을 먼저 해야 하는지 빠르게 파악 가능",
         ]
     },
     {
-        "title": "✅ 중요 버그 수정 (v1118.6)",
+        "title": "📋 새로운 DETAILED_CHANGES 컬럼",
         "items": [
-            "수정됨: Working VRS Check에서 TypeError 'unhashable type: dict' 오류",
-            "수정됨: 모든 DataFrame 컬럼 접근이 safe_str() 패턴 사용",
-            "수정됨: 룩업 사전이 이제 인덱스를 올바르게 저장 (dict 객체 아님)",
-            "테스트 완료: 5000행 포괄적 테스트로 100% 정확도 검증",
-            "테스트 완료: 모든 프로세서 (Raw, Working, All Language)가 실제 데이터로 통과",
+            "여러 필드가 변경되었을 때 모든 변경사항의 전체 목록 표시",
+            "예시: 'EventName+StrOrigin+Desc Change' - 3개 필드 모두 변경됨",
+            "상세 검토를 위해 출력의 맨 오른쪽에 위치",
+            "CHANGES = 빠른 보기, DETAILED_CHANGES = 전체 그림",
         ]
     },
     {
-        "title": "✅ Phase 2.2.1 완료 - 슈퍼 그룹 분석 개선 (v1118.4)",
+        "title": "🔄 새로운 PreviousEventName 컬럼",
         "items": [
-            "제거됨: 'Others' 슈퍼 그룹 및 stageclosedialog 체크 완전히 제거",
-            "재정렬: 슈퍼 그룹 - AI Dialog가 이제 Quest Dialog 앞에 표시됨",
-            "이름 변경: 'Untranslated Words (Remaining to Translate)' → 'Not Translated'",
-            "제거됨: 메인 테이블에서 마이그레이션 컬럼 제거 (Words Migrated In/Out)",
-            "추가됨: 메인 테이블 아래에 상세한 'Super Group Migrations' 테이블",
-            "모든 마이그레이션에 대한 소스 → 목적지 쌍과 단어 수 표시",
-            "업데이트: 테이블 아래 설명 노트 ('Others' 참조 제거)",
-            "총 8개의 슈퍼 그룹: Main Chapters, F1, F2, F3, AI Dialog, Quest Dialog, Other, Everything Else",
+            "EventName이 변경되면 이전 EventName이 무엇이었는지 확인 가능",
+            "행 재구성 및 이벤트 이름 변경 추적에 도움",
+            "EventName이 실제로 변경된 경우에만 채워짐",
+            "New Row 및 No Change 행에서는 비어 있음",
         ]
     },
     {
-        "title": "컬럼 순서 (가독성 향상을 위해 재구성):",
+        "title": "📝 새로운 PreviousText 컬럼",
         "items": [
-            "1. 슈퍼 그룹 이름, 총 단어 수 (현재/이전), 순 변화, % 변화",
-            "2. 번역/미번역 단어, 번역 % (현재/이전/변화)",
-            "3. 상세 분석: 추가/삭제/변경/미변경/마이그레이션된 단어",
+            "모든 매칭된 행에 대해 이전 Text/번역을 표시",
+            "검색 없이 즉시 이전 번역이 무엇이었는지 확인",
+            "재번역이 필요한 내용 검토에 유용",
+            "New Row에서만 비어 있음 (이전 데이터 없음)",
         ]
     },
     {
-        "title": "✅ v1118.3 - Master File Update - TimeFrame 보존 복원",
+        "title": "🔧 CastingKey 정확도 개선",
         "items": [
-            "TimeFrame = StartFrame만 해당 (EndFrame은 항상 SOURCE에서 업데이트)",
-            "StartFrame 변경 AND StrOrigin 변경 → StartFrame 업데이트 (SOURCE 사용)",
-            "StartFrame 변경 BUT StrOrigin 변경 안 됨 → StartFrame 보존 (TARGET 유지)",
-            "대사 내용이 변경되지 않았을 때 원치 않는 타이밍 업데이트 방지",
+            "파일 간 CastingKey 비교가 이제 더 안정적",
+            "파일 컬럼 구조가 다를 때도 일관된 처리",
+            "소스 데이터가 불완전할 때 경고 표시",
         ]
     },
 ]

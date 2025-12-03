@@ -20,7 +20,16 @@ The tool compares previous and current versions of VRS Excel files to detect and
 
 ## Key Features
 
-### 🔑 10-Key Pattern Matching + TWO-PASS Algorithm (v1116 - Latest)
+### 🎯 Smart Change Classification (v12031417 - Latest)
+- **Priority-based CHANGES column**: Shows the most important change first
+  - Priority: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
+  - Example: If EventName AND StrOrigin both changed → Shows "StrOrigin Change"
+- **New DETAILED_CHANGES column**: Full composite label for complete picture
+  - Example: "EventName+StrOrigin+Desc Change" shows all fields that changed
+- **New PreviousEventName column**: See old EventName when events are renamed
+- **New PreviousText column**: Previous translation shown for all matched rows
+
+### 🔑 10-Key Pattern Matching + TWO-PASS Algorithm
 - **Ultra-precise change detection** using comprehensive 10-key combinations:
   - **2-Key Combos (6)**: SE, SO, SC, EO, EC, OC
   - **3-Key Combos (4)**: SEO, SEC, SOC, EOC
@@ -312,6 +321,25 @@ The system can detect 100+ combinations when multiple fields change together:
 
 **Note:** See `docs/CHANGE_TYPES_REFERENCE.md` for complete details on all change types, detection logic, and processor compatibility.
 
+### Output Columns (v12031417)
+
+| Column | Description | When Populated |
+|--------|-------------|----------------|
+| **CHANGES** | Priority-based change label (most important change) | All rows |
+| **DETAILED_CHANGES** | Full composite label showing all changes | When multiple fields changed |
+| **PreviousEventName** | Old EventName value | Only when EventName changed |
+| **PreviousText** | Previous Text/Translation | All matched rows (not New Rows) |
+| **PreviousStrOrigin** | Old StrOrigin value | When StrOrigin changed |
+
+**Example Output:**
+```
+Row with EventName + StrOrigin + Desc all changed:
+  CHANGES:          "StrOrigin Change"     (priority = highest)
+  DETAILED_CHANGES: "EventName+StrOrigin+Desc Change"
+  PreviousEventName: "old_event_001"
+  PreviousText:      "이전 번역 텍스트"
+```
+
 ---
 
 ## Import Logic Rules
@@ -380,7 +408,18 @@ View history via **"📊 View Update History"** button in GUI.
 
 ## Version History
 
-### v1117.1 (Current - TimeFrame+StrOrigin Logic + Column Robustness)
+### v12031417 (Current - Smart Change Classification + Enhanced Tracking)
+- ✅ **Priority-based CHANGES column** - Shows most important change when multiple fields differ
+  - Priority: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
+  - Quick identification of what needs attention first
+- ✅ **New DETAILED_CHANGES column** - Full composite label (e.g., "EventName+StrOrigin+Desc Change")
+- ✅ **New PreviousEventName column** - Shows old EventName when events are renamed
+- ✅ **New PreviousText column** - Previous translation for all matched rows
+- ✅ **Improved CastingKey handling** - Uses Speaker|CharacterGroupKey from CURRENT only
+- ✅ **CI/CD Safety Checks** - Version unification + 566 tests must pass before build
+- ✅ All previous features included
+
+### v1117.1 (Previous - TimeFrame+StrOrigin Logic + Column Robustness)
 - ✅ **Column Robustness Fix** - Handles files with different column structures
   - Only compares columns that exist in BOTH files (PREVIOUS and CURRENT)
   - No crashes when optional columns missing (Desc, StartFrame, EndFrame, Text, etc.)
