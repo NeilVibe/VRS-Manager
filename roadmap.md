@@ -80,6 +80,50 @@ DETAILED_CHANGES: "EventName+StrOrigin+Desc Change" (full composite)
 
 ---
 
+## 🔧 Phase 4.5 - CastingKey Validation (In Progress)
+
+**Status:** 🔧 In Progress
+**Date:** 2025-12-03
+
+### Feature 4.5.1: CastingKey Source Column Validation
+
+**Problem:** CastingKey is generated from source columns (CharacterKey, DialogVoice, Speaker|CharacterGroupKey, DialogType). If these columns are missing in one file but present in another, false "CastingKey Change" flags occur.
+
+**Solution:**
+1. **Terminal Warning:** When source columns are missing, log a clear error explaining:
+   - Which columns are missing
+   - Which file is affected
+   - How this impacts CastingKey comparison
+
+2. **Error Label:** Instead of flagging "CastingKey Change" when data is incomplete:
+   - Change label to "CastingKey Error"
+   - Prevents false positives from polluting results
+   - Makes it clear the issue is data quality, not actual changes
+
+**Required Columns for CastingKey Generation:**
+```
+- CharacterKey
+- DialogVoice
+- Speaker|CharacterGroupKey
+- DialogType
+```
+
+**Implementation:**
+- `src/core/casting.py` - Add validation function
+- `src/processors/raw_processor.py` - Add column checks
+- `src/processors/working_processor.py` - Add column checks
+- `src/core/change_detection.py` - Handle CastingKey Error label
+
+### Feature 4.5.2: CastingKey Case Normalization ✅
+
+**Problem:** Different branches in `generate_casting_key()` returned different cases (original vs lowercase), causing false mismatches.
+
+**Solution:** All branches now return lowercase for consistent comparison.
+
+**Status:** ✅ Fixed in `src/core/casting.py`
+
+---
+
 ## ✅ CI/CD Safety Checks (Dec 2025)
 
 **Inspired by:** LocalizationTools CI/CD patterns

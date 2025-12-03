@@ -27,10 +27,10 @@ def generate_casting_key(character_key, dialog_voice, speaker_groupkey, dialog_t
     dtype = safe_str(dialog_type)
 
     if dtype.lower() in ["aidialog", "questdialog"]:
-        return dialog_v if dialog_v else "Not Found"
+        return dialog_v.lower() if dialog_v else "Not Found"
 
     if dialog_v and "unique_" in dialog_v.lower():
-        return dialog_v
+        return dialog_v.lower()
 
     if char_key and speaker_gk and char_key.lower() in speaker_gk.lower():
         return speaker_gk.lower()
