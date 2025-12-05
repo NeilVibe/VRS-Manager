@@ -5,7 +5,7 @@ VRS Manager - Self-Monitoring Infrastructure
 
 CURRENT CHECKS:
 1. Version Unification - Ensures all 12 files have matching version numbers
-2. Timestamp Validation - Version must be within 12 hours of current time (MMDDHHMM format, timezone-tolerant)
+2. Timestamp Validation - Version (KST) must be within 1 hour of build time (converts KST→UTC)
 
 FUTURE EXTENSIBILITY:
 This infrastructure can be expanded to monitor:
@@ -111,20 +111,22 @@ def get_source_version():
     return match.group(1)
 
 
-def check_version_timestamp(version, max_hours_diff=12):
+def check_version_timestamp(version, max_hours_diff=1):
     """
     Check if version timestamp is within acceptable range of current time.
 
-    Version format: MMDDHHMM (Month, Day, Hour, Minute)
+    Version format: MMDDHHMM (Month, Day, Hour, Minute) in KST (UTC+9)
+    Script converts version from KST to UTC for comparison on GitHub Actions.
 
     Args:
-        version: Version string (e.g., "12051321")
-        max_hours_diff: Maximum allowed difference in hours (default: 12)
-                        Set to 12 to accommodate timezone differences (e.g., KST vs UTC)
+        version: Version string (e.g., "12051321") in KST
+        max_hours_diff: Maximum allowed difference in hours (default: 1)
 
     Returns:
         tuple: (is_valid, message)
     """
+    from datetime import timezone, timedelta
+
     if len(version) != 8:
         return False, f"Invalid version format: {version} (expected MMDDHHMM)"
 
@@ -134,22 +136,25 @@ def check_version_timestamp(version, max_hours_diff=12):
         version_hour = int(version[4:6])
         version_minute = int(version[6:8])
 
-        now = datetime.now()
+        # Get current time in UTC
+        now_utc = datetime.now(timezone.utc)
 
-        # Build version datetime (assume current year)
+        # Build version datetime in KST (UTC+9), then convert to UTC
+        kst = timezone(timedelta(hours=9))
         try:
-            version_dt = datetime(now.year, version_month, version_day, version_hour, version_minute)
+            version_dt_kst = datetime(now_utc.year, version_month, version_day,
+                                       version_hour, version_minute, tzinfo=kst)
+            version_dt_utc = version_dt_kst.astimezone(timezone.utc)
         except ValueError as e:
             return False, f"Invalid datetime in version: {version} ({e})"
 
-        # Calculate difference in hours
-        diff = abs((now - version_dt).total_seconds() / 3600)
+        # Calculate difference in hours (both in UTC now)
+        diff = abs((now_utc - version_dt_utc).total_seconds() / 3600)
 
         if diff <= max_hours_diff:
-            return True, f"Version timestamp OK: {version_month:02d}/{version_day:02d} {version_hour:02d}:{version_minute:02d} (within {diff:.1f}h, max {max_hours_diff}h for timezone tolerance)"
+            return True, f"Version timestamp OK: {version} (KST) = {version_dt_utc.strftime('%H:%M')} UTC, within {diff:.1f}h of now"
         else:
-            now_version = now.strftime("%m%d%H%M")
-            return False, f"Version timestamp TOO FAR: {version} is {diff:.1f}h away from now ({now_version}). Max allowed: {max_hours_diff}h"
+            return False, f"Version timestamp TOO FAR: {version} (KST) is {diff:.1f}h away from now. Max: {max_hours_diff}h"
     except ValueError as e:
         return False, f"Could not parse version timestamp: {version} ({e})"
 
@@ -285,7 +290,7 @@ def main():
         print(f"🎉 Runtime and GUI imports verified!")
         print()
         print("COVERAGE SUMMARY:")
-        print("  ✓ Timestamp Validation: Version within 12 hours (timezone-tolerant)")
+        print("  ✓ Timestamp Validation: Version (KST) within 1 hour of build time")
         print("  ✓ Static Files: 12 files (code, docs, installers, workflows)")
         print("  ✓ Runtime Imports: src.config (VERSION, VERSION_FOOTER)")
         print("  ✓ GUI Display: Window title + footer (from centralized import)")
