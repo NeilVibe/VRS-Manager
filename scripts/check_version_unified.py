@@ -5,7 +5,7 @@ VRS Manager - Self-Monitoring Infrastructure
 
 CURRENT CHECKS:
 1. Version Unification - Ensures all 12 files have matching version numbers
-2. Timestamp Validation - Version must be within 1 hour of current time (MMDDHHMM format)
+2. Timestamp Validation - Version must be within 12 hours of current time (MMDDHHMM format, timezone-tolerant)
 
 FUTURE EXTENSIBILITY:
 This infrastructure can be expanded to monitor:
@@ -111,7 +111,7 @@ def get_source_version():
     return match.group(1)
 
 
-def check_version_timestamp(version, max_hours_diff=1):
+def check_version_timestamp(version, max_hours_diff=12):
     """
     Check if version timestamp is within acceptable range of current time.
 
@@ -119,7 +119,8 @@ def check_version_timestamp(version, max_hours_diff=1):
 
     Args:
         version: Version string (e.g., "12051321")
-        max_hours_diff: Maximum allowed difference in hours (default: 1)
+        max_hours_diff: Maximum allowed difference in hours (default: 12)
+                        Set to 12 to accommodate timezone differences (e.g., KST vs UTC)
 
     Returns:
         tuple: (is_valid, message)
@@ -145,7 +146,7 @@ def check_version_timestamp(version, max_hours_diff=1):
         diff = abs((now - version_dt).total_seconds() / 3600)
 
         if diff <= max_hours_diff:
-            return True, f"Version timestamp OK: {version_month:02d}/{version_day:02d} {version_hour:02d}:{version_minute:02d} (within {diff:.1f}h of now)"
+            return True, f"Version timestamp OK: {version_month:02d}/{version_day:02d} {version_hour:02d}:{version_minute:02d} (within {diff:.1f}h, max {max_hours_diff}h for timezone tolerance)"
         else:
             now_version = now.strftime("%m%d%H%M")
             return False, f"Version timestamp TOO FAR: {version} is {diff:.1f}h away from now ({now_version}). Max allowed: {max_hours_diff}h"
@@ -284,7 +285,7 @@ def main():
         print(f"🎉 Runtime and GUI imports verified!")
         print()
         print("COVERAGE SUMMARY:")
-        print("  ✓ Timestamp Validation: Version within 1 hour of current time")
+        print("  ✓ Timestamp Validation: Version within 12 hours (timezone-tolerant)")
         print("  ✓ Static Files: 12 files (code, docs, installers, workflows)")
         print("  ✓ Runtime Imports: src.config (VERSION, VERSION_FOOTER)")
         print("  ✓ GUI Display: Window title + footer (from centralized import)")
