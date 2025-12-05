@@ -264,11 +264,11 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
     worksheet[f"A{note_row}"] = "Notes:"
     worksheet[f"A{note_row}"].font = Font(bold=True, size=10, italic=True)
 
-    # Note 1: Main Chapters
+    # Note 1: NET CHANGE explanation
     note_text_row_1 = note_row + 1
     note_text_1 = (
-        'Main Chapters: Groups containing "chapter" OR "intro"/"prolog" (e.g., Chapter1, Chapter2, Intro, Prolog). '
-        'This super group aggregates all main story dialogue.'
+        'NET CHANGE = Total Words (Current) - Total Words (Previous). '
+        'Positive (+) = words added to the project. Negative (-) = words removed from the project.'
     )
     worksheet[f"A{note_text_row_1}"] = note_text_1
     worksheet[f"A{note_text_row_1}"].font = Font(size=9, italic=True, color="666666")
@@ -276,11 +276,11 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
     worksheet.merge_cells(f"A{note_text_row_1}:G{note_text_row_1}")
     worksheet.row_dimensions[note_text_row_1].height = 30
 
-    # Note 2: Other
+    # Note 2: Main Chapters
     note_text_row_2 = note_text_row_1 + 1
     note_text_2 = (
-        'Other: Specific game systems - Police, Minigame, Trade, Church, Shop, Contribution, RoyalSupply, Research, '
-        'Quest Groups (Hernand, Demeniss, Delesyia), faction_etc. This super group aggregates system/feature dialogue.'
+        'Main Chapters: Groups containing "chapter", "intro", "prolog", or "epilog" (keyword-based). '
+        'This super group aggregates all main story dialogue.'
     )
     worksheet[f"A{note_text_row_2}"] = note_text_2
     worksheet[f"A{note_text_row_2}"].font = Font(size=9, italic=True, color="666666")
@@ -288,12 +288,11 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
     worksheet.merge_cells(f"A{note_text_row_2}:G{note_text_row_2}")
     worksheet.row_dimensions[note_text_row_2].height = 30
 
-    # Note 3: Everything Else
+    # Note 3: Other
     note_text_row_3 = note_text_row_2 + 1
     note_text_3 = (
-        'Everything Else: All groups that do not match any other Super Group classification. '
-        'This includes groups not specifically categorized under Main Chapters, Factions, Quest Dialog, '
-        'AI Dialog, or Other.'
+        'Other: Specific game systems - Police, Minigame, Trade, Church, Shop, Contribution, RoyalSupply, Research, '
+        'Quest Groups (Hernand, Demeniss, Delesyia), faction_etc, Item. This super group aggregates system/feature dialogue.'
     )
     worksheet[f"A{note_text_row_3}"] = note_text_3
     worksheet[f"A{note_text_row_3}"].font = Font(size=9, italic=True, color="666666")
@@ -301,9 +300,22 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
     worksheet.merge_cells(f"A{note_text_row_3}:G{note_text_row_3}")
     worksheet.row_dimensions[note_text_row_3].height = 30
 
+    # Note 4: Everything Else
+    note_text_row_4 = note_text_row_3 + 1
+    note_text_4 = (
+        'Everything Else: All groups that do not match any other Super Group classification. '
+        'This includes groups not specifically categorized under Main Chapters, Factions, Quest Dialog, '
+        'AI Dialog, NarrationDialog, or Other.'
+    )
+    worksheet[f"A{note_text_row_4}"] = note_text_4
+    worksheet[f"A{note_text_row_4}"].font = Font(size=9, italic=True, color="666666")
+    worksheet[f"A{note_text_row_4}"].alignment = Alignment(wrap_text=True, vertical="top")
+    worksheet.merge_cells(f"A{note_text_row_4}:G{note_text_row_4}")
+    worksheet.row_dimensions[note_text_row_4].height = 30
+
     # Add migration details table if provided
     if migration_details:
-        migration_start_row = note_text_row_3 + 3
+        migration_start_row = note_text_row_4 + 3
         write_super_group_migration_details(worksheet, migration_details, migration_start_row)
 
     # Freeze header row

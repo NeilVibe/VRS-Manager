@@ -32,6 +32,7 @@ from src.config import (
     COL_PREVIOUSDATA
 )
 from src.core.change_detection import get_priority_change
+from src.settings import get_use_priority_change
 from src.io.summary import create_raw_summary
 from src.utils.strorigin_analysis import StrOriginAnalyzer
 
@@ -210,8 +211,11 @@ class RawProcessor(BaseProcessor):
                     # Full composite label
                     detailed_changes.append(change_label)
 
-                    # Priority label (extract highest priority from composite)
-                    priority_changes.append(get_priority_change(change_label))
+                    # Priority label (extract highest priority from composite) - respects setting
+                    if get_use_priority_change():
+                        priority_changes.append(get_priority_change(change_label))
+                    else:
+                        priority_changes.append(change_label)  # Legacy mode: show full composite
 
                     # Get previous row data if matched
                     if prev_idx is not None:

@@ -1,6 +1,6 @@
 # VRS Manager
 
-**Version:** 12031417
+**Version:** 12051800
 **Author:** Neil Schmitt
 **Status:** Production Ready (TWO-PASS Algorithm + Clean Super Group Tables + Migration Tracking)
 
@@ -20,7 +20,7 @@ The tool compares previous and current versions of VRS Excel files to detect and
 
 ## Key Features
 
-### 🎯 Smart Change Classification (v12031417 - Latest)
+### 🎯 Smart Change Classification (v12051800 - Latest)
 - **Priority-based CHANGES column**: Shows the most important change first
   - Priority: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
   - Example: If EventName AND StrOrigin both changed → Shows "StrOrigin Change"
@@ -321,7 +321,7 @@ The system can detect 100+ combinations when multiple fields change together:
 
 **Note:** See `docs/CHANGE_TYPES_REFERENCE.md` for complete details on all change types, detection logic, and processor compatibility.
 
-### Output Columns (v12031417)
+### Output Columns (v12051800)
 
 | Column | Description | When Populated |
 |--------|-------------|----------------|
@@ -408,7 +408,7 @@ View history via **"📊 View Update History"** button in GUI.
 
 ## Version History
 
-### v12031417 (Current - Smart Change Classification + Enhanced Tracking)
+### v12051800 (Current - Smart Change Classification + Enhanced Tracking)
 - ✅ **Priority-based CHANGES column** - Shows most important change when multiple fields differ
   - Priority: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
   - Quick identification of what needs attention first

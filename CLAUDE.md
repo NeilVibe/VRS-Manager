@@ -1,6 +1,6 @@
 # Claude Code Reference - VRS Manager
 
-**Version:** v12031417 | **Status:** Production Ready
+**Version:** v12051800 | **Status:** Production Ready
 
 ---
 
@@ -56,7 +56,7 @@ Build status: https://github.com/NeilVibe/VRS-Manager/actions
 
 ---
 
-## 📊 OUTPUT COLUMNS (v12031417)
+## 📊 OUTPUT COLUMNS (v12051800)
 
 | Column | Description |
 |--------|-------------|

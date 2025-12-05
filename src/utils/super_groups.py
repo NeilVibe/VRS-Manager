@@ -30,16 +30,18 @@ def classify_super_group(row, group_value):
     dialog_type = str(row.get("DialogType", "")).lower()
     group_lower = str(group_value).lower()
 
-    # Priority 1: DialogType-based rules (Quest Dialog, AI Dialog)
+    # Priority 1: DialogType-based rules (Quest Dialog, AI Dialog, NarrationDialog)
     # These override Group-based rules
     if "questdialog" in dialog_type:
         return "Quest Dialog"
     if "aidialog" in dialog_type:
         return "AI Dialog"
+    if "narrationdialog" in dialog_type:
+        return "NarrationDialog"
 
     # Priority 2: Group-based rules
-    # Main Chapters: any group containing "chapter" OR intro/prolog
-    if "chapter" in group_lower or group_lower in ["intro", "prolog"]:
+    # Main Chapters: keyword-based matching (chapter/intro/prolog/epilog)
+    if "chapter" in group_lower or "intro" in group_lower or "prolog" in group_lower or "epilog" in group_lower:
         return "Main Chapters"
 
     # Factions: exact match (case-insensitive)
@@ -56,7 +58,7 @@ def classify_super_group(row, group_value):
         "shop", "contribution", "royalsupply", "research",
         "questgroup_hernand_request", "questgroup_hernand_daily",
         "questgroup_demeniss_request", "quest_group_demeniss_daily",
-        "questgroup_delesyia_daily", "faction_etc"
+        "questgroup_delesyia_daily", "faction_etc", "item"
     ]
     if group_lower in other_groups:
         return "Other"
@@ -87,7 +89,7 @@ def aggregate_to_super_groups(df_curr, df_prev, pass1_results):
     # Initialize all super groups
     super_groups = [
         "Main Chapters", "Faction 1", "Faction 2", "Faction 3",
-        "AI Dialog", "Quest Dialog", "Other", "Everything Else"
+        "AI Dialog", "Quest Dialog", "NarrationDialog", "Other", "Everything Else"
     ]
 
     super_group_stats = {}

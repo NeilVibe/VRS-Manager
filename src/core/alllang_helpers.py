@@ -20,6 +20,7 @@ from src.utils.data_processing import normalize_dataframe_status, remove_full_du
 from src.core.casting import generate_casting_key
 from src.core.import_logic import is_after_recording_status
 from src.core.change_detection import detect_all_field_changes, get_priority_change
+from src.settings import get_use_priority_change
 
 
 def find_alllang_files():
@@ -604,10 +605,13 @@ def process_alllang_comparison_twopass(df_curr, df_kr, prev_lookup_se, prev_look
         else:
             curr_dict["PreviousData_CN"] = ""
 
-        # Phase 4: Set change type columns
+        # Phase 4: Set change type columns (respects Priority Change setting)
         actual_change = change_type if has_kr else "No Change"
         curr_dict[COL_DETAILED_CHANGES] = actual_change
-        curr_dict[COL_CHANGES] = get_priority_change(actual_change)
+        if get_use_priority_change():
+            curr_dict[COL_CHANGES] = get_priority_change(actual_change)
+        else:
+            curr_dict[COL_CHANGES] = actual_change  # Legacy mode: show full composite
 
         # Phase 4.1: PreviousEventName - only when EventName changed
         if prev_kr_dict and "EventName" in actual_change:

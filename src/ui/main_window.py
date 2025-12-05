@@ -15,6 +15,7 @@ from src.processors.alllang_processor import AllLangProcessor
 from src.processors.master_processor import MasterProcessor
 from src.ui.history_viewer import show_update_history_viewer
 from src.config import VERSION, VERSION_FOOTER
+from src.settings import get_use_priority_change, set_use_priority_change
 
 
 def run_raw_process_thread(btn_raw, btn_working, btn_alllang, btn_master, btn_history, status_label):
@@ -115,6 +116,113 @@ def run_master_file_update_thread(btn_raw, btn_working, btn_alllang, btn_master,
 
     thread = threading.Thread(target=run, daemon=True)
     thread.start()
+
+
+def show_settings_dialog(parent):
+    """
+    Show settings dialog with Priority Change toggle.
+
+    Args:
+        parent: Parent window for the dialog
+    """
+    dialog = tk.Toplevel(parent)
+    dialog.title("Settings")
+    dialog.geometry("400x200")
+    dialog.resizable(False, False)
+    dialog.transient(parent)
+    dialog.grab_set()
+
+    # Center dialog on parent
+    dialog.update_idletasks()
+    x = parent.winfo_x() + (parent.winfo_width() // 2) - (dialog.winfo_width() // 2)
+    y = parent.winfo_y() + (parent.winfo_height() // 2) - (dialog.winfo_height() // 2)
+    dialog.geometry(f"+{x}+{y}")
+
+    bg_color = "#f0f0f0"
+    dialog.configure(bg=bg_color)
+
+    # Title
+    title_label = tk.Label(
+        dialog,
+        text="VRS Manager Settings",
+        font=("Arial", 14, "bold"),
+        bg=bg_color,
+        fg="#333333"
+    )
+    title_label.pack(pady=(15, 10))
+
+    # Priority Change toggle frame
+    toggle_frame = tk.Frame(dialog, bg=bg_color)
+    toggle_frame.pack(pady=10, padx=20, fill=tk.X)
+
+    # Variable for checkbox
+    use_priority_var = tk.BooleanVar(value=get_use_priority_change())
+
+    # Checkbox
+    priority_checkbox = tk.Checkbutton(
+        toggle_frame,
+        text="Use Priority Change Mode",
+        variable=use_priority_var,
+        font=("Arial", 11),
+        bg=bg_color,
+        activebackground=bg_color
+    )
+    priority_checkbox.pack(anchor=tk.W)
+
+    # Description label
+    desc_frame = tk.Frame(dialog, bg=bg_color)
+    desc_frame.pack(pady=5, padx=25, fill=tk.X)
+
+    desc_on = tk.Label(
+        desc_frame,
+        text="ON: CHANGES column shows priority-based label (newest)",
+        font=("Arial", 9),
+        bg=bg_color,
+        fg="#006600"
+    )
+    desc_on.pack(anchor=tk.W)
+
+    desc_off = tk.Label(
+        desc_frame,
+        text="OFF: CHANGES column shows full composite label (legacy)",
+        font=("Arial", 9),
+        bg=bg_color,
+        fg="#666666"
+    )
+    desc_off.pack(anchor=tk.W)
+
+    # Button frame
+    button_frame = tk.Frame(dialog, bg=bg_color)
+    button_frame.pack(pady=15)
+
+    def save_and_close():
+        set_use_priority_change(use_priority_var.get())
+        messagebox.showinfo("Settings Saved", "Settings saved successfully!\n\nChanges will apply to future processing runs.")
+        dialog.destroy()
+
+    save_btn = tk.Button(
+        button_frame,
+        text="Save",
+        font=("Arial", 10, "bold"),
+        bg="#4CAF50",
+        fg="white",
+        width=10,
+        cursor="hand2",
+        command=save_and_close
+    )
+    save_btn.pack(side=tk.LEFT, padx=5)
+
+    cancel_btn = tk.Button(
+        button_frame,
+        text="Cancel",
+        font=("Arial", 10),
+        bg="#757575",
+        fg="white",
+        width=10,
+        cursor="hand2",
+        command=dialog.destroy
+    )
+    cancel_btn.pack(side=tk.LEFT, padx=5)
 
 
 def create_gui():
@@ -295,6 +403,31 @@ def create_gui():
         fg="#666666"
     )
     desc_history.pack()
+
+    # Settings button
+    btn_settings = tk.Button(
+        button_frame,
+        text="⚙️ Settings",
+        font=("Arial", 11, "bold"),
+        bg="#757575",
+        fg="white",
+        width=42,
+        height=2,
+        relief=tk.RAISED,
+        bd=3,
+        cursor="hand2",
+        command=lambda: show_settings_dialog(window)
+    )
+    btn_settings.pack(pady=8)
+
+    desc_settings = tk.Label(
+        button_frame,
+        text="Configure Priority Change mode and other options",
+        font=("Arial", 9, "italic"),
+        bg=bg_color,
+        fg="#666666"
+    )
+    desc_settings.pack()
 
     # Configure button commands
     btn_raw.config(command=lambda: run_raw_process_thread(btn_raw, btn_working, btn_alllang, btn_master, btn_history, status_label))

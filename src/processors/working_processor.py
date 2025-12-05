@@ -172,6 +172,7 @@ class WorkingProcessor(BaseProcessor):
                 log("Post-processing CastingKey labels due to missing source columns...")
                 from src.config import COL_CHANGES, COL_DETAILED_CHANGES
                 from src.core.change_detection import get_priority_change
+                from src.settings import get_use_priority_change
 
                 def fix_castingkey_label(label):
                     if "CastingKey" not in label:
@@ -186,7 +187,10 @@ class WorkingProcessor(BaseProcessor):
                     return "CastingKey Error"
 
                 self.df_result[COL_DETAILED_CHANGES] = self.df_result[COL_DETAILED_CHANGES].apply(fix_castingkey_label)
-                self.df_result[COL_CHANGES] = self.df_result[COL_DETAILED_CHANGES].apply(get_priority_change)
+                if get_use_priority_change():
+                    self.df_result[COL_CHANGES] = self.df_result[COL_DETAILED_CHANGES].apply(get_priority_change)
+                else:
+                    self.df_result[COL_CHANGES] = self.df_result[COL_DETAILED_CHANGES]  # Legacy mode
                 log("  → CastingKey labels converted to errors")
 
             # Find deleted rows (TWO-PASS algorithm)

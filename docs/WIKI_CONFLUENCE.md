@@ -1,6 +1,6 @@
 # VRS Manager - User Guide
 
-**Version:** 12031417 | **Status:** Production Ready | **Date:** November 2025
+**Version:** 12051800 | **Status:** Production Ready | **Date:** November 2025
 
 ---
 
@@ -487,7 +487,7 @@ This formula always holds true thanks to:
 
 ---
 
-## Output Columns (v12031417)
+## Output Columns (v12051800)
 
 VRS Manager outputs several columns to help you understand and track changes:
 
@@ -538,10 +538,10 @@ Shows the **previous Text/Translation** for all matched rows.
 
 ## Version Information
 
-**Current Version**: 12031417 (Production Ready - Smart Change Classification)
+**Current Version**: 12051800 (Production Ready - Smart Change Classification)
 
 **Key Features**:
-- ✅ **Smart Change Classification** (v12031417) - Priority-based CHANGES column
+- ✅ **Smart Change Classification** (v12051800) - Priority-based CHANGES column
   - Shows most important change when multiple fields differ
   - New DETAILED_CHANGES column for complete composite labels
   - New PreviousEventName column for tracking event renames
@@ -558,6 +558,13 @@ Shows the **previous Text/Translation** for all matched rows.
   - Removed "Others" super group and stageclosedialog check
   - Reordered super groups: AI Dialog before Quest Dialog
   - Added detailed "Super Group Migrations" table below main table
+  - Added NarrationDialog tracking (from DialogType column)
+  - Added "Item" to Other super group cluster
+  - Main Chapters: keyword-based matching (chapter/intro/prolog/epilog)
+  - NET CHANGE explanation added below table
+- ✅ **Settings Button** - Toggle Priority Change mode ON/OFF
+  - ON: CHANGES column shows priority-based label (default)
+  - OFF: CHANGES column shows full composite label (legacy mode)
 - ✅ **Simplified Master File Update** - EventName-only matching, CHANGES preservation
   - Simple data movement operation (not comparison)
   - CHANGES values always preserved from SOURCE
@@ -583,4 +590,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: December 3, 2025 | Version 12031417*
+*Last Updated: December 5, 2025 | Version 12051800*

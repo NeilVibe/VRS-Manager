@@ -18,6 +18,7 @@ from src.utils.progress import print_progress, finalize_progress
 from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
 from src.core.change_detection import detect_all_field_changes, get_changed_char_cols, get_priority_change
+from src.settings import get_use_priority_change
 
 
 def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_sc,
@@ -372,9 +373,12 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
         # Set special columns
         curr_dict[COL_MAINLINE_TRANSLATION] = mainline_translation
 
-        # Phase 4: CHANGES = priority label, DETAILED_CHANGES = full composite
+        # Phase 4: CHANGES = priority label or full composite based on setting
         curr_dict[COL_DETAILED_CHANGES] = change_type
-        curr_dict[COL_CHANGES] = get_priority_change(change_type)
+        if get_use_priority_change():
+            curr_dict[COL_CHANGES] = get_priority_change(change_type)
+        else:
+            curr_dict[COL_CHANGES] = change_type  # Legacy mode: show full composite
 
         # Phase 4.1: PreviousEventName - only when EventName changed
         if prev_row_dict and "EventName" in change_type:
