@@ -1,6 +1,6 @@
 # VRS Manager - Development Roadmap
 
-**Version:** v12051348 | **Status:** In Development
+**Version:** v12051348 | **Status:** Production Ready
 
 ---
 
@@ -17,7 +17,9 @@ CURRENT: v12051348 (Dec 5, 2025) ← YOU ARE HERE
 │   │   ├── Add Narration Dialog tracking (from DialogType column)
 │   │   ├── Add "Item" to Other super group cluster
 │   │   ├── Main Chapters: keyword-based (chapter/intro/prolog/epilog)
-│   │   └── NET CHANGE explanation added below table
+│   │   ├── NET CHANGE explanation added below table
+│   │   └── Custom table order (not alphabetical)
+│   ├── Build Safety: Timestamp validation (KST→UTC)
 │   └── Case-insensitive matching for all super group lookups
 │
 ├── 📈 EVOLUTION

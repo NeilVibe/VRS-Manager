@@ -34,10 +34,12 @@ CLAUDE.md (YOU ARE HERE - THE HUB)
 │
 └── 💻 SOURCE CODE
     ├── src/config.py ................. Column names, constants
+    ├── src/settings.py ............... User settings (Priority toggle)
     ├── src/core/change_detection.py .. Unified detection + priority
     ├── src/core/comparison.py ........ RAW processor logic
     ├── src/core/working_comparison.py  WORKING processor logic
     ├── src/core/alllang_helpers.py ... ALLLANG processor logic
+    ├── src/utils/super_groups.py ..... Super group classification
     └── src/processors/*.py ........... Processor orchestrators
 ```
 
