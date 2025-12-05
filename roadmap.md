@@ -1,20 +1,20 @@
 # VRS Manager - Development Roadmap
 
-**Version:** v12051333 | **Status:** In Development
+**Version:** v12051348 | **Status:** In Development
 
 ---
 
 ## 🌳 VERSION TREE
 
 ```
-CURRENT: v12051333 (Dec 5, 2025) ← YOU ARE HERE
+CURRENT: v12051348 (Dec 5, 2025) ← YOU ARE HERE
 │
 ├── 🎯 THIS RELEASE
 │   ├── SETTINGS button - Toggle Priority Change ON/OFF
 │   │   ├── ON: Priority CHANGES + colors (new behavior)
 │   │   └── OFF: DETAILED_CHANGES only + colors (legacy behavior)
 │   ├── Super Group Analysis improvements
-│   │   ├── Add NarrationDialog tracking (from DialogType column)
+│   │   ├── Add Narration Dialog tracking (from DialogType column)
 │   │   ├── Add "Item" to Other super group cluster
 │   │   ├── Main Chapters: keyword-based (chapter/intro/prolog/epilog)
 │   │   └── NET CHANGE explanation added below table

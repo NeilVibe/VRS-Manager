@@ -37,7 +37,7 @@ def classify_super_group(row, group_value):
     if "aidialog" in dialog_type:
         return "AI Dialog"
     if "narrationdialog" in dialog_type:
-        return "NarrationDialog"
+        return "Narration Dialog"
 
     # Priority 2: Group-based rules
     # Main Chapters: keyword-based matching (chapter/intro/prolog/epilog)
@@ -86,10 +86,10 @@ def aggregate_to_super_groups(df_curr, df_prev, pass1_results):
     """
     from src.config import COL_TEXT
 
-    # Initialize all super groups
+    # Initialize all super groups (ordered for display)
     super_groups = [
         "Main Chapters", "Faction 1", "Faction 2", "Faction 3",
-        "AI Dialog", "Quest Dialog", "NarrationDialog", "Other", "Everything Else"
+        "AI Dialog", "Quest Dialog", "Narration Dialog", "Other", "Everything Else"
     ]
 
     super_group_stats = {}

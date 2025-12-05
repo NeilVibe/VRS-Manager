@@ -125,9 +125,16 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
         # No super group data to write
         return
 
-    # Convert super_group_analysis dict to DataFrame
+    # Convert super_group_analysis dict to DataFrame (custom order)
+    super_group_order = [
+        "Main Chapters", "Faction 1", "Faction 2", "Faction 3",
+        "AI Dialog", "Quest Dialog", "Narration Dialog", "Other", "Everything Else"
+    ]
     rows = []
-    for super_group_name, stats in sorted(super_group_analysis.items()):
+    for super_group_name in super_group_order:
+        if super_group_name not in super_group_analysis:
+            continue
+        stats = super_group_analysis[super_group_name]
         prev_total = stats["total_words_prev"]
         curr_total = stats["total_words_curr"]
         net_change = curr_total - prev_total
@@ -305,7 +312,7 @@ def write_super_group_word_analysis(writer, super_group_analysis, migration_deta
     note_text_4 = (
         'Everything Else: All groups that do not match any other Super Group classification. '
         'This includes groups not specifically categorized under Main Chapters, Factions, Quest Dialog, '
-        'AI Dialog, NarrationDialog, or Other.'
+        'AI Dialog, Narration Dialog, or Other.'
     )
     worksheet[f"A{note_text_row_4}"] = note_text_4
     worksheet[f"A{note_text_row_4}"].font = Font(size=9, italic=True, color="666666")
