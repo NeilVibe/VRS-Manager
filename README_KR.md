@@ -1,6 +1,6 @@
 # VRS Manager (한국어)
 
-**버전:** 12051800
+**버전:** 12051333
 **작성자:** Neil Schmitt
 **상태:** 프로덕션 준비 완료 (TWO-PASS 알고리즘 + 깔끔한 슈퍼 그룹 테이블 + 마이그레이션 추적)
 
@@ -20,7 +20,7 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 ## 주요 기능
 
-### 🎯 스마트 변경 분류 (v12051800 - 최신)
+### 🎯 스마트 변경 분류 (v12051333 - 최신)
 - **우선순위 기반 CHANGES 컬럼**: 가장 중요한 변경을 먼저 표시
   - 우선순위: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
   - 예시: EventName과 StrOrigin 모두 변경됨 → "StrOrigin Change" 표시
@@ -229,7 +229,7 @@ VRS Manager는 음성 녹음 스크립트(VRS) 데이터를 여러 언어와 버
 
 **참고:** 모든 변경 유형, 감지 로직 및 프로세서 호환성에 대한 자세한 내용은 `docs/CHANGE_TYPES_REFERENCE.md`를 참조하세요.
 
-### 출력 컬럼 (v12051800)
+### 출력 컬럼 (v12051333)
 
 | 컬럼 | 설명 | 채워지는 시점 |
 |--------|-------------|----------------|
@@ -288,7 +288,7 @@ EventName + StrOrigin + Desc 모두 변경된 행:
 
 ## 버전 히스토리
 
-### v12051800 (현재 - 스마트 변경 분류 + 향상된 추적)
+### v12051333 (현재 - 스마트 변경 분류 + 향상된 추적)
 - ✅ **우선순위 기반 CHANGES 컬럼** - 여러 필드가 다를 때 가장 중요한 변경 표시
   - 우선순위: StrOrigin → Desc → CastingKey → TimeFrame → Group → EventName → SequenceName → DialogType → CharacterGroup
   - 먼저 주의가 필요한 것을 빠르게 식별

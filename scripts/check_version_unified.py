@@ -5,6 +5,7 @@ VRS Manager - Self-Monitoring Infrastructure
 
 CURRENT CHECKS:
 1. Version Unification - Ensures all 12 files have matching version numbers
+2. Timestamp Validation - Version must be within 1 hour of current time (MMDDHHMM format)
 
 FUTURE EXTENSIBILITY:
 This infrastructure can be expanded to monitor:
@@ -110,25 +111,46 @@ def get_source_version():
     return match.group(1)
 
 
-def check_version_date(version):
-    """Check if version date matches today. Returns (is_current, message)."""
+def check_version_timestamp(version, max_hours_diff=1):
+    """
+    Check if version timestamp is within acceptable range of current time.
+
+    Version format: MMDDHHMM (Month, Day, Hour, Minute)
+
+    Args:
+        version: Version string (e.g., "12051321")
+        max_hours_diff: Maximum allowed difference in hours (default: 1)
+
+    Returns:
+        tuple: (is_valid, message)
+    """
     if len(version) != 8:
         return False, f"Invalid version format: {version} (expected MMDDHHMM)"
 
     try:
         version_month = int(version[0:2])
         version_day = int(version[2:4])
+        version_hour = int(version[4:6])
+        version_minute = int(version[6:8])
 
-        today = datetime.now()
-        today_month = today.month
-        today_day = today.day
+        now = datetime.now()
 
-        if version_month == today_month and version_day == today_day:
-            return True, f"Version date matches today ({today_month:02d}/{today_day:02d})"
+        # Build version datetime (assume current year)
+        try:
+            version_dt = datetime(now.year, version_month, version_day, version_hour, version_minute)
+        except ValueError as e:
+            return False, f"Invalid datetime in version: {version} ({e})"
+
+        # Calculate difference in hours
+        diff = abs((now - version_dt).total_seconds() / 3600)
+
+        if diff <= max_hours_diff:
+            return True, f"Version timestamp OK: {version_month:02d}/{version_day:02d} {version_hour:02d}:{version_minute:02d} (within {diff:.1f}h of now)"
         else:
-            return False, f"Version date OUTDATED: {version_month:02d}/{version_day:02d} but today is {today_month:02d}/{today_day:02d}"
-    except ValueError:
-        return False, f"Could not parse version date from: {version}"
+            now_version = now.strftime("%m%d%H%M")
+            return False, f"Version timestamp TOO FAR: {version} is {diff:.1f}h away from now ({now_version}). Max allowed: {max_hours_diff}h"
+    except ValueError as e:
+        return False, f"Could not parse version timestamp: {version} ({e})"
 
 
 def check_file_versions(file_path, patterns, source_version):
@@ -182,9 +204,21 @@ def main():
     print(f"✓ Expected version: {source_version}")
     print()
 
-    # NOTE: This script only checks UNIFICATION (all files match)
-    # The human/process decides WHEN to update the version number
-    # Protocol: Update version to current datetime before significant builds
+    # TIMESTAMP VALIDATION - Version must be within 1 hour of current time
+    print("Checking version timestamp...")
+    timestamp_valid, timestamp_msg = check_version_timestamp(source_version, max_hours_diff=1)
+    if timestamp_valid:
+        print(f"✓ {timestamp_msg}")
+    else:
+        print(f"❌ {timestamp_msg}")
+        print()
+        print("=" * 70)
+        print("❌ BUILD BLOCKED: Version timestamp too far from current time!")
+        print("   Update version to current timestamp before building.")
+        print(f"   Suggested version: {datetime.now().strftime('%m%d%H%M')}")
+        print("=" * 70)
+        return 1
+    print()
 
     # Test runtime import (GUI, processors use this)
     print("Testing runtime imports...")
@@ -250,6 +284,7 @@ def main():
         print(f"🎉 Runtime and GUI imports verified!")
         print()
         print("COVERAGE SUMMARY:")
+        print("  ✓ Timestamp Validation: Version within 1 hour of current time")
         print("  ✓ Static Files: 12 files (code, docs, installers, workflows)")
         print("  ✓ Runtime Imports: src.config (VERSION, VERSION_FOOTER)")
         print("  ✓ GUI Display: Window title + footer (from centralized import)")

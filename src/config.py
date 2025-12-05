@@ -101,5 +101,5 @@ ALLLANG_HISTORY_FILE = "alllang_update_history.json"
 # ===========================================================================
 # VERSION INFORMATION
 # ===========================================================================
-VERSION = "12051800"
-VERSION_FOOTER = "ver. 12051800 | 10-Key TWO-PASS Algorithm | Settings Toggle"
+VERSION = "12051333"
+VERSION_FOOTER = "ver. 12051333 | 10-Key TWO-PASS Algorithm | Settings Toggle"

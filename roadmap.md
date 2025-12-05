@@ -1,13 +1,13 @@
 # VRS Manager - Development Roadmap
 
-**Version:** v12051800 | **Status:** In Development
+**Version:** v12051333 | **Status:** In Development
 
 ---
 
 ## 🌳 VERSION TREE
 
 ```
-CURRENT: v12051800 (Dec 5, 2025) ← YOU ARE HERE
+CURRENT: v12051333 (Dec 5, 2025) ← YOU ARE HERE
 │
 ├── 🎯 THIS RELEASE
 │   ├── SETTINGS button - Toggle Priority Change ON/OFF
