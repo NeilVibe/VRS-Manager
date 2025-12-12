@@ -6,11 +6,15 @@
 
 ## Active Work
 
-See `WIP/` folder for detailed task docs.
+No active WIP. See `history/` for completed tasks.
 
-| WIP Doc | Task |
-|---------|------|
-| `WIP/strorigin_status_logic.md` | StrOrigin preservation based on status |
+---
+
+## v12121619 Changes
+
+- Removed "NEED CHECK" status logic
+- StrOrigin preserved when ANY status exists
+- Mainline StrOrigin used only when no status
 
 ---
 
@@ -36,4 +40,4 @@ python3 scripts/check_version_unified.py        # Version check
 
 - **Releases:** https://github.com/NeilVibe/VRS-Manager/releases
 - **Build Status:** https://github.com/NeilVibe/VRS-Manager/actions
-- **History:** `history/roadmap_archive_v12121619.md`
+- **History:** `history/`
