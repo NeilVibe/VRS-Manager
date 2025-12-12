@@ -1,6 +1,6 @@
 # VRS Manager - User Guide
 
-**Version:** 12051348 | **Status:** Production Ready | **Date:** November 2025
+**Version:** 12121619 | **Status:** Production Ready | **Date:** November 2025
 
 ---
 
@@ -487,7 +487,7 @@ This formula always holds true thanks to:
 
 ---
 
-## Output Columns (v12051348)
+## Output Columns (v12121619)
 
 VRS Manager outputs several columns to help you understand and track changes:
 
@@ -538,10 +538,10 @@ Shows the **previous Text/Translation** for all matched rows.
 
 ## Version Information
 
-**Current Version**: 12051348 (Production Ready - Smart Change Classification)
+**Current Version**: 12121619 (Production Ready - Smart Change Classification)
 
 **Key Features**:
-- ✅ **Smart Change Classification** (v12051348) - Priority-based CHANGES column
+- ✅ **Smart Change Classification** (v12121619) - Priority-based CHANGES column
   - Shows most important change when multiple fields differ
   - New DETAILED_CHANGES column for complete composite labels
   - New PreviousEventName column for tracking event renames
@@ -590,4 +590,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: December 5, 2025 | Version 12051348*
+*Last Updated: December 5, 2025 | Version 12121619*

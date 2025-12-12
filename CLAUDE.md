@@ -1,6 +1,6 @@
 # Claude Code Reference - VRS Manager
 
-**Version:** v12051348
+**Version:** v12121619
 
 ---
 

@@ -11,7 +11,7 @@
 ; Output: Shows "Content Change" instead of similarity %
 
 #define MyAppName "VRS Manager"
-#define MyAppVersion "12051348"
+#define MyAppVersion "12121619"
 #define MyAppPublisher "Neil Schmitt"
 #define MyAppURL "https://github.com/NeilVibe/VRS-Manager"
 #define MyAppExeName "VRSManager.exe"

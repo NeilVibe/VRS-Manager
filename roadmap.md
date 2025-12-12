@@ -1,6 +1,6 @@
 # VRS Manager - Roadmap
 
-**Current:** v12051348 | **Status:** Production
+**Current:** v12121619 | **Status:** Production
 
 ---
 
@@ -36,4 +36,4 @@ python3 scripts/check_version_unified.py        # Version check
 
 - **Releases:** https://github.com/NeilVibe/VRS-Manager/releases
 - **Build Status:** https://github.com/NeilVibe/VRS-Manager/actions
-- **History:** `history/roadmap_archive_v12051348.md`
+- **History:** `history/roadmap_archive_v12121619.md`
