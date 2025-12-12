@@ -26,6 +26,8 @@ except ImportError:
 
 try:
     import openpyxl
+    from openpyxl.styles import PatternFill, Font
+    from openpyxl.utils import get_column_letter
 except ImportError:
     print("ERROR: openpyxl not installed. Run: pip install openpyxl")
     sys.exit(1)
@@ -156,6 +158,70 @@ def validate_columns(df: pd.DataFrame, file_name: str) -> bool:
     return True
 
 
+def reorder_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Reorder columns: StrOrigin, Text, Text_Change, Previous_Text, Text_Diff, then rest.
+    """
+    priority_cols = ["StrOrigin", "Text", "Text_Change", "Previous_Text", "Text_Diff"]
+
+    # Get columns that exist in priority order
+    ordered = [col for col in priority_cols if col in df.columns]
+
+    # Add remaining columns
+    remaining = [col for col in df.columns if col not in priority_cols]
+
+    return df[ordered + remaining]
+
+
+def apply_styling(ws):
+    """
+    Apply Excel styling: light blue header, orange for Text_Change cells, filter.
+    """
+    # Style definitions
+    header_fill = PatternFill(start_color="ADD8E6", fill_type="solid")  # Light blue
+    header_font = Font(bold=True)
+    change_fill = PatternFill(start_color="FFD580", fill_type="solid")  # Orange
+
+    # Find Text_Change column index
+    text_change_col_idx = None
+    for idx, cell in enumerate(ws[1], start=1):
+        # Apply header styling
+        cell.fill = header_fill
+        cell.font = header_font
+
+        if cell.value == "Text_Change":
+            text_change_col_idx = idx
+
+    # Apply orange fill to Text_Change cells with "Text Change" value
+    if text_change_col_idx:
+        for row in ws.iter_rows(min_row=2, max_row=ws.max_row,
+                                min_col=text_change_col_idx, max_col=text_change_col_idx):
+            cell = row[0]
+            if cell.value == "Text Change":
+                cell.fill = change_fill
+
+    # Set column widths
+    col_widths = {
+        "StrOrigin": 25,
+        "Text": 50,
+        "Text_Change": 15,
+        "Previous_Text": 50,
+        "Text_Diff": 60,
+        "EventName": 25,
+        "Group": 20,
+    }
+
+    for idx, cell in enumerate(ws[1], start=1):
+        col_name = cell.value
+        if col_name in col_widths:
+            ws.column_dimensions[get_column_letter(idx)].width = col_widths[col_name]
+        else:
+            ws.column_dimensions[get_column_letter(idx)].width = 15
+
+    # Add filter to header row
+    ws.auto_filter.ref = ws.dimensions
+
+
 def analyze_text_changes(prev_df: pd.DataFrame, curr_df: pd.DataFrame) -> pd.DataFrame:
     """
     Compare PREVIOUS and CURRENT DataFrames, detect text changes.
@@ -270,14 +336,26 @@ def main():
     change_count = (result_df["Text_Change"] == "Text Change").sum()
     print(f"  Found {change_count} text changes")
 
+    # Reorder columns
+    print("\nStep 6: Reordering columns...")
+    result_df = reorder_columns(result_df)
+    print("  StrOrigin -> Text -> Text_Change -> Previous_Text -> Text_Diff -> [rest]")
+
     # Save output
-    print("\nStep 6: Saving output...")
+    print("\nStep 7: Saving output with styling...")
     curr_dir = os.path.dirname(curr_path)
     curr_name = os.path.splitext(os.path.basename(curr_path))[0]
     output_path = os.path.join(curr_dir, f"{curr_name}_TextChanges.xlsx")
 
     try:
         result_df.to_excel(output_path, index=False)
+
+        # Apply styling
+        wb = openpyxl.load_workbook(output_path)
+        ws = wb.active
+        apply_styling(ws)
+        wb.save(output_path)
+
         print(f"  -> {output_path}")
     except Exception as e:
         show_error("Error", f"Failed to save output:\n{e}")
