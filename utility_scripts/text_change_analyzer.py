@@ -42,7 +42,7 @@ def extract_text_differences(text1: str, text2: str, max_length: int = 150) -> s
     Extract WORD-LEVEL differences between two texts using difflib.
 
     Shows exactly what changed in WinMerge style:
-    - [old words->new words] for replacements
+    - [old words ➜ new words] for replacements
     - [-deleted words] for deletions
     - [+added words] for additions
 
@@ -76,7 +76,7 @@ def extract_text_differences(text1: str, text2: str, max_length: int = 150) -> s
         if tag == 'replace':
             old_words = ' '.join(words1[i1:i2])
             new_words = ' '.join(words2[j1:j2])
-            changes.append(f"[{old_words}->{new_words}]")
+            changes.append(f"[{old_words} ➜ {new_words}]")
         elif tag == 'delete':
             deleted_words = ' '.join(words1[i1:i2])
             changes.append(f"[-{deleted_words}]")
