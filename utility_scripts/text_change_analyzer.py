@@ -175,15 +175,16 @@ def reorder_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 def apply_styling(ws):
     """
-    Apply Excel styling: light blue header, orange for Text_Change cells, filter.
+    Apply Excel styling: light blue header, orange for Text_Change and Text cells, filter.
     """
     # Style definitions
     header_fill = PatternFill(start_color="ADD8E6", fill_type="solid")  # Light blue
     header_font = Font(bold=True)
     change_fill = PatternFill(start_color="FFD580", fill_type="solid")  # Orange
 
-    # Find Text_Change column index
+    # Find column indices
     text_change_col_idx = None
+    text_col_idx = None
     for idx, cell in enumerate(ws[1], start=1):
         # Apply header styling
         cell.fill = header_fill
@@ -191,14 +192,18 @@ def apply_styling(ws):
 
         if cell.value == "Text_Change":
             text_change_col_idx = idx
+        elif cell.value == "Text":
+            text_col_idx = idx
 
-    # Apply orange fill to Text_Change cells with "Text Change" value
+    # Apply orange fill to Text_Change and Text cells when there's a change
     if text_change_col_idx:
-        for row in ws.iter_rows(min_row=2, max_row=ws.max_row,
-                                min_col=text_change_col_idx, max_col=text_change_col_idx):
-            cell = row[0]
-            if cell.value == "Text Change":
-                cell.fill = change_fill
+        for row_idx in range(2, ws.max_row + 1):
+            change_cell = ws.cell(row=row_idx, column=text_change_col_idx)
+            if change_cell.value == "Text Change":
+                change_cell.fill = change_fill
+                # Also highlight Text column
+                if text_col_idx:
+                    ws.cell(row=row_idx, column=text_col_idx).fill = change_fill
 
     # Set column widths
     col_widths = {
