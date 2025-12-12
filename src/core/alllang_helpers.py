@@ -18,7 +18,6 @@ from src.utils.progress import print_progress, finalize_progress
 from src.io.excel_reader import safe_read_excel
 from src.utils.data_processing import normalize_dataframe_status, remove_full_duplicates
 from src.core.casting import generate_casting_key
-from src.core.import_logic import is_after_recording_status
 from src.core.change_detection import detect_all_field_changes, get_priority_change
 from src.settings import get_use_priority_change
 
@@ -219,16 +218,17 @@ def apply_import_logic_alllang_lang(curr_row, prev_row, change_type, lang_suffix
     if change_type == "New Row":
         return result
 
-    prev_status = prev_row.get(COL_STATUS, "") if prev_row else ""
-    is_after_recording = is_after_recording_status(prev_status)
+    prev_status = safe_str(prev_row.get(COL_STATUS, "")) if prev_row else ""
 
     if "StrOrigin" in change_type:
-        if is_after_recording:
+        if prev_status:
+            # ANY status exists: preserve previous translation + StrOrigin
             result[text_col] = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
             result[status_col] = prev_status
+            result[COL_STRORIGIN] = safe_str(prev_row.get(COL_STRORIGIN, "")) if prev_row else ""
         else:
+            # No status: use current/mainline translation
             result[text_col] = safe_str(curr_row.get(text_col, ""))
-            result[status_col] = "NEED CHECK"
 
     elif "TimeFrame" in change_type:
         result[text_col] = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""

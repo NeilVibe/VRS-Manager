@@ -170,7 +170,6 @@ def apply_direct_coloring(ws, is_master=False, changed_columns_map=None):
         "SHIPPED": PatternFill(start_color="87CEEB", fill_type="solid"),
         "SPEC-OUT": PatternFill(start_color="FFC0CB", fill_type="solid"),
         "CHECK": PatternFill(start_color="FFE4B5", fill_type="solid"),
-        "NEED CHECK": PatternFill(start_color="FFB3B3", fill_type="solid"),
         "전달 완료": PatternFill(start_color="FFFFE0", fill_type="solid"),
         "녹음 완료": PatternFill(start_color="90EE90", fill_type="solid"),
         "재녹음 필요": PatternFill(start_color="FFB3B3", fill_type="solid"),

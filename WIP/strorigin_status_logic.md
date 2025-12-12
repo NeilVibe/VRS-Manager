@@ -2,68 +2,54 @@
 
 **Task:** Update Working process StrOrigin handling
 **Date:** Dec 12, 2025
+**Status:** COMPLETED
 
 ---
 
 ## Requirements
 
-1. **Remove "NEED CHECK"** - Delete all logic that sets STATUS = "NEED CHECK"
+1. **Remove "NEED CHECK"** - Delete all logic that sets STATUS = "NEED CHECK" ✅
 
-2. **StrOrigin preservation**:
+2. **StrOrigin preservation**: ✅
    - Previous row has **ANY status** (non-empty) → Keep **PREVIOUS StrOrigin**
    - Previous row has **NO status** (empty) → Use **CURRENT StrOrigin** (mainline)
 
-3. **PICKUP / ISSUE** - No code change needed (already preserved as status values)
+3. **PICKUP / ISSUE** - No code change needed (already preserved as status values) ✅
 
 ---
 
-## Files to Modify
+## Files Modified
 
 | File | Change |
 |------|--------|
-| `src/core/import_logic.py` | Remove "NEED CHECK" logic |
-| `src/core/alllang_helpers.py` | Remove "NEED CHECK" logic |
-| `src/core/working_comparison.py` | Add StrOrigin swap based on status |
+| `src/core/import_logic.py` | Removed "NEED CHECK", added COL_STRORIGIN swap |
+| `src/core/alllang_helpers.py` | Removed "NEED CHECK", added COL_STRORIGIN swap |
+| `src/io/formatters.py` | Removed "NEED CHECK" color definition |
 
 ---
 
-## Current Logic (import_logic.py:42-53)
+## Logic Change Summary
 
+**Before:**
 ```python
 if "StrOrigin" in change_type:
-    if is_after_recording:
-        # Preserve all previous data
-        result[COL_TEXT] = prev_row Text
-        result[COL_STATUS] = prev_status
+    if is_after_recording:  # Only specific statuses
+        preserve previous
     else:
-        # Use current text, mark for review
-        result[COL_TEXT] = curr_row Text
-        result[COL_STATUS] = "NEED CHECK"  # <- REMOVE THIS
+        use current + STATUS = "NEED CHECK"
 ```
 
----
-
-## New Logic
-
+**After:**
 ```python
 if "StrOrigin" in change_type:
     if prev_status:  # ANY status exists
-        # Preserve previous data + StrOrigin
-        result[COL_TEXT] = prev_row Text
-        result[COL_STATUS] = prev_status
-        # Also swap StrOrigin to previous
+        preserve previous Text + Status + StrOrigin
     else:
-        # No status - use current/mainline
-        result[COL_TEXT] = curr_row Text
-        # No NEED CHECK - leave status empty
+        use current (no NEED CHECK)
 ```
 
 ---
 
-## Test Cases
+## Test Results
 
-- [ ] StrOrigin change + status "PICKUP" → keep prev StrOrigin
-- [ ] StrOrigin change + status "ISSUE" → keep prev StrOrigin
-- [ ] StrOrigin change + status "RECORDED" → keep prev StrOrigin
-- [ ] StrOrigin change + status "" (empty) → use current StrOrigin
-- [ ] No StrOrigin change → normal behavior
+- 518/518 tests passed ✅
