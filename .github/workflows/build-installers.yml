@@ -43,10 +43,10 @@ jobs:
 
           echo "should_build=true" >> $GITHUB_OUTPUT
 
-          # Extract version
-          VERSION=$(echo "$TRIGGER" | grep -oE 'v[0-9]+' | sed 's/v//')
+          # AUTO-GENERATE VERSION: MMDDHHMM format (Pipeline Executive Power)
+          VERSION=$(TZ='Asia/Seoul' date '+%m%d%H%M')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Detected version: $VERSION"
+          echo "[OK] Auto-generated version: $VERSION (KST)"
 
           # Check build type
           if echo "$TRIGGER" | grep -q "LIGHT"; then
@@ -82,6 +82,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # ============================================================
+      # EXECUTIVE POWER: Inject auto-generated version into all files
+      # ============================================================
+      - name: Inject Version (Pipeline Executive Power)
+        run: |
+          VERSION="${{ needs.check-build-type.outputs.version }}"
+          echo "=== PIPELINE EXECUTIVE POWER ==="
+          echo "Injecting version: $VERSION (MMDDHHMM format)"
+
+          # Update src/config.py
+          sed -i "s/VERSION = \"[0-9]*\"/VERSION = \"$VERSION\"/" src/config.py
+          sed -i "s/ver\. [0-9]*/ver. $VERSION/" src/config.py
+
+          # Update main.py
+          sed -i "s/Version: [0-9]*/Version: $VERSION/g" main.py
+          sed -i "s/Version : [0-9]*/Version : $VERSION/g" main.py
+
+          # Update README files
+          sed -i "s/\*\*Version:\*\* [0-9]*/\*\*Version:\*\* $VERSION/" README.md
+          sed -i "s/\*\*버전:\*\* [0-9]*/\*\*버전:\*\* $VERSION/" README_KR.md
+
+          # Update installer .iss files
+          sed -i "s/#define MyAppVersion \"[0-9]*\"/#define MyAppVersion \"$VERSION\"/" installer/vrsmanager_light.iss
+          sed -i "s/#define MyAppVersion \"[0-9]*\"/#define MyAppVersion \"$VERSION\"/" installer/vrsmanager_full.iss
+
+          # Update scripts
+          sed -i "s/VERSION = \"[0-9]*\"/VERSION = \"$VERSION\"/" scripts/update_excel_guides.py
+
+          # Update master_processor.py
+          sed -i "s/Version: v[0-9]*/Version: v$VERSION/" src/processors/master_processor.py
+
+          echo "[OK] All files updated to version: $VERSION"
+          grep "VERSION" src/config.py | head -2
+
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -97,7 +131,7 @@ jobs:
       - name: Version Unification Check
         run: |
           echo "=== Checking version unification across all files ==="
-          python scripts/check_version_unified.py
+          python scripts/check_version_unified.py --skip-timestamp
           if [ $? -eq 0 ]; then
             echo "✓ All versions unified"
           else

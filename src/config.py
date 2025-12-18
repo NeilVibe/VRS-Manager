@@ -101,5 +101,5 @@ ALLLANG_HISTORY_FILE = "alllang_update_history.json"
 # ===========================================================================
 # VERSION INFORMATION
 # ===========================================================================
-VERSION = "12121619"
-VERSION_FOOTER = "ver. 12121619 | StrOrigin preservation based on status"
+VERSION = "12181615"
+VERSION_FOOTER = "ver. 12181615 | StrOrigin uses NEW value, Mainline only for NO TRANSLATION"

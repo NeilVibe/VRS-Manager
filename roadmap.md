@@ -1,16 +1,34 @@
 # VRS Manager - Roadmap
 
-**Current:** v12121619 | **Status:** Production
+**Version:** v12181615 | **Status:** Production | **Tasks:** 1 active
 
 ---
 
 ## Active Work
 
-No active WIP. See `history/` for completed tasks.
+| ID | Task | Status | File |
+|----|------|--------|------|
+| TASK-001 | StringOrigin & Mainline Logic | IN PROGRESS | [docs/wip/TASK-001_STRORIGIN_MAINLINE.md](docs/wip/TASK-001_STRORIGIN_MAINLINE.md) |
+
+**Session context:** [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md)
 
 ---
 
-## v12121619 Changes
+## TASK-001 Summary
+
+**Requester:** 닐 Neil (2025-12-18)
+
+### Change 1: StringOrigin Change
+- **Current:** strorigin change → text = mainline translation
+- **Requested:** strorigin change → text = **previous text**, strorigin = new value
+
+### Change 2: Mainline Loading Condition
+- **Current:** no status → use mainline translation
+- **Requested:** no status AND text == "NO TRANSLATION" → use mainline
+
+---
+
+## v12121619 Changes (Previous)
 
 - Removed "NEED CHECK" status logic
 - StrOrigin preserved when ANY status exists
@@ -36,8 +54,21 @@ python3 scripts/check_version_unified.py        # Version check
 
 ---
 
+## Quick Navigation
+
+| Need | Go To |
+|------|-------|
+| **Session state?** | [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md) |
+| **WIP tasks?** | [docs/wip/](docs/wip/) |
+| **History?** | [history/](history/) |
+
+---
+
 ## Links
 
 - **Releases:** https://github.com/NeilVibe/VRS-Manager/releases
 - **Build Status:** https://github.com/NeilVibe/VRS-Manager/actions
-- **History:** `history/`
+
+---
+
+*Last updated: 2025-12-18*
