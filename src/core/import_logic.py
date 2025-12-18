@@ -37,22 +37,25 @@ def apply_import_logic(curr_row, prev_row, change_type):
         return result
 
     prev_status = safe_str(prev_row.get(COL_STATUS, "")) if prev_row else ""
+    prev_text = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
+
+    # NO TRANSLATION override: always bring current text (nothing to preserve)
+    if prev_text == "NO TRANSLATION":
+        result[COL_TEXT] = safe_str(curr_row.get(COL_TEXT, ""))
+        result[COL_DESC] = safe_str(prev_row.get(COL_DESC, "")) if prev_row else ""
+        return result
 
     # StrOrigin Change logic
     if "StrOrigin" in change_type:
         if prev_status:
             # ANY status exists: preserve previous text, use NEW strorigin
-            result[COL_TEXT] = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
+            result[COL_TEXT] = prev_text
             result[COL_DESC] = safe_str(prev_row.get(COL_DESC, "")) if prev_row else ""
             result[COL_STATUS] = prev_status
             result[COL_STRORIGIN] = safe_str(curr_row.get(COL_STRORIGIN, ""))  # NEW strorigin
         else:
-            # No status: use mainline ONLY if previous text is "NO TRANSLATION"
-            prev_text = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
-            if prev_text == "NO TRANSLATION":
-                result[COL_TEXT] = safe_str(curr_row.get(COL_TEXT, ""))  # Use mainline
-            else:
-                result[COL_TEXT] = prev_text  # Keep previous text
+            # No status + has text: keep previous
+            result[COL_TEXT] = prev_text
             result[COL_DESC] = safe_str(prev_row.get(COL_DESC, "")) if prev_row else ""
 
     # Desc Change logic
@@ -112,21 +115,23 @@ def apply_import_logic_alllang_lang(curr_row, prev_row, change_type, lang_suffix
         return result
 
     prev_status = safe_str(prev_row.get(COL_STATUS, "")) if prev_row else ""
+    prev_text = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
+
+    # NO TRANSLATION override: always bring current text (nothing to preserve)
+    if prev_text == "NO TRANSLATION":
+        result[text_col] = safe_str(curr_row.get(text_col, ""))
+        return result
 
     # StrOrigin Change logic
     if "StrOrigin" in change_type:
         if prev_status:
             # ANY status exists: preserve previous translation, use NEW strorigin
-            result[text_col] = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
+            result[text_col] = prev_text
             result[status_col] = prev_status
             result[COL_STRORIGIN] = safe_str(curr_row.get(COL_STRORIGIN, ""))  # NEW strorigin
         else:
-            # No status: use mainline ONLY if previous text is "NO TRANSLATION"
-            prev_text = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
-            if prev_text == "NO TRANSLATION":
-                result[text_col] = safe_str(curr_row.get(text_col, ""))  # Use mainline
-            else:
-                result[text_col] = prev_text  # Keep previous text
+            # No status + has text: keep previous
+            result[text_col] = prev_text
 
     # TimeFrame Change logic
     elif "TimeFrame" in change_type:
