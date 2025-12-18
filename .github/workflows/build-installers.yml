@@ -109,9 +109,17 @@ jobs:
 
           # Update scripts
           sed -i "s/VERSION = \"[0-9]*\"/VERSION = \"$VERSION\"/" scripts/update_excel_guides.py
+          sed -i "s/Version [0-9]*/Version $VERSION/g" scripts/update_excel_guides.py
 
           # Update master_processor.py
           sed -i "s/Version: v[0-9]*/Version: v$VERSION/" src/processors/master_processor.py
+
+          # Update documentation
+          sed -i "s/\*\*Version:\*\* v[0-9]*/\*\*Version:\*\* v$VERSION/" CLAUDE.md
+          sed -i "s/\*\*Version:\*\* v[0-9]*/\*\*Version:\*\* v$VERSION/" roadmap.md
+          sed -i "s/\*\*Version:\*\* [0-9]*/\*\*Version:\*\* $VERSION/g" docs/WIKI_CONFLUENCE.md
+          sed -i "s/\*\*Current Version\*\*: [0-9]*/\*\*Current Version\*\*: $VERSION/g" docs/WIKI_CONFLUENCE.md
+          sed -i "s/Version [0-9]*\*$/Version $VERSION*/g" docs/WIKI_CONFLUENCE.md
 
           echo "[OK] All files updated to version: $VERSION"
           grep "VERSION" src/config.py | head -2
