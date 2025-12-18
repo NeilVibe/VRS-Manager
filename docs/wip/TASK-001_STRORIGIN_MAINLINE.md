@@ -4,84 +4,84 @@
 **Requested:** 2025-12-18
 **Requester:** 닐 Neil
 **Completed:** 2025-12-18
+**Version:** v12181815+
 
 ---
 
 ## Summary
 
-Two changes to the stringorigin and mainline translation handling logic.
+Two changes to the stringorigin and mainline translation handling logic, applied to both WORKING and ALLLANG processors.
 
 ---
 
-## Change 1: StringOrigin Change Handling
+## Change 1: StrOrigin uses NEW value
 
-### Previous Behavior
-When `stringorigin` changes for row with status:
-- Text column → Gets **previous text** (correct)
-- strorigin → Gets **previous strorigin** (CHANGED)
+**When:** StringOrigin change + row has status
 
-### New Behavior (v12181615)
-When `stringorigin` changes for row with status:
-- Text column → Keep **previous text** (unchanged)
-- strorigin → Load from **NEW/current** file
+| Field | Before | After |
+|-------|--------|-------|
+| text | previous | previous (unchanged) |
+| strorigin | **previous** | **NEW (from curr_row)** |
 
 ### Implementation
 ```python
-# src/core/import_logic.py line 48
+# src/core/import_logic.py - Line 55 (WORKING)
 result[COL_STRORIGIN] = safe_str(curr_row.get(COL_STRORIGIN, ""))  # NEW strorigin
 ```
 
 ---
 
-## Change 2: Mainline Translation Loading Condition
+## Change 2: NO TRANSLATION override (ALL change types)
 
-### Previous Behavior
-```
-IF no status:
-    text = mainline_translation (always)
-```
+**When:** Previous text = "NO TRANSLATION" (ANY change type, not just StrOrigin)
 
-### New Behavior (v12181615)
+| Condition | Before | After |
+|-----------|--------|-------|
+| prev_text = "NO TRANSLATION" | Only on StrOrigin change | **ALL change types** |
+
+### Logic
 ```
-IF no status AND text == "NO TRANSLATION":
-    text = mainline_translation
-ELSE IF no status AND text != "NO TRANSLATION":
-    text = keep previous text
+IF prev_text == "NO TRANSLATION":
+    text = CURRENT (nothing to preserve)
+    return early (skip other logic)
 ```
 
 ### Implementation
 ```python
-# src/core/import_logic.py lines 50-55
-prev_text = safe_str(prev_row.get(COL_TEXT, "")) if prev_row else ""
+# src/core/import_logic.py
+# Lines 42-46 (WORKING) and Lines 120-123 (ALLLANG)
+# NO TRANSLATION override: always bring current text (nothing to preserve)
 if prev_text == "NO TRANSLATION":
-    result[COL_TEXT] = safe_str(curr_row.get(COL_TEXT, ""))  # Use mainline
-else:
-    result[COL_TEXT] = prev_text  # Keep previous text
+    result[COL_TEXT] = safe_str(curr_row.get(COL_TEXT, ""))
+    result[COL_DESC] = safe_str(prev_row.get(COL_DESC, "")) if prev_row else ""
+    return result
 ```
 
 ---
 
 ## Files Modified
 
-| File | Changes |
-|------|---------|
-| `src/core/import_logic.py:42-56` | StrOrigin change logic (Working) |
-| `src/core/import_logic.py:116-129` | StrOrigin change logic (ALLLANG) |
-| `src/config.py:104-105` | Updated VERSION to 12181615 |
-
----
-
-## Additional Changes: CI Pipeline Executive Power
-
-Also updated CI to auto-generate version like LocalizationTools:
-- `.github/workflows/build-installers.yml` - Auto-generate VERSION (MMDDHHMM)
-- `scripts/check_version_unified.py` - Added `--skip-timestamp` flag
+| File | Lines | Changes |
+|------|-------|---------|
+| `src/core/import_logic.py` | 41-56 | WORKING processor |
+| `src/core/import_logic.py` | 116-129 | ALLLANG processor |
 
 ---
 
 ## Test Results
 
-- [ ] 518 tests to run
+- **518/518 tests passed** (100%)
+
+---
+
+## Additional: CI Pipeline Executive Power
+
+Also implemented auto-version generation (copied from LocalizationTools):
+
+| File | Change |
+|------|--------|
+| `.github/workflows/build-installers.yml` | Auto-generate version MMDDHHMM |
+| `scripts/check_version_unified.py` | Added `--skip-timestamp` flag |
 
 ---
 

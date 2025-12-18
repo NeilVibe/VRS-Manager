@@ -1,14 +1,14 @@
 # WIP - Work In Progress
 
-**Current:** 1 active task | **Version:** v12121619
+**Current:** 1 completed task | **Version:** v12181615+
 
 ---
 
-## Active Tasks
+## Tasks
 
 | ID | Task | Status | File |
 |----|------|--------|------|
-| TASK-001 | StringOrigin & Mainline Logic | IN PROGRESS | [TASK-001_STRORIGIN_MAINLINE.md](TASK-001_STRORIGIN_MAINLINE.md) |
+| TASK-001 | StringOrigin & Mainline Logic | COMPLETED | [TASK-001_STRORIGIN_MAINLINE.md](TASK-001_STRORIGIN_MAINLINE.md) |
 
 ---
 
@@ -23,15 +23,11 @@
 
 ---
 
-## Task Naming Convention
+## Recent Changes (2025-12-18)
 
-```
-TASK-XXX_SHORT_DESCRIPTION.md
-```
-
-Examples:
-- `TASK-001_STRORIGIN_MAINLINE.md`
-- `TASK-002_NEW_CHANGE_TYPE.md`
+1. **StrOrigin uses NEW value** - When status exists
+2. **Mainline only for "NO TRANSLATION"** - When no status
+3. **CI auto-version** - Pipeline Executive Power
 
 ---
 
