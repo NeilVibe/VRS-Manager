@@ -1,8 +1,8 @@
 # Session Context - Claude Handoff Document
 
-**Last Updated:** 2025-12-18
-**Version:** v12181815+
-**Status:** Build triggered, awaiting CI
+**Last Updated:** 2025-12-22
+**Version:** v12181615 (production)
+**Status:** TASK-002 ready for implementation
 
 ---
 
@@ -10,60 +10,60 @@
 
 | Item | Status |
 |------|--------|
-| Code Changes | COMPLETED |
-| Tests | 518/518 passed |
-| CI Build | Triggered (auto-version) |
-| Documentation | Updated |
+| Production | Stable (v12181615) |
+| Git | Clean, up to date with origin/main |
+| New Task | TASK-002 - Customizable Columns |
 
 ---
 
-## Changes Applied (2025-12-18)
+## Active Task: TASK-002 Customizable Output Columns
 
-### Change 1: StrOrigin uses NEW value
-- **When:** StringOrigin change + has status
-- **Before:** strorigin = previous
-- **After:** strorigin = NEW (from curr_row)
-- **Files:** `import_logic.py:55`
+**WIP File:** [TASK-002-CUSTOMIZABLE-COLUMNS.md](TASK-002-CUSTOMIZABLE-COLUMNS.md)
 
-### Change 2: NO TRANSLATION override (ALL change types)
-- **When:** Previous text = "NO TRANSLATION" (ANY change type)
-- **Before:** Only triggered on StrOrigin changes
-- **After:** Always brings current text (nothing to preserve)
-- **Files:** `import_logic.py:42-46` and `:120-123`
+### Colleague Request (Korean conversation summary)
 
-### CI Pipeline Executive Power
-- Auto-generate version: `$(TZ='Asia/Seoul' date '+%m%d%H%M')`
-- Inject into all 12 files at build time
-- No manual version needed in BUILD_TRIGGER.txt
+1. **HasAudio Column** - Add to output next to Mainline Translation
+2. **Customizable Columns** - Let users choose which columns appear in WORK output
 
----
+### Key Decisions Confirmed
 
-## Quick Reference
+- **Mandatory columns** - Core identification + VRS logic (cannot disable)
+- **Auto-generated columns** - Created by VRS logic (user can toggle)
+- **Optional columns** - From source files (user can toggle)
+- **Persistence** - Save to JSON so users don't reset each session
+- **Column source** - User can choose CURRENT or PREVIOUS for each optional column
+- **HasAudio placement** - After Mainline Translation
+- **Defaults** - All optional columns ON by default, user deactivates if wanted
 
-| Scenario | text | strorigin |
-|----------|------|-----------|
-| **prev_text = "NO TRANSLATION"** | **CURRENT (always)** | - |
-| StrOrigin change + has status | previous | **NEW** |
-| StrOrigin change + no status + has text | previous | - |
+### Status
+
+Ready for implementation - all decisions confirmed
 
 ---
 
-## Files Modified This Session
+## Column Classification Summary
 
+**MANDATORY (10):** SequenceName, EventName, StrOrigin, CharacterKey, CharacterName, CastingKey, DialogVoice, Text, STATUS, CHANGES
+
+**AUTO-GENERATED (6):** PreviousData, PreviousText, PreviousEventName, DETAILED_CHANGES, Previous StrOrigin, Mainline Translation
+
+**OPTIONAL (17+):** Desc, FREEMEMO, SubTimelineName, StartFrame, EndFrame, DialogType, Group, UpdateTime, Tribe, Age, Gender, Job, Region, HasAudio, UseSubtitle, Record, isNew
+
+---
+
+## Previous Session (2025-12-18)
+
+### Completed Changes
+- StrOrigin uses NEW value on StringOrigin changes
+- NO TRANSLATION override applies to ALL change types
+- CI auto-version pipeline
+
+### Files Modified (previous session)
 ```
 src/core/import_logic.py      # Core logic changes
 src/config.py                 # VERSION update
 .github/workflows/*.yml       # CI auto-version
-scripts/check_version_unified.py  # --skip-timestamp
-docs/wip/*                    # Documentation
-CLAUDE.md, roadmap.md         # Navigation
 ```
-
----
-
-## Build Status
-
-Check: https://github.com/NeilVibe/VRS-Manager/actions
 
 ---
 
@@ -73,11 +73,11 @@ Check: https://github.com/NeilVibe/VRS-Manager/actions
 # Run tests
 python3 tests/test_unified_change_detection.py
 
-# Check version (local)
+# Check version
 python3 scripts/check_version_unified.py
 
-# Check version (CI mode)
-python3 scripts/check_version_unified.py --skip-timestamp
+# Git status
+git status
 ```
 
 ---

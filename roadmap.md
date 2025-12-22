@@ -8,31 +8,36 @@
 
 | ID | Task | Status | File |
 |----|------|--------|------|
-| TASK-001 | StringOrigin & Mainline Logic | IN PROGRESS | [docs/wip/TASK-001_STRORIGIN_MAINLINE.md](docs/wip/TASK-001_STRORIGIN_MAINLINE.md) |
+| TASK-002 | Customizable Output Columns + HasAudio | PLANNING | [docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md](docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md) |
+| TASK-001 | StringOrigin & Mainline Logic | COMPLETED | [docs/wip/TASK-001_STRORIGIN_MAINLINE.md](docs/wip/TASK-001_STRORIGIN_MAINLINE.md) |
 
 **Session context:** [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md)
 
 ---
 
-## TASK-001 Summary
+## TASK-002 Summary (Current)
 
-**Requester:** 닐 Neil (2025-12-18)
+**Requester:** Colleague via Neil (2025-12-22)
 
-### Change 1: StringOrigin Change
-- **Current:** strorigin change → text = mainline translation
-- **Requested:** strorigin change → text = **previous text**, strorigin = new value
+### Feature 1: HasAudio Column
+- Add `HasAudio` to WORK output
+- Source: Already in CURRENT file
+- Place next to Mainline Translation
 
-### Change 2: Mainline Loading Condition
-- **Current:** no status → use mainline translation
-- **Requested:** no status AND text == "NO TRANSLATION" → use mainline
+### Feature 2: Customizable Columns
+- Mandatory columns (always shown, cannot disable)
+- Auto-generated columns (VRS creates, user can toggle)
+- Optional columns (from source files, user can toggle)
+- Persist settings to JSON
 
 ---
 
-## v12121619 Changes (Previous)
+## TASK-001 Summary (Completed)
 
-- Removed "NEED CHECK" status logic
-- StrOrigin preserved when ANY status exists
-- Mainline StrOrigin used only when no status
+**Completed:** 2025-12-18
+
+- StrOrigin change → text = previous, strorigin = NEW value
+- NO TRANSLATION → always use current text (all change types)
 
 ---
 
@@ -71,4 +76,4 @@ python3 scripts/check_version_unified.py        # Version check
 
 ---
 
-*Last updated: 2025-12-18*
+*Last updated: 2025-12-22*
