@@ -1,8 +1,8 @@
 # Session Context - Claude Handoff Document
 
 **Last Updated:** 2025-12-23
-**Version:** v12181615 (production)
-**Status:** TASK-002 implementation complete - ready for testing
+**Version:** v12231045 (production)
+**Status:** TASK-002 V2 COMPLETE + Testing Insights
 
 ---
 
@@ -10,59 +10,92 @@
 
 | Item | Status |
 |------|--------|
-| Production | Stable (v12181615) |
-| Git | Clean, up to date with origin/main |
-| New Task | TASK-002 - Customizable Columns |
+| Production | Stable (v12231045) |
+| Git | Uncommitted V2 changes ready |
+| TASK-002 | V2 COMPLETE - tested and working |
 
 ---
 
-## Active Task: TASK-002 Customizable Output Columns
+## TASK-002: V2 Implementation COMPLETE
 
-**WIP File:** [TASK-002-CUSTOMIZABLE-COLUMNS.md](TASK-002-CUSTOMIZABLE-COLUMNS.md)
+### What V2 Does
+1. **Nested Settings UI**: Settings button → submenu (Priority Mode / Column Settings)
+2. **File Analysis**: Upload Excel file → extract column list
+3. **Dynamic Column Selection**: Only show columns from analyzed file
+4. **Graceful Fallback**: Skip missing columns without crashing
 
-### Colleague Request (Korean conversation summary)
-
-1. **HasAudio Column** - Add to output next to Mainline Translation
-2. **Customizable Columns** - Let users choose which columns appear in WORK output
-
-**Scope:** MAIN TAB only (within WORKING processor). Other tabs not affected.
-
-### Key Decisions Confirmed
-
-- **Mandatory columns** - Core identification + VRS logic (cannot disable)
-- **Auto-generated columns** - Created by VRS logic (user can toggle)
-- **Optional columns** - From source files (user can toggle)
-- **Persistence** - Save to JSON so users don't reset each session
-- **Column source** - User can choose CURRENT or PREVIOUS for each optional column
-- **HasAudio placement** - After Mainline Translation
-- **Defaults** - All optional columns ON by default, user deactivates if wanted
-
-### Status
-
-**IMPLEMENTED** (2025-12-23)
-
-### Files Modified
+### Files Modified (uncommitted)
 ```
-src/config.py           # Added HasAudio, column classifications
-src/settings.py         # Column settings schema + functions
-src/utils/data_processing.py  # Dynamic column filtering
-src/ui/main_window.py   # Column Settings dialog + button
+src/settings.py              # V2 functions + bug fix
+src/ui/main_window.py        # V2 nested dialogs (700x750)
+src/utils/data_processing.py # V2 filter_output_columns()
 ```
 
-### What Was Built
-1. HasAudio + UseSubtitle + Record + isNew added to OUTPUT_COLUMNS
-2. Column classifications: MANDATORY, AUTO_GENERATED, OPTIONAL
-3. Settings persist to JSON (~/.vrsmanager_settings.json)
-4. New "📋 Column Settings" button in main GUI
-5. Column Settings dialog with:
-   - Mandatory columns (locked, displayed)
-   - Auto-generated columns (toggle on/off + help text)
-   - Optional columns (toggle on/off + CURRENT/PREVIOUS source)
-   - Reset to Defaults button
-   - Apply & Save button
+### Bug Fixed (This Session)
+**Issue:** V1 `OPTIONAL_COLUMNS` were being merged into V2 settings via `load_settings()`, polluting the column list with hardcoded defaults.
+
+**Fix:** Added check in `load_settings()` to only merge V1 defaults when `analyzed_columns` is empty:
+```python
+# Only merge V1 defaults if V2 not active
+if not settings.get("analyzed_columns"):
+    for col in OPTIONAL_COLUMNS:
+        ...
+```
 
 ### Tests
-All 518 tests pass
+- All 518 tests pass
+- V2 logic tested: file analysis, column selection, filtering all work correctly
+
+---
+
+## Testing Insights (from LocalizationTools)
+
+Explored `/home/neil1988/LocalizationTools` for testing patterns. Key findings:
+
+### Patterns to Adopt
+
+| Pattern | Description | Priority |
+|---------|-------------|----------|
+| **conftest.py fixtures** | Self-healing, reusable test setup (637 lines of value) | HIGH |
+| **Test markers** | `@pytest.mark.unit/e2e/gui/slow` for selective running | HIGH |
+| **pytest.ini** | Proper config with coverage thresholds | MEDIUM |
+| **E2E tests** | Full workflow: load → process → verify | MEDIUM |
+| **CI/CD validation** | Tests + security audit + coverage in pipeline | MEDIUM |
+
+### Recommended Test Structure
+```
+tests/
+├── conftest.py          # Shared fixtures (CRITICAL)
+├── unit/                # Fast isolated tests
+├── integration/         # Component interaction
+├── e2e/                 # Full workflow tests
+└── pytest.ini           # Test configuration
+```
+
+### Key Fixture Ideas
+```python
+@pytest.fixture
+def temp_processing_dir():
+    """Temp directory with cleanup"""
+
+@pytest.fixture
+def sample_vrs_file():
+    """Generate test Excel file"""
+
+@pytest.fixture
+def mock_settings():
+    """Isolated settings (no ~/.vrsmanager_settings.json)"""
+```
+
+### CI/CD Improvements
+```yaml
+# Add to .github/workflows
+- name: Run Tests with Coverage
+  run: pytest --cov=src --cov-fail-under=80
+
+- name: Security Audit
+  run: pip-audit
+```
 
 ---
 
@@ -72,23 +105,7 @@ All 518 tests pass
 
 **AUTO-GENERATED (6):** PreviousData, PreviousText, PreviousEventName, DETAILED_CHANGES, Previous StrOrigin, Mainline Translation
 
-**OPTIONAL (17+):** Desc, FREEMEMO, SubTimelineName, StartFrame, EndFrame, DialogType, Group, UpdateTime, Tribe, Age, Gender, Job, Region, HasAudio, UseSubtitle, Record, isNew
-
----
-
-## Previous Session (2025-12-18)
-
-### Completed Changes
-- StrOrigin uses NEW value on StringOrigin changes
-- NO TRANSLATION override applies to ALL change types
-- CI auto-version pipeline
-
-### Files Modified (previous session)
-```
-src/core/import_logic.py      # Core logic changes
-src/config.py                 # VERSION update
-.github/workflows/*.yml       # CI auto-version
-```
+**OPTIONAL (V2):** Dynamic - from analyzed file columns
 
 ---
 
@@ -103,7 +120,18 @@ python3 scripts/check_version_unified.py
 
 # Git status
 git status
+
+# Test V2 settings (without GUI)
+python3 -c "from src.settings import *; print(get_analyzed_columns())"
 ```
+
+---
+
+## Next Steps
+
+1. **Commit V2 changes** - Ready for commit
+2. **Testing improvements** - Adopt patterns from LocalizationTools
+3. **CI/CD enhancement** - Add coverage + security checks
 
 ---
 

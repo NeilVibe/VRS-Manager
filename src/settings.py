@@ -8,7 +8,7 @@ including the Priority Change display toggle and column customization.
 import json
 import os
 
-from src.config import AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS
+from src.config import AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS, MANDATORY_COLUMNS
 
 # Settings file path (in user's home directory for persistence)
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".vrsmanager_settings.json")
@@ -52,12 +52,14 @@ def load_settings():
                                 settings["output_columns"]["auto_generated"] = {}
                             settings["output_columns"]["auto_generated"][col] = {"enabled": True}
 
-                    # Merge optional columns
-                    for col in OPTIONAL_COLUMNS:
-                        if col not in settings["output_columns"].get("optional", {}):
-                            if "optional" not in settings["output_columns"]:
-                                settings["output_columns"]["optional"] = {}
-                            settings["output_columns"]["optional"][col] = {"enabled": True, "source": "CURRENT"}
+                    # Merge optional columns - only if V2 analyzed_columns not set
+                    # V2 uses analyzed_columns from file, V1 uses hardcoded OPTIONAL_COLUMNS
+                    if not settings.get("analyzed_columns"):
+                        for col in OPTIONAL_COLUMNS:
+                            if col not in settings["output_columns"].get("optional", {}):
+                                if "optional" not in settings["output_columns"]:
+                                    settings["output_columns"]["optional"] = {}
+                                settings["output_columns"]["optional"][col] = {"enabled": True, "source": "CURRENT"}
 
                 return settings
     except (json.JSONDecodeError, IOError):
@@ -159,10 +161,73 @@ def get_enabled_columns():
 
 
 def reset_column_settings():
-    """Reset column settings to defaults (all ON, source=CURRENT)."""
+    """Reset column settings to defaults (all ON)."""
     settings = load_settings()
     settings["output_columns"] = {
         "auto_generated": {col: {"enabled": True} for col in AUTO_GENERATED_COLUMNS},
-        "optional": {col: {"enabled": True, "source": "CURRENT"} for col in OPTIONAL_COLUMNS}
+        "optional": {}  # V2: Will be populated from file analysis
+    }
+    settings["analyzed_columns"] = []  # V2: Clear analyzed columns
+    save_settings(settings)
+
+
+# ===========================================================================
+# V2: ANALYZED COLUMNS (from file upload)
+# ===========================================================================
+
+def get_analyzed_columns():
+    """
+    Get the list of columns analyzed from uploaded file.
+
+    Returns:
+        list: List of column names from analyzed file
+    """
+    settings = load_settings()
+    return settings.get("analyzed_columns", [])
+
+
+def set_analyzed_columns(columns):
+    """
+    Set the list of columns analyzed from uploaded file.
+
+    Args:
+        columns: List of column names
+    """
+    settings = load_settings()
+    settings["analyzed_columns"] = columns
+    save_settings(settings)
+
+
+def get_selected_optional_columns():
+    """
+    Get the list of selected optional columns.
+
+    Returns:
+        list: List of enabled optional column names
+    """
+    col_settings = get_column_settings()
+    return [
+        col for col, cfg in col_settings.get("optional", {}).items()
+        if cfg.get("enabled", True)
+    ]
+
+
+def set_selected_optional_columns(columns):
+    """
+    Set which optional columns are selected.
+
+    Args:
+        columns: List of column names to enable
+    """
+    settings = load_settings()
+    if "output_columns" not in settings:
+        settings["output_columns"] = {"auto_generated": {}, "optional": {}}
+
+    # Set all analyzed columns, enabled if in columns list
+    analyzed = settings.get("analyzed_columns", [])
+    settings["output_columns"]["optional"] = {
+        col: {"enabled": col in columns}
+        for col in analyzed
+        if col not in MANDATORY_COLUMNS and col not in AUTO_GENERATED_COLUMNS
     }
     save_settings(settings)

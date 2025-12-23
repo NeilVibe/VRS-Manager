@@ -8,7 +8,7 @@ including status normalization, column filtering, and dataframe cleaning.
 import pandas as pd
 from src.config import OUTPUT_COLUMNS, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS
 from src.utils.helpers import safe_str
-from src.settings import get_enabled_columns
+from src.settings import get_enabled_columns, get_selected_optional_columns, get_analyzed_columns
 
 
 def find_status_column(columns):
@@ -65,6 +65,9 @@ def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
     """
     Filter DataFrame to only include columns based on settings and column list.
 
+    V2: Now supports dynamic column selection from file analysis.
+    Gracefully skips columns that don't exist in the DataFrame.
+
     Args:
         df: DataFrame to filter
         column_list: List of desired output columns (defines order)
@@ -84,11 +87,23 @@ def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
     # Build list of columns to include
     enabled_columns = set(MANDATORY_COLUMNS)  # Always include mandatory
     enabled_columns.update(enabled_auto)  # Add enabled auto-generated
-    enabled_columns.update(enabled_optional.keys())  # Add enabled optional
+    enabled_columns.update(enabled_optional.keys())  # Add enabled optional (from old V1 settings)
+
+    # V2: Also include selected optional columns from file analysis
+    selected_optional = get_selected_optional_columns()
+    enabled_columns.update(selected_optional)
+
+    # V2: Build extended column list including analyzed columns
+    analyzed_cols = get_analyzed_columns()
+    extended_column_list = list(column_list)
+    for col in analyzed_cols:
+        if col not in extended_column_list:
+            extended_column_list.append(col)
 
     # Filter by both column_list (for order) and enabled_columns (for visibility)
+    # Graceful fallback: only include columns that exist in DataFrame
     available_cols = [
-        col for col in column_list
+        col for col in extended_column_list
         if col in df.columns and col in enabled_columns
     ]
 
