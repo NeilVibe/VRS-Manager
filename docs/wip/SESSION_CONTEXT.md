@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-23
 **Version:** v12231045 (production)
-**Status:** TASK-002 V2.1 COMPLETE - Code verified
+**Status:** TASK-002 V3 COMPLETE - Dual-file + Mandatory columns info
 
 ---
 
@@ -11,23 +11,33 @@
 | Item | Status |
 |------|--------|
 | Production | Stable (v12231045) |
-| Git | V2.1 UI fixes ready to commit |
-| TASK-002 | V2.1 COMPLETE - code verified, main window tested |
+| Git | V3 commits pushed, build pending |
+| TASK-002 | V3 COMPLETE - dual-file upload, mandatory columns info section |
 
 ---
 
-## TASK-002: V2 Implementation COMPLETE
+## TASK-002: V3 Implementation COMPLETE
 
-### What V2 Does
+### What V3 Does
 1. **Nested Settings UI**: Settings button → submenu (Priority Mode / Column Settings)
-2. **File Analysis**: Upload Excel file → extract column list
-3. **Dynamic Column Selection**: Only show columns from analyzed file
-4. **Graceful Fallback**: Skip missing columns without crashing
+2. **Dual-File Upload**: Upload BOTH PREVIOUS and CURRENT files separately
+3. **Auto Prefixing**: Duplicate column names get "Previous_" or "Current_" prefix
+4. **Mandatory Columns Info**: Shows mandatory columns (always included, cannot disable)
+5. **Graceful Fallback**: Skip missing columns without crashing
 
-### Files Modified (uncommitted)
+### Column Hierarchy (Clarified)
+| Type | Behavior | UI |
+|------|----------|-----|
+| **MANDATORY** | Always included, no toggle | Info section with green ✓ |
+| **AUTO-GENERATED** | Toggleable ON/OFF | Checkboxes |
+| **OPTIONAL** | From analyzed files, toggleable | Checkboxes per file |
+
+**Note:** Mandatory columns are ALWAYS applied regardless of UI settings. The processing logic in `data_processing.py` always includes them.
+
+### Files Modified (All Committed)
 ```
-src/settings.py              # V2 functions + bug fix
-src/ui/main_window.py        # V2.1 nested dialogs (880x800, resizable)
+src/settings.py              # V3 dual-file functions + combined columns
+src/ui/main_window.py        # V3 dual-file dialog (950x800) + mandatory info
 src/utils/data_processing.py # V2 filter_output_columns()
 ```
 
@@ -192,9 +202,12 @@ C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
 
 ## Next Steps
 
-1. **Commit V2.1 changes** - UI fixes ready
-2. **Build new installer** - Test on Windows
-3. **Manual verification** - Click Settings → Column Settings on Windows
+1. ✅ **Commits done** - V3 dual-file + mandatory columns info
+2. **Trigger build** - Push and build new installer
+3. **Manual Windows test** - Verify Column Settings dialog shows:
+   - Mandatory columns info section (green checkmarks)
+   - Dual-file upload (PREVIOUS / CURRENT cards)
+   - Auto prefixing for duplicate columns
 
 ---
 
