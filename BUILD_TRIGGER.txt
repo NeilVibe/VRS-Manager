@@ -154,3 +154,4 @@ Build LIGHT (CI fix)
 Build LIGHT (NO TRANSLATION fix)
 Build LIGHT v12231045
 Build LIGHT (TASK-002 V2 Column Settings)
+Build LIGHT (TASK-002 V2.1 UI Fixes)
