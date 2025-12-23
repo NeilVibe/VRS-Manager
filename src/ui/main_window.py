@@ -381,14 +381,14 @@ def show_priority_mode_dialog(parent):
     ).pack(side=tk.LEFT, padx=5)
 
 
-# Auto-generated column help texts
+# Auto-generated column help texts (shortened for UI fit)
 AUTO_GENERATED_HELP = {
-    "PreviousData": "Combined previous Text|STATUS|Freememo",
-    "PreviousText": "Text from matched previous row",
-    "PreviousEventName": "Previous EventName when changed",
-    "DETAILED_CHANGES": "Full composite change type",
-    "Previous StrOrigin": "StrOrigin from previous row",
-    "Mainline Translation": "Original Text before import"
+    "PreviousData": "Prev Text|STATUS|Memo",
+    "PreviousText": "Prev row Text",
+    "PreviousEventName": "Prev EventName",
+    "DETAILED_CHANGES": "Full change type",
+    "Previous StrOrigin": "Prev StrOrigin",
+    "Mainline Translation": "Original Text"
 }
 
 
@@ -399,10 +399,13 @@ def show_column_settings_dialog_v2(parent):
     Args:
         parent: Parent window for the dialog
     """
+    from src.utils.helpers import log
+
     dialog = tk.Toplevel(parent)
     dialog.title("Column Settings")
-    dialog.geometry("700x750")
-    dialog.resizable(False, True)
+    dialog.geometry("880x800")  # Wider and taller
+    dialog.minsize(800, 600)    # Minimum size
+    dialog.resizable(True, True)  # Fully resizable
     dialog.transient(parent)
     dialog.grab_set()
 
@@ -432,9 +435,12 @@ def show_column_settings_dialog_v2(parent):
         fg="#666666"
     ).pack(pady=(0, 10))
 
-    # Create scrollable frame
-    canvas = tk.Canvas(dialog, bg=bg_color, highlightthickness=0)
-    scrollbar = tk.Scrollbar(dialog, orient="vertical", command=canvas.yview)
+    # Create scrollable frame with proper expansion
+    canvas_frame = tk.Frame(dialog, bg=bg_color)
+    canvas_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=5)
+
+    canvas = tk.Canvas(canvas_frame, bg=bg_color, highlightthickness=0)
+    scrollbar = tk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
     scrollable_frame = tk.Frame(canvas, bg=bg_color)
 
     scrollable_frame.bind(
@@ -442,8 +448,13 @@ def show_column_settings_dialog_v2(parent):
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
 
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=660)
+    # Dynamic width based on dialog
+    def update_canvas_width(event=None):
+        canvas.itemconfig(canvas_window, width=canvas.winfo_width() - 20)
+
+    canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind("<Configure>", update_canvas_width)
 
     # ===== STEP 1: FILE ANALYSIS =====
     file_frame = tk.LabelFrame(
@@ -582,7 +593,7 @@ def show_column_settings_dialog_v2(parent):
         ).pack(anchor=tk.W, pady=(10, 0))
 
     def upload_and_analyze():
-        """Upload Excel file and analyze columns."""
+        """Upload Excel file and analyze columns with threading."""
         file_path = filedialog.askopenfilename(
             title="Select PREVIOUS or CURRENT Excel File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
@@ -590,24 +601,69 @@ def show_column_settings_dialog_v2(parent):
         if not file_path:
             return
 
-        columns, filename, error = analyze_excel_columns(file_path)
-        if error:
-            messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
-            return
+        # Disable upload button and show progress
+        upload_btn.config(state=tk.DISABLED, text="Analyzing...")
+        status_var.set("Analyzing file... Please wait.")
+        status_label.config(fg="#2196F3")
+        dialog.update()
 
-        # Save analyzed columns
-        set_analyzed_columns(columns)
+        filename = os.path.basename(file_path)
+        log(f"[Column Settings] Analyzing file: {filename}")
 
-        # Update status
-        status_var.set(f"Analyzed: {filename} ({len(columns)} columns)")
-        status_label.config(fg="#2e7d32")
+        def analyze_in_thread():
+            """Run analysis in background thread."""
+            try:
+                columns, fname, error = analyze_excel_columns(file_path)
 
-        # Refresh optional columns display
-        refresh_optional_columns()
+                # Schedule UI update on main thread
+                def update_ui():
+                    if error:
+                        log(f"[Column Settings] ERROR: {error}")
+                        status_var.set(f"Error: {error}")
+                        status_label.config(fg="#d32f2f")
+                        messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                    else:
+                        # Save analyzed columns
+                        set_analyzed_columns(columns)
 
-        messagebox.showinfo("Success", f"Analyzed {len(columns)} columns from:\n{filename}")
+                        # Count optional columns
+                        optional_count = len([
+                            c for c in columns
+                            if c not in MANDATORY_COLUMNS and c not in AUTO_GENERATED_COLUMNS
+                        ])
 
-    tk.Button(
+                        log(f"[Column Settings] Found {len(columns)} total columns")
+                        log(f"[Column Settings] Optional columns: {optional_count}")
+
+                        # Update status
+                        status_var.set(f"Analyzed: {fname} ({len(columns)} columns, {optional_count} optional)")
+                        status_label.config(fg="#2e7d32")
+
+                        # Refresh optional columns display
+                        refresh_optional_columns()
+
+                        log(f"[Column Settings] Analysis complete")
+                        messagebox.showinfo("Success", f"Analyzed {len(columns)} columns from:\n{fname}\n\nOptional columns: {optional_count}")
+
+                    # Re-enable upload button
+                    upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS or CURRENT Excel File")
+
+                dialog.after(0, update_ui)
+
+            except Exception as e:
+                log(f"[Column Settings] Exception: {e}")
+                def show_error():
+                    status_var.set(f"Error: {str(e)}")
+                    status_label.config(fg="#d32f2f")
+                    upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS or CURRENT Excel File")
+                    messagebox.showerror("Error", f"Analysis failed:\n{e}")
+                dialog.after(0, show_error)
+
+        # Run in background thread
+        thread = threading.Thread(target=analyze_in_thread, daemon=True)
+        thread.start()
+
+    upload_btn = tk.Button(
         file_frame,
         text="Upload PREVIOUS or CURRENT Excel File",
         font=("Arial", 10, "bold"),
@@ -615,7 +671,8 @@ def show_column_settings_dialog_v2(parent):
         fg="white",
         cursor="hand2",
         command=upload_and_analyze
-    ).pack(anchor=tk.W)
+    )
+    upload_btn.pack(anchor=tk.W)
 
     # ===== MANDATORY COLUMNS =====
     mandatory_frame = tk.LabelFrame(
@@ -691,9 +748,9 @@ def show_column_settings_dialog_v2(parent):
     # Initialize optional columns if already analyzed
     refresh_optional_columns()
 
-    # Pack canvas and scrollbar
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(15, 0), pady=5)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 15), pady=5)
+    # Pack canvas and scrollbar inside canvas_frame
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     # Mouse wheel scrolling
     def on_mousewheel(event):

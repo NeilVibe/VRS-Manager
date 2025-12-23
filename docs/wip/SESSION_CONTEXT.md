@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-23
 **Version:** v12231045 (production)
-**Status:** TASK-002 V2 COMPLETE + Testing Insights
+**Status:** TASK-002 V2.1 COMPLETE - Code verified
 
 ---
 
@@ -11,8 +11,8 @@
 | Item | Status |
 |------|--------|
 | Production | Stable (v12231045) |
-| Git | Uncommitted V2 changes ready |
-| TASK-002 | V2 COMPLETE - tested and working |
+| Git | V2.1 UI fixes ready to commit |
+| TASK-002 | V2.1 COMPLETE - code verified, main window tested |
 
 ---
 
@@ -27,7 +27,7 @@
 ### Files Modified (uncommitted)
 ```
 src/settings.py              # V2 functions + bug fix
-src/ui/main_window.py        # V2 nested dialogs (700x750)
+src/ui/main_window.py        # V2.1 nested dialogs (880x800, resizable)
 src/utils/data_processing.py # V2 filter_output_columns()
 ```
 
@@ -127,11 +127,56 @@ python3 -c "from src.settings import *; print(get_analyzed_columns())"
 
 ---
 
+## Testing Infrastructure Created (2025-12-23)
+
+### Why Not CDP?
+VRS Manager uses **tkinter** (native Python GUI), NOT Electron.
+CDP (Chrome DevTools Protocol) does NOT work with tkinter.
+
+### Solution: pyautogui + PIL
+Created autonomous testing toolkit using Python GUI automation.
+
+### Files Created
+```
+testing_toolkit/
+├── VRS_MANAGER_TEST_PROTOCOL.md    # Full protocol doc
+├── requirements.txt                 # pyautogui, pillow, pygetwindow
+├── scripts/
+│   ├── launch_and_test.py          # Main test runner
+│   ├── playground_install.ps1      # Windows installer
+│   └── playground_install.sh       # WSL wrapper
+└── screenshots/                     # Test output
+```
+
+### Playground Path
+```
+C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
+```
+
+---
+
+## V2.1 UI Fixes (DONE)
+
+Fixed all reported UI issues:
+- **Wider dialog**: 700x750 → 880x800
+- **Resizable**: Now fully resizable with minsize(800, 600)
+- **Shortened help text**: Prevents text cut-off
+- **Threading**: File analysis runs in background (no UI freeze)
+- **Dynamic width**: Scrollable area expands with window
+
+### Testing Notes
+- Main window screenshot captured successfully
+- Automated clicking from WSL doesn't work (tkinter/UIPI limitation)
+- Code verified via git diff - all fixes present
+- Manual Windows testing recommended for Column Settings dialog
+
+---
+
 ## Next Steps
 
-1. **Commit V2 changes** - Ready for commit
-2. **Testing improvements** - Adopt patterns from LocalizationTools
-3. **CI/CD enhancement** - Add coverage + security checks
+1. **Commit V2.1 changes** - UI fixes ready
+2. **Build new installer** - Test on Windows
+3. **Manual verification** - Click Settings → Column Settings on Windows
 
 ---
 

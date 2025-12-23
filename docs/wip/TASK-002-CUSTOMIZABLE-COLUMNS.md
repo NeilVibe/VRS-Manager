@@ -1,6 +1,6 @@
 # TASK-002: Customizable Output Columns + HasAudio
 
-**Created:** 2025-12-22 | **Status:** V2 COMPLETE | **Priority:** High
+**Created:** 2025-12-22 | **Status:** V2.1 COMPLETE | **Priority:** High
 
 ---
 
@@ -14,7 +14,7 @@ Two requests from colleague:
 
 ---
 
-## V2 IMPLEMENTATION COMPLETE (2025-12-23)
+## V2 IMPLEMENTATION - UI FIX NEEDED (2025-12-23)
 
 ### What Was Built
 1. **Nested Settings UI** - Settings → Priority Mode / Column Settings
@@ -33,6 +33,162 @@ src/utils/data_processing.py # filter_output_columns() V2 logic
 ### Tests
 - All 518 tests pass
 - V2 logic verified: analysis, selection, filtering all work
+
+---
+
+## V2.1 FIXES IMPLEMENTED (2025-12-23)
+
+All issues fixed:
+- **Dialog size**: 700x750 → 880x800
+- **Resizable**: Now `resizable(True, True)` with `minsize(800, 600)`
+- **Threading**: File analysis runs in background thread
+- **Console logging**: Added via `log()` function
+- **Shortened help text**: Prevents cut-off
+- **Dynamic scrolling**: Canvas width adjusts with window
+
+---
+
+## V2.1 Issues (RESOLVED)
+
+### Problem 1: Text Cut-Off on Windows
+1. **Green button cut off** - Only shows "Oly and Sa" (should be "Apply & Save")
+2. **Auto-generated help text cut off:**
+   - "Combined previous tet..." → should show full text
+   - "Text from matched preivou..." → cut off
+   - "Previous EventName when..." → cut off
+   - "Full composite change type..." → cut off
+   - "StrOrigin from previous ro..." → cut off
+
+**Root Cause:** Window width (700px) not enough for help text + checkbox layout on Windows.
+
+**Fix Options:**
+1. Increase dialog width to 850-900px
+2. Wrap help text to multiple lines
+3. Use tooltip (hover) instead of inline text
+
+### Problem 2: GUI Freeze During File Upload
+When user uploads Excel file for analysis:
+- **GUI freezes** completely
+- **No threading** - blocks main thread
+- **No progress tracking** in console or UI
+- Bad UX - user thinks app crashed
+
+**Fix Required:**
+1. Move `analyze_excel_columns()` to background thread
+2. Add progress indicator (spinner or progress bar)
+3. Console logging: "Analyzing file...", "Found X columns"
+4. Disable Upload button during analysis
+5. Show "Analyzing..." status in dialog
+
+### Problem 3: No Console Feedback
+- File analysis happens silently
+- No logging to console
+- User has no idea what's happening
+
+**Fix Required:**
+Add logging:
+```python
+log("Analyzing file: {filename}")
+log("Found {n} columns")
+log("Optional columns: {list}")
+```
+
+### Problem 4: Optional Columns Not All Visible
+After file analysis:
+- Shows "14 columns found" but only 10 visible
+- No scrolling in optional columns section
+- Grid cuts off remaining columns
+
+**Fix Required:**
+1. Add scrollbar to optional columns grid
+2. Or increase window height dynamically
+3. Show column count: "Showing X of Y columns"
+
+### Problem 5: Window Not Adaptive
+- Fixed 700x750 size not enough
+- Not resizable (or poorly resizable)
+- Content gets clipped on smaller screens
+
+**Fix Required:**
+1. Make dialog resizable: `dialog.resizable(True, True)`
+2. Set minimum size: `dialog.minsize(700, 600)`
+3. Use grid weights for proper expansion
+4. Canvas should expand with window
+
+---
+
+## Automated Testing Plan
+
+### Constraint: Tkinter ≠ Electron
+VRS Manager uses **tkinter** (native Python GUI), NOT Electron.
+- CDP (Chrome DevTools Protocol) does NOT work with tkinter
+- Node.js injection does NOT work
+- Need different testing approach
+
+### Options for Tkinter Testing
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **pyautogui** | Cross-platform, screenshots + clicks | Needs display, slower |
+| **Self-test mode** | Built-in, reliable | Needs code changes |
+| **PowerShell** | Native Windows, no deps | Windows only |
+
+### Recommended: Self-Test Mode
+Add `--screenshot-test` flag to VRS Manager:
+```bash
+VRSManager.exe --screenshot-test
+```
+
+This mode:
+1. Opens main window
+2. Opens Settings dialog
+3. Takes screenshot → `screenshots/01_settings.png`
+4. Opens Column Settings
+5. Takes screenshot → `screenshots/02_column_settings.png`
+6. Loads test Excel file
+7. Takes screenshot → `screenshots/03_columns_analyzed.png`
+8. Exits with report
+
+### Playground Path (Created)
+```
+Windows: C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
+WSL:     /mnt/c/NEIL_PROJECTS_WINDOWSBUILD/VRSManagerProject/Playground/VRSManager
+```
+
+### Testing Toolkit Created
+
+```
+testing_toolkit/
+├── VRS_MANAGER_TEST_PROTOCOL.md    # Full testing protocol
+├── requirements.txt                 # pyautogui, pillow, pygetwindow
+├── scripts/
+│   ├── launch_and_test.py          # Main test runner
+│   ├── playground_install.ps1      # PowerShell installer
+│   └── playground_install.sh       # WSL wrapper
+└── screenshots/                     # Test output
+```
+
+### Running Tests
+
+**From Windows PowerShell:**
+```powershell
+cd C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject
+pip install pyautogui pillow pygetwindow
+python testing_toolkit\scripts\launch_and_test.py
+```
+
+**From WSL:**
+```bash
+cd /home/neil1988/vrsmanager
+./testing_toolkit/scripts/playground_install.sh --test
+```
+
+### Test Cases Covered
+- TC-001: Main Window Loads
+- TC-002: Settings Dialog Opens
+- TC-003: Column Settings Opens
+- TC-004: Button Text Visibility
+- TC-005: Help Text Visibility
 
 ---
 
