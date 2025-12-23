@@ -1,8 +1,8 @@
 # Session Context - Claude Handoff Document
 
-**Last Updated:** 2025-12-22
+**Last Updated:** 2025-12-23
 **Version:** v12181615 (production)
-**Status:** TASK-002 ready for implementation
+**Status:** TASK-002 implementation complete - ready for testing
 
 ---
 
@@ -25,6 +25,8 @@
 1. **HasAudio Column** - Add to output next to Mainline Translation
 2. **Customizable Columns** - Let users choose which columns appear in WORK output
 
+**Scope:** MAIN TAB only (within WORKING processor). Other tabs not affected.
+
 ### Key Decisions Confirmed
 
 - **Mandatory columns** - Core identification + VRS logic (cannot disable)
@@ -37,7 +39,30 @@
 
 ### Status
 
-Ready for implementation - all decisions confirmed
+**IMPLEMENTED** (2025-12-23)
+
+### Files Modified
+```
+src/config.py           # Added HasAudio, column classifications
+src/settings.py         # Column settings schema + functions
+src/utils/data_processing.py  # Dynamic column filtering
+src/ui/main_window.py   # Column Settings dialog + button
+```
+
+### What Was Built
+1. HasAudio + UseSubtitle + Record + isNew added to OUTPUT_COLUMNS
+2. Column classifications: MANDATORY, AUTO_GENERATED, OPTIONAL
+3. Settings persist to JSON (~/.vrsmanager_settings.json)
+4. New "📋 Column Settings" button in main GUI
+5. Column Settings dialog with:
+   - Mandatory columns (locked, displayed)
+   - Auto-generated columns (toggle on/off + help text)
+   - Optional columns (toggle on/off + CURRENT/PREVIOUS source)
+   - Reset to Defaults button
+   - Apply & Save button
+
+### Tests
+All 518 tests pass
 
 ---
 

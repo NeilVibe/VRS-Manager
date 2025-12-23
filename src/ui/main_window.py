@@ -14,8 +14,11 @@ from src.processors.working_processor import WorkingProcessor
 from src.processors.alllang_processor import AllLangProcessor
 from src.processors.master_processor import MasterProcessor
 from src.ui.history_viewer import show_update_history_viewer
-from src.config import VERSION, VERSION_FOOTER
-from src.settings import get_use_priority_change, set_use_priority_change
+from src.config import VERSION, VERSION_FOOTER, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS
+from src.settings import (
+    get_use_priority_change, set_use_priority_change,
+    get_column_settings, set_column_settings, reset_column_settings
+)
 
 
 def run_raw_process_thread(btn_raw, btn_working, btn_alllang, btn_master, btn_history, status_label):
@@ -225,6 +228,334 @@ def show_settings_dialog(parent):
     cancel_btn.pack(side=tk.LEFT, padx=5)
 
 
+# Auto-generated column help texts
+AUTO_GENERATED_HELP = {
+    "PreviousData": "Combined previous Text|STATUS|Freememo",
+    "PreviousText": "Text value from matched previous row",
+    "PreviousEventName": "Previous EventName when it changed",
+    "DETAILED_CHANGES": "Full composite change type (all detected)",
+    "Previous StrOrigin": "StrOrigin value from matched previous row",
+    "Mainline Translation": "Original Text value before import logic"
+}
+
+
+def show_column_settings_dialog(parent):
+    """
+    Show column settings dialog for customizing output columns.
+
+    Args:
+        parent: Parent window for the dialog
+    """
+    dialog = tk.Toplevel(parent)
+    dialog.title("Column Settings")
+    dialog.geometry("550x700")
+    dialog.resizable(False, True)
+    dialog.transient(parent)
+    dialog.grab_set()
+
+    # Center dialog on parent
+    dialog.update_idletasks()
+    x = parent.winfo_x() + (parent.winfo_width() // 2) - (dialog.winfo_width() // 2)
+    y = parent.winfo_y() + (parent.winfo_height() // 2) - (dialog.winfo_height() // 2)
+    dialog.geometry(f"+{x}+{y}")
+
+    bg_color = "#f0f0f0"
+    dialog.configure(bg=bg_color)
+
+    # Load current settings
+    col_settings = get_column_settings()
+
+    # Title
+    title_label = tk.Label(
+        dialog,
+        text="Column Settings",
+        font=("Arial", 14, "bold"),
+        bg=bg_color,
+        fg="#333333"
+    )
+    title_label.pack(pady=(15, 5))
+
+    subtitle_label = tk.Label(
+        dialog,
+        text="Customize which columns appear in WORKING output (Work Transform sheet)",
+        font=("Arial", 9),
+        bg=bg_color,
+        fg="#666666"
+    )
+    subtitle_label.pack(pady=(0, 10))
+
+    # Create scrollable frame
+    canvas = tk.Canvas(dialog, bg=bg_color, highlightthickness=0)
+    scrollbar = tk.Scrollbar(dialog, orient="vertical", command=canvas.yview)
+    scrollable_frame = tk.Frame(canvas, bg=bg_color)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # ===== MANDATORY COLUMNS SECTION =====
+    mandatory_frame = tk.LabelFrame(
+        scrollable_frame,
+        text=" MANDATORY COLUMNS (Always Shown) ",
+        font=("Arial", 10, "bold"),
+        bg=bg_color,
+        fg="#333333",
+        padx=10,
+        pady=5
+    )
+    mandatory_frame.pack(fill=tk.X, padx=15, pady=5)
+
+    mandatory_inner = tk.Frame(mandatory_frame, bg=bg_color)
+    mandatory_inner.pack(fill=tk.X)
+
+    # Display mandatory columns in a grid (locked)
+    for i, col in enumerate(MANDATORY_COLUMNS):
+        row = i // 3
+        col_idx = i % 3
+        lbl = tk.Label(
+            mandatory_inner,
+            text=f"🔒 {col}",
+            font=("Arial", 9),
+            bg=bg_color,
+            fg="#666666"
+        )
+        lbl.grid(row=row, column=col_idx, sticky="w", padx=5, pady=2)
+
+    # ===== AUTO-GENERATED COLUMNS SECTION =====
+    auto_frame = tk.LabelFrame(
+        scrollable_frame,
+        text=" AUTO-GENERATED COLUMNS ",
+        font=("Arial", 10, "bold"),
+        bg=bg_color,
+        fg="#333333",
+        padx=10,
+        pady=5
+    )
+    auto_frame.pack(fill=tk.X, padx=15, pady=5)
+
+    # Store checkbox variables
+    auto_vars = {}
+
+    for col in AUTO_GENERATED_COLUMNS:
+        row_frame = tk.Frame(auto_frame, bg=bg_color)
+        row_frame.pack(fill=tk.X, pady=2)
+
+        # Get current enabled state
+        enabled = col_settings.get("auto_generated", {}).get(col, {}).get("enabled", True)
+        var = tk.BooleanVar(value=enabled)
+        auto_vars[col] = var
+
+        cb = tk.Checkbutton(
+            row_frame,
+            text=col,
+            variable=var,
+            font=("Arial", 10),
+            bg=bg_color,
+            activebackground=bg_color,
+            width=20,
+            anchor="w"
+        )
+        cb.pack(side=tk.LEFT)
+
+        # Help text
+        help_text = AUTO_GENERATED_HELP.get(col, "")
+        if help_text:
+            help_lbl = tk.Label(
+                row_frame,
+                text=f"ⓘ {help_text}",
+                font=("Arial", 8),
+                bg=bg_color,
+                fg="#888888"
+            )
+            help_lbl.pack(side=tk.LEFT, padx=5)
+
+    # ===== OPTIONAL COLUMNS SECTION =====
+    optional_frame = tk.LabelFrame(
+        scrollable_frame,
+        text=" OPTIONAL COLUMNS ",
+        font=("Arial", 10, "bold"),
+        bg=bg_color,
+        fg="#333333",
+        padx=10,
+        pady=5
+    )
+    optional_frame.pack(fill=tk.X, padx=15, pady=5)
+
+    # Header row
+    header_frame = tk.Frame(optional_frame, bg=bg_color)
+    header_frame.pack(fill=tk.X, pady=(0, 5))
+
+    tk.Label(header_frame, text="Column", font=("Arial", 9, "bold"), bg=bg_color, width=18, anchor="w").pack(side=tk.LEFT)
+    tk.Label(header_frame, text="Show", font=("Arial", 9, "bold"), bg=bg_color, width=6).pack(side=tk.LEFT)
+    tk.Label(header_frame, text="Source", font=("Arial", 9, "bold"), bg=bg_color, width=20).pack(side=tk.LEFT)
+
+    # Separator
+    sep = tk.Frame(optional_frame, height=1, bg="#cccccc")
+    sep.pack(fill=tk.X, pady=2)
+
+    # Store optional column variables
+    optional_vars = {}
+    source_vars = {}
+
+    for col in OPTIONAL_COLUMNS:
+        row_frame = tk.Frame(optional_frame, bg=bg_color)
+        row_frame.pack(fill=tk.X, pady=2)
+
+        # Column name label
+        col_lbl = tk.Label(
+            row_frame,
+            text=col,
+            font=("Arial", 9),
+            bg=bg_color,
+            width=18,
+            anchor="w"
+        )
+        col_lbl.pack(side=tk.LEFT)
+
+        # Get current settings
+        col_cfg = col_settings.get("optional", {}).get(col, {"enabled": True, "source": "CURRENT"})
+        enabled = col_cfg.get("enabled", True)
+        source = col_cfg.get("source", "CURRENT")
+
+        # Checkbox for enabled
+        var = tk.BooleanVar(value=enabled)
+        optional_vars[col] = var
+
+        cb = tk.Checkbutton(
+            row_frame,
+            variable=var,
+            bg=bg_color,
+            activebackground=bg_color,
+            width=4
+        )
+        cb.pack(side=tk.LEFT)
+
+        # Radio buttons for source
+        source_var = tk.StringVar(value=source)
+        source_vars[col] = source_var
+
+        source_frame = tk.Frame(row_frame, bg=bg_color)
+        source_frame.pack(side=tk.LEFT)
+
+        rb_current = tk.Radiobutton(
+            source_frame,
+            text="CURRENT",
+            variable=source_var,
+            value="CURRENT",
+            font=("Arial", 8),
+            bg=bg_color,
+            activebackground=bg_color
+        )
+        rb_current.pack(side=tk.LEFT)
+
+        rb_previous = tk.Radiobutton(
+            source_frame,
+            text="PREVIOUS",
+            variable=source_var,
+            value="PREVIOUS",
+            font=("Arial", 8),
+            bg=bg_color,
+            activebackground=bg_color
+        )
+        rb_previous.pack(side=tk.LEFT)
+
+    # Pack canvas and scrollbar
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(15, 0), pady=5)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 15), pady=5)
+
+    # Enable mouse wheel scrolling
+    def on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+    # ===== BUTTON FRAME =====
+    button_frame = tk.Frame(dialog, bg=bg_color)
+    button_frame.pack(pady=15)
+
+    def reset_to_defaults():
+        """Reset all settings to defaults."""
+        # Reset auto-generated
+        for col, var in auto_vars.items():
+            var.set(True)
+
+        # Reset optional
+        for col, var in optional_vars.items():
+            var.set(True)
+        for col, var in source_vars.items():
+            var.set("CURRENT")
+
+    def save_and_close():
+        """Save settings and close dialog."""
+        # Build new settings
+        new_settings = {
+            "auto_generated": {},
+            "optional": {}
+        }
+
+        for col, var in auto_vars.items():
+            new_settings["auto_generated"][col] = {"enabled": var.get()}
+
+        for col, var in optional_vars.items():
+            new_settings["optional"][col] = {
+                "enabled": var.get(),
+                "source": source_vars[col].get()
+            }
+
+        set_column_settings(new_settings)
+        canvas.unbind_all("<MouseWheel>")
+        messagebox.showinfo(
+            "Settings Saved",
+            "Column settings saved successfully!\n\nChanges will apply to future Working Process runs."
+        )
+        dialog.destroy()
+
+    def cancel_dialog():
+        """Cancel and close dialog."""
+        canvas.unbind_all("<MouseWheel>")
+        dialog.destroy()
+
+    reset_btn = tk.Button(
+        button_frame,
+        text="Reset to Defaults",
+        font=("Arial", 10),
+        bg="#FF9800",
+        fg="white",
+        width=15,
+        cursor="hand2",
+        command=reset_to_defaults
+    )
+    reset_btn.pack(side=tk.LEFT, padx=5)
+
+    cancel_btn = tk.Button(
+        button_frame,
+        text="Cancel",
+        font=("Arial", 10),
+        bg="#757575",
+        fg="white",
+        width=10,
+        cursor="hand2",
+        command=cancel_dialog
+    )
+    cancel_btn.pack(side=tk.LEFT, padx=5)
+
+    save_btn = tk.Button(
+        button_frame,
+        text="Apply & Save",
+        font=("Arial", 10, "bold"),
+        bg="#4CAF50",
+        fg="white",
+        width=12,
+        cursor="hand2",
+        command=save_and_close
+    )
+    save_btn.pack(side=tk.LEFT, padx=5)
+
+
 def create_gui():
     """Create and display the main GUI window."""
     window = tk.Tk()
@@ -403,6 +734,31 @@ def create_gui():
         fg="#666666"
     )
     desc_history.pack()
+
+    # Column Settings button
+    btn_columns = tk.Button(
+        button_frame,
+        text="📋 Column Settings",
+        font=("Arial", 11, "bold"),
+        bg="#009688",
+        fg="white",
+        width=42,
+        height=2,
+        relief=tk.RAISED,
+        bd=3,
+        cursor="hand2",
+        command=lambda: show_column_settings_dialog(window)
+    )
+    btn_columns.pack(pady=8)
+
+    desc_columns = tk.Label(
+        button_frame,
+        text="Customize output columns for Working Process",
+        font=("Arial", 9, "italic"),
+        bg=bg_color,
+        fg="#666666"
+    )
+    desc_columns.pack()
 
     # Settings button
     btn_settings = tk.Button(

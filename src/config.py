@@ -65,7 +65,30 @@ OUTPUT_COLUMNS = [
     "FREEMEMO", "SubTimelineName", "CHANGES", "EventName", "StartFrame",
     "EndFrame", "Tribe", "Age", "Gender", "Job", "Region", "UpdateTime",
     "PreviousData", "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
+    "Previous StrOrigin", "Mainline Translation", "HasAudio", "UseSubtitle",
+    "Record", "isNew"
+]
+
+# ===========================================================================
+# COLUMN CLASSIFICATION (for customizable output)
+# ===========================================================================
+# Mandatory: Always present, cannot disable
+MANDATORY_COLUMNS = [
+    "SequenceName", "EventName", "StrOrigin", "CharacterKey", "CharacterName",
+    "CastingKey", "DialogVoice", "Text", "STATUS", "CHANGES"
+]
+
+# Auto-generated: Created by VRS logic, user can toggle
+AUTO_GENERATED_COLUMNS = [
+    "PreviousData", "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
     "Previous StrOrigin", "Mainline Translation"
+]
+
+# Optional: From source files, user can toggle + choose source
+OPTIONAL_COLUMNS = [
+    "Desc", "FREEMEMO", "SubTimelineName", "StartFrame", "EndFrame",
+    "DialogType", "Group", "UpdateTime", "Tribe", "Age", "Gender", "Job",
+    "Region", "HasAudio", "UseSubtitle", "Record", "isNew"
 ]
 
 OUTPUT_COLUMNS_RAW = [
@@ -101,5 +124,5 @@ ALLLANG_HISTORY_FILE = "alllang_update_history.json"
 # ===========================================================================
 # VERSION INFORMATION
 # ===========================================================================
-VERSION = "12181615"
-VERSION_FOOTER = "ver. 12181615 | StrOrigin uses NEW value, Mainline only for NO TRANSLATION"
+VERSION = "12231045"
+VERSION_FOOTER = "ver. 12231045 | Customizable Output Columns + HasAudio"

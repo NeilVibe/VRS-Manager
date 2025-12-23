@@ -6,8 +6,9 @@ including status normalization, column filtering, and dataframe cleaning.
 """
 
 import pandas as pd
-from src.config import OUTPUT_COLUMNS
+from src.config import OUTPUT_COLUMNS, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS
 from src.utils.helpers import safe_str
+from src.settings import get_enabled_columns
 
 
 def find_status_column(columns):
@@ -60,18 +61,37 @@ def normalize_dataframe_status(df):
     return df
 
 
-def filter_output_columns(df, column_list=OUTPUT_COLUMNS):
+def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
     """
-    Filter DataFrame to only include columns that exist in the specified column list.
+    Filter DataFrame to only include columns based on settings and column list.
 
     Args:
         df: DataFrame to filter
-        column_list: List of desired output columns
+        column_list: List of desired output columns (defines order)
+        use_settings: If True, apply user column settings. If False, use all columns.
 
     Returns:
         DataFrame: Filtered DataFrame
     """
-    available_cols = [col for col in column_list if col in df.columns]
+    if not use_settings:
+        # Legacy behavior: just filter by column_list
+        available_cols = [col for col in column_list if col in df.columns]
+        return df[available_cols]
+
+    # Get user settings for enabled columns
+    enabled_auto, enabled_optional = get_enabled_columns()
+
+    # Build list of columns to include
+    enabled_columns = set(MANDATORY_COLUMNS)  # Always include mandatory
+    enabled_columns.update(enabled_auto)  # Add enabled auto-generated
+    enabled_columns.update(enabled_optional.keys())  # Add enabled optional
+
+    # Filter by both column_list (for order) and enabled_columns (for visibility)
+    available_cols = [
+        col for col in column_list
+        if col in df.columns and col in enabled_columns
+    ]
+
     return df[available_cols]
 
 
