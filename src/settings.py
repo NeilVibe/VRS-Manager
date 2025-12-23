@@ -231,3 +231,138 @@ def set_selected_optional_columns(columns):
         if col not in MANDATORY_COLUMNS and col not in AUTO_GENERATED_COLUMNS
     }
     save_settings(settings)
+
+
+# ===========================================================================
+# V3: DUAL-FILE COLUMN ANALYSIS (PREVIOUS + CURRENT)
+# ===========================================================================
+
+def get_previous_file_columns():
+    """Get columns analyzed from PREVIOUS file."""
+    settings = load_settings()
+    return settings.get("previous_file_columns", [])
+
+
+def set_previous_file_columns(columns):
+    """Set columns analyzed from PREVIOUS file."""
+    settings = load_settings()
+    settings["previous_file_columns"] = columns
+    save_settings(settings)
+    # Update combined columns
+    _update_combined_columns()
+
+
+def get_current_file_columns():
+    """Get columns analyzed from CURRENT file."""
+    settings = load_settings()
+    return settings.get("current_file_columns", [])
+
+
+def set_current_file_columns(columns):
+    """Set columns analyzed from CURRENT file."""
+    settings = load_settings()
+    settings["current_file_columns"] = columns
+    save_settings(settings)
+    # Update combined columns
+    _update_combined_columns()
+
+
+def _update_combined_columns():
+    """
+    Combine columns from PREVIOUS and CURRENT files.
+
+    For duplicate column names:
+    - Add "Previous_" prefix for columns from PREVIOUS file
+    - Add "Current_" prefix for columns from CURRENT file
+
+    Unique columns keep their original names.
+    """
+    settings = load_settings()
+    prev_cols = set(settings.get("previous_file_columns", []))
+    curr_cols = set(settings.get("current_file_columns", []))
+
+    # Find duplicates (exist in both)
+    duplicates = prev_cols & curr_cols
+
+    # Build combined list with prefixes for duplicates
+    combined = []
+
+    # Add PREVIOUS columns
+    for col in sorted(prev_cols):
+        if col in duplicates:
+            combined.append(f"Previous_{col}")
+        else:
+            combined.append(col)
+
+    # Add CURRENT columns
+    for col in sorted(curr_cols):
+        if col in duplicates:
+            combined.append(f"Current_{col}")
+        elif col not in prev_cols:  # Only add if not already added from PREVIOUS
+            combined.append(col)
+
+    # Update analyzed_columns for backward compatibility
+    settings["analyzed_columns"] = combined
+    save_settings(settings)
+
+
+def get_dual_file_status():
+    """
+    Get status of both file uploads.
+
+    Returns:
+        dict: {
+            "previous": {"uploaded": bool, "filename": str, "count": int},
+            "current": {"uploaded": bool, "filename": str, "count": int}
+        }
+    """
+    settings = load_settings()
+    return {
+        "previous": {
+            "uploaded": len(settings.get("previous_file_columns", [])) > 0,
+            "filename": settings.get("previous_filename", ""),
+            "count": len(settings.get("previous_file_columns", []))
+        },
+        "current": {
+            "uploaded": len(settings.get("current_file_columns", [])) > 0,
+            "filename": settings.get("current_filename", ""),
+            "count": len(settings.get("current_file_columns", []))
+        }
+    }
+
+
+def set_file_info(file_type, filename, columns):
+    """
+    Set file info for PREVIOUS or CURRENT.
+
+    Args:
+        file_type: "previous" or "current"
+        filename: Name of the uploaded file
+        columns: List of column names
+    """
+    settings = load_settings()
+
+    if file_type == "previous":
+        settings["previous_filename"] = filename
+        settings["previous_file_columns"] = columns
+    elif file_type == "current":
+        settings["current_filename"] = filename
+        settings["current_file_columns"] = columns
+
+    save_settings(settings)
+    _update_combined_columns()
+
+
+def clear_file_columns(file_type):
+    """Clear columns for a specific file type."""
+    settings = load_settings()
+
+    if file_type == "previous":
+        settings["previous_file_columns"] = []
+        settings["previous_filename"] = ""
+    elif file_type == "current":
+        settings["current_file_columns"] = []
+        settings["current_filename"] = ""
+
+    save_settings(settings)
+    _update_combined_columns()

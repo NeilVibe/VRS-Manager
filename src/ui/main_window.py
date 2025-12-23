@@ -20,7 +20,10 @@ from src.settings import (
     get_use_priority_change, set_use_priority_change,
     get_column_settings, set_column_settings, reset_column_settings,
     get_analyzed_columns, set_analyzed_columns,
-    get_selected_optional_columns, set_selected_optional_columns
+    get_selected_optional_columns, set_selected_optional_columns,
+    # V3: Dual-file column analysis
+    get_previous_file_columns, get_current_file_columns,
+    set_file_info, get_dual_file_status, clear_file_columns
 )
 from src.io.excel_reader import safe_read_excel
 
@@ -515,7 +518,12 @@ AUTO_GENERATED_HELP = {
 
 def show_column_settings_dialog_v2(parent):
     """
-    Show V2 Column Settings dialog with file analysis.
+    Show V3 Column Settings dialog with dual-file analysis.
+
+    Features:
+    - Upload PREVIOUS and CURRENT files separately
+    - Columns from both files shown with prefixes for duplicates
+    - Select which columns to include in output
 
     Args:
         parent: Parent window for the dialog
@@ -524,9 +532,9 @@ def show_column_settings_dialog_v2(parent):
 
     dialog = tk.Toplevel(parent)
     dialog.title("Column Settings")
-    dialog.geometry("880x800")  # Wider and taller
-    dialog.minsize(800, 600)    # Minimum size
-    dialog.resizable(True, True)  # Fully resizable
+    dialog.geometry("950x800")  # Wider for dual-file layout
+    dialog.minsize(900, 700)
+    dialog.resizable(True, True)
     dialog.transient(parent)
     dialog.grab_set()
 
@@ -536,29 +544,34 @@ def show_column_settings_dialog_v2(parent):
     y = parent.winfo_y() + (parent.winfo_height() // 2) - (dialog.winfo_height() // 2)
     dialog.geometry(f"+{x}+{y}")
 
-    bg_color = "#f0f0f0"
+    bg_color = "#f5f5f5"
     dialog.configure(bg=bg_color)
 
-    # Title
+    # Colors
+    PREV_COLOR = "#1565C0"   # Blue for PREVIOUS
+    CURR_COLOR = "#2E7D32"   # Green for CURRENT
+    CARD_BG = "#ffffff"
+
+    # ===== TITLE =====
     tk.Label(
         dialog,
         text="Column Settings",
-        font=("Arial", 14, "bold"),
+        font=("Arial", 16, "bold"),
         bg=bg_color,
         fg="#333333"
-    ).pack(pady=(15, 5))
+    ).pack(pady=(20, 5))
 
     tk.Label(
         dialog,
-        text="Customize which columns appear in WORKING output (Work Transform sheet)",
-        font=("Arial", 9),
+        text="Upload PREVIOUS and CURRENT files to select columns for WORKING output",
+        font=("Arial", 10),
         bg=bg_color,
         fg="#666666"
-    ).pack(pady=(0, 10))
+    ).pack(pady=(0, 15))
 
-    # Create scrollable frame with proper expansion
+    # ===== SCROLLABLE CONTENT =====
     canvas_frame = tk.Frame(dialog, bg=bg_color)
-    canvas_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=5)
+    canvas_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=5)
 
     canvas = tk.Canvas(canvas_frame, bg=bg_color, highlightthickness=0)
     scrollbar = tk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
@@ -569,7 +582,6 @@ def show_column_settings_dialog_v2(parent):
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
 
-    # Dynamic width based on dialog
     def update_canvas_width(event=None):
         canvas.itemconfig(canvas_window, width=canvas.winfo_width() - 20)
 
@@ -577,268 +589,399 @@ def show_column_settings_dialog_v2(parent):
     canvas.configure(yscrollcommand=scrollbar.set)
     canvas.bind("<Configure>", update_canvas_width)
 
-    # ===== STEP 1: FILE ANALYSIS =====
-    file_frame = tk.LabelFrame(
+    # Store state
+    prev_vars = {}
+    curr_vars = {}
+    prev_columns_frame = None
+    curr_columns_frame = None
+
+    # Get current status
+    status = get_dual_file_status()
+
+    # ===== STEP 1: DUAL FILE UPLOAD =====
+    upload_section = tk.LabelFrame(
         scrollable_frame,
-        text=" STEP 1: Analyze Source File ",
-        font=("Arial", 10, "bold"),
+        text=" STEP 1: Upload Source Files ",
+        font=("Arial", 11, "bold"),
         bg=bg_color,
         fg="#333333",
         padx=15,
-        pady=10
+        pady=15
     )
-    file_frame.pack(fill=tk.X, padx=15, pady=10)
+    upload_section.pack(fill=tk.X, padx=10, pady=10)
 
-    # Status label
-    analyzed_cols = get_analyzed_columns()
-    if analyzed_cols:
-        status_text = f"Analyzed: {len(analyzed_cols)} columns found"
-        status_color = "#2e7d32"
+    # Two-column layout for PREVIOUS and CURRENT
+    files_row = tk.Frame(upload_section, bg=bg_color)
+    files_row.pack(fill=tk.X, pady=10)
+
+    # Configure grid columns to expand equally
+    files_row.columnconfigure(0, weight=1)
+    files_row.columnconfigure(1, weight=1)
+
+    # ----- PREVIOUS FILE CARD -----
+    prev_card = tk.Frame(files_row, bg=CARD_BG, relief=tk.RAISED, bd=1)
+    prev_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=5)
+
+    tk.Label(
+        prev_card,
+        text="PREVIOUS File",
+        font=("Arial", 12, "bold"),
+        bg=CARD_BG,
+        fg=PREV_COLOR
+    ).pack(pady=(15, 5))
+
+    prev_status_var = tk.StringVar()
+    if status["previous"]["uploaded"]:
+        prev_status_var.set(f"✓ {status['previous']['filename']}\n({status['previous']['count']} columns)")
     else:
-        status_text = "No file analyzed yet. Upload a PREVIOUS or CURRENT Excel file."
-        status_color = "#666666"
+        prev_status_var.set("No file uploaded")
 
-    status_var = tk.StringVar(value=status_text)
-    status_label = tk.Label(
-        file_frame,
-        textvariable=status_var,
-        font=("Arial", 10),
-        bg=bg_color,
-        fg=status_color
+    prev_status_label = tk.Label(
+        prev_card,
+        textvariable=prev_status_var,
+        font=("Arial", 9),
+        bg=CARD_BG,
+        fg="#666666",
+        justify=tk.CENTER
     )
-    status_label.pack(anchor=tk.W, pady=(0, 10))
+    prev_status_label.pack(pady=5)
 
-    # Store checkbox variables
-    optional_vars = {}
-    optional_frame_container = None
-
-    def refresh_optional_columns():
-        """Refresh the optional columns display."""
-        nonlocal optional_frame_container, optional_vars
-
-        # Clear existing optional frame if exists
-        if optional_frame_container:
-            optional_frame_container.destroy()
-
-        analyzed = get_analyzed_columns()
-        selected = get_selected_optional_columns()
-
-        # Filter out mandatory and auto-generated columns
-        optional_cols = [
-            col for col in analyzed
-            if col not in MANDATORY_COLUMNS and col not in AUTO_GENERATED_COLUMNS
-        ]
-
-        if not optional_cols:
-            return
-
-        # Create optional columns section
-        optional_frame_container = tk.LabelFrame(
-            scrollable_frame,
-            text=f" OPTIONAL COLUMNS ({len(optional_cols)} from analyzed file) ",
-            font=("Arial", 10, "bold"),
-            bg=bg_color,
-            fg="#333333",
-            padx=15,
-            pady=10
-        )
-        optional_frame_container.pack(fill=tk.X, padx=15, pady=10)
-
-        # Select All / Deselect All buttons
-        btn_row = tk.Frame(optional_frame_container, bg=bg_color)
-        btn_row.pack(fill=tk.X, pady=(0, 10))
-
-        def select_all():
-            for var in optional_vars.values():
-                var.set(True)
-
-        def deselect_all():
-            for var in optional_vars.values():
-                var.set(False)
-
-        tk.Button(
-            btn_row,
-            text="Select All",
-            font=("Arial", 9),
-            bg="#4CAF50",
-            fg="white",
-            cursor="hand2",
-            command=select_all
-        ).pack(side=tk.LEFT, padx=2)
-
-        tk.Button(
-            btn_row,
-            text="Deselect All",
-            font=("Arial", 9),
-            bg="#f44336",
-            fg="white",
-            cursor="hand2",
-            command=deselect_all
-        ).pack(side=tk.LEFT, padx=2)
-
-        # Separator
-        tk.Frame(optional_frame_container, height=1, bg="#cccccc").pack(fill=tk.X, pady=5)
-
-        # Grid of checkboxes (3 columns)
-        grid_frame = tk.Frame(optional_frame_container, bg=bg_color)
-        grid_frame.pack(fill=tk.X)
-
-        optional_vars.clear()
-        for i, col in enumerate(optional_cols):
-            row = i // 3
-            col_idx = i % 3
-
-            enabled = col in selected or (not selected and True)  # Default ON if no selection yet
-            var = tk.BooleanVar(value=enabled)
-            optional_vars[col] = var
-
-            cb = tk.Checkbutton(
-                grid_frame,
-                text=col,
-                variable=var,
-                font=("Arial", 9),
-                bg=bg_color,
-                activebackground=bg_color,
-                width=20,
-                anchor="w"
-            )
-            cb.grid(row=row, column=col_idx, sticky="w", padx=5, pady=2)
-
-        # Info label
-        tk.Label(
-            optional_frame_container,
-            text="If a selected column is not in processed files, it will be skipped gracefully.",
-            font=("Arial", 8, "italic"),
-            bg=bg_color,
-            fg="#888888"
-        ).pack(anchor=tk.W, pady=(10, 0))
-
-    def upload_and_analyze():
-        """Upload Excel file and analyze columns with threading."""
+    def upload_previous():
         file_path = filedialog.askopenfilename(
-            title="Select PREVIOUS or CURRENT Excel File",
+            title="Select PREVIOUS Excel File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
         )
         if not file_path:
             return
 
-        # Disable upload button and show progress
-        upload_btn.config(state=tk.DISABLED, text="Analyzing...")
-        status_var.set("Analyzing file... Please wait.")
-        status_label.config(fg="#2196F3")
+        prev_upload_btn.config(state=tk.DISABLED, text="Analyzing...")
         dialog.update()
 
-        filename = os.path.basename(file_path)
-        log(f"[Column Settings] Analyzing file: {filename}")
-
-        def analyze_in_thread():
-            """Run analysis in background thread."""
+        def analyze():
             try:
                 columns, fname, error = analyze_excel_columns(file_path)
-
-                # Schedule UI update on main thread
                 def update_ui():
                     if error:
-                        log(f"[Column Settings] ERROR: {error}")
-                        status_var.set(f"Error: {error}")
-                        status_label.config(fg="#d32f2f")
-                        messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                        messagebox.showerror("Error", f"Failed to analyze:\n{error}")
+                        prev_status_var.set("Error analyzing file")
                     else:
-                        # Save analyzed columns
-                        set_analyzed_columns(columns)
-
-                        # Count optional columns
-                        optional_count = len([
-                            c for c in columns
-                            if c not in MANDATORY_COLUMNS and c not in AUTO_GENERATED_COLUMNS
-                        ])
-
-                        log(f"[Column Settings] Found {len(columns)} total columns")
-                        log(f"[Column Settings] Optional columns: {optional_count}")
-
-                        # Update status
-                        status_var.set(f"Analyzed: {fname} ({len(columns)} columns, {optional_count} optional)")
-                        status_label.config(fg="#2e7d32")
-
-                        # Refresh optional columns display
-                        refresh_optional_columns()
-
-                        log(f"[Column Settings] Analysis complete")
-                        messagebox.showinfo("Success", f"Analyzed {len(columns)} columns from:\n{fname}\n\nOptional columns: {optional_count}")
-
-                    # Re-enable upload button
-                    upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS or CURRENT Excel File")
-
+                        set_file_info("previous", fname, columns)
+                        prev_status_var.set(f"✓ {fname}\n({len(columns)} columns)")
+                        log(f"[Column Settings] PREVIOUS: {len(columns)} columns from {fname}")
+                        refresh_column_lists()
+                    prev_upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS")
                 dialog.after(0, update_ui)
-
             except Exception as e:
-                log(f"[Column Settings] Exception: {e}")
-                def show_error():
-                    status_var.set(f"Error: {str(e)}")
-                    status_label.config(fg="#d32f2f")
-                    upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS or CURRENT Excel File")
-                    messagebox.showerror("Error", f"Analysis failed:\n{e}")
-                dialog.after(0, show_error)
+                def show_err():
+                    messagebox.showerror("Error", str(e))
+                    prev_upload_btn.config(state=tk.NORMAL, text="Upload PREVIOUS")
+                dialog.after(0, show_err)
 
-        # Run in background thread
-        thread = threading.Thread(target=analyze_in_thread, daemon=True)
-        thread.start()
+        threading.Thread(target=analyze, daemon=True).start()
 
-    upload_btn = tk.Button(
-        file_frame,
-        text="Upload PREVIOUS or CURRENT Excel File",
+    prev_upload_btn = tk.Button(
+        prev_card,
+        text="Upload PREVIOUS",
         font=("Arial", 10, "bold"),
-        bg="#2196F3",
+        bg=PREV_COLOR,
         fg="white",
         cursor="hand2",
-        command=upload_and_analyze
+        width=18,
+        command=upload_previous
     )
-    upload_btn.pack(anchor=tk.W)
+    prev_upload_btn.pack(pady=(10, 5))
 
-    # ===== MANDATORY COLUMNS =====
-    mandatory_frame = tk.LabelFrame(
-        scrollable_frame,
-        text=" MANDATORY COLUMNS (Always Included) ",
+    def clear_previous():
+        clear_file_columns("previous")
+        prev_status_var.set("No file uploaded")
+        refresh_column_lists()
+
+    tk.Button(
+        prev_card,
+        text="Clear",
+        font=("Arial", 9),
+        bg="#9E9E9E",
+        fg="white",
+        cursor="hand2",
+        width=10,
+        command=clear_previous
+    ).pack(pady=(0, 15))
+
+    # ----- CURRENT FILE CARD -----
+    curr_card = tk.Frame(files_row, bg=CARD_BG, relief=tk.RAISED, bd=1)
+    curr_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=5)
+
+    tk.Label(
+        curr_card,
+        text="CURRENT File",
+        font=("Arial", 12, "bold"),
+        bg=CARD_BG,
+        fg=CURR_COLOR
+    ).pack(pady=(15, 5))
+
+    curr_status_var = tk.StringVar()
+    if status["current"]["uploaded"]:
+        curr_status_var.set(f"✓ {status['current']['filename']}\n({status['current']['count']} columns)")
+    else:
+        curr_status_var.set("No file uploaded")
+
+    curr_status_label = tk.Label(
+        curr_card,
+        textvariable=curr_status_var,
+        font=("Arial", 9),
+        bg=CARD_BG,
+        fg="#666666",
+        justify=tk.CENTER
+    )
+    curr_status_label.pack(pady=5)
+
+    def upload_current():
+        file_path = filedialog.askopenfilename(
+            title="Select CURRENT Excel File",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
+        )
+        if not file_path:
+            return
+
+        curr_upload_btn.config(state=tk.DISABLED, text="Analyzing...")
+        dialog.update()
+
+        def analyze():
+            try:
+                columns, fname, error = analyze_excel_columns(file_path)
+                def update_ui():
+                    if error:
+                        messagebox.showerror("Error", f"Failed to analyze:\n{error}")
+                        curr_status_var.set("Error analyzing file")
+                    else:
+                        set_file_info("current", fname, columns)
+                        curr_status_var.set(f"✓ {fname}\n({len(columns)} columns)")
+                        log(f"[Column Settings] CURRENT: {len(columns)} columns from {fname}")
+                        refresh_column_lists()
+                    curr_upload_btn.config(state=tk.NORMAL, text="Upload CURRENT")
+                dialog.after(0, update_ui)
+            except Exception as e:
+                def show_err():
+                    messagebox.showerror("Error", str(e))
+                    curr_upload_btn.config(state=tk.NORMAL, text="Upload CURRENT")
+                dialog.after(0, show_err)
+
+        threading.Thread(target=analyze, daemon=True).start()
+
+    curr_upload_btn = tk.Button(
+        curr_card,
+        text="Upload CURRENT",
         font=("Arial", 10, "bold"),
+        bg=CURR_COLOR,
+        fg="white",
+        cursor="hand2",
+        width=18,
+        command=upload_current
+    )
+    curr_upload_btn.pack(pady=(10, 5))
+
+    def clear_current():
+        clear_file_columns("current")
+        curr_status_var.set("No file uploaded")
+        refresh_column_lists()
+
+    tk.Button(
+        curr_card,
+        text="Clear",
+        font=("Arial", 9),
+        bg="#9E9E9E",
+        fg="white",
+        cursor="hand2",
+        width=10,
+        command=clear_current
+    ).pack(pady=(0, 15))
+
+    # ===== STEP 2: SELECT COLUMNS =====
+    columns_section = tk.LabelFrame(
+        scrollable_frame,
+        text=" STEP 2: Select Columns to Include ",
+        font=("Arial", 11, "bold"),
         bg=bg_color,
         fg="#333333",
         padx=15,
-        pady=10
+        pady=15
     )
-    mandatory_frame.pack(fill=tk.X, padx=15, pady=10)
+    columns_section.pack(fill=tk.X, padx=10, pady=10)
 
-    mandatory_inner = tk.Frame(mandatory_frame, bg=bg_color)
-    mandatory_inner.pack(fill=tk.X)
+    # Info about prefixes
+    tk.Label(
+        columns_section,
+        text="Duplicate column names will be prefixed with 'Previous_' or 'Current_' automatically",
+        font=("Arial", 9, "italic"),
+        bg=bg_color,
+        fg="#888888"
+    ).pack(anchor=tk.W, pady=(0, 10))
 
-    for i, col in enumerate(MANDATORY_COLUMNS):
-        row = i // 3
-        col_idx = i % 3
+    # Two-column layout for column lists
+    columns_row = tk.Frame(columns_section, bg=bg_color)
+    columns_row.pack(fill=tk.BOTH, expand=True)
+    columns_row.columnconfigure(0, weight=1)
+    columns_row.columnconfigure(1, weight=1)
+
+    # Container frames for column lists (will be populated by refresh)
+    prev_list_container = tk.Frame(columns_row, bg=bg_color)
+    prev_list_container.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+    curr_list_container = tk.Frame(columns_row, bg=bg_color)
+    curr_list_container.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+
+    def refresh_column_lists():
+        """Refresh the column selection lists."""
+        nonlocal prev_columns_frame, curr_columns_frame, prev_vars, curr_vars
+
+        # Clear existing
+        for widget in prev_list_container.winfo_children():
+            widget.destroy()
+        for widget in curr_list_container.winfo_children():
+            widget.destroy()
+
+        prev_vars.clear()
+        curr_vars.clear()
+
+        prev_cols = get_previous_file_columns()
+        curr_cols = get_current_file_columns()
+        duplicates = set(prev_cols) & set(curr_cols)
+        selected = get_selected_optional_columns()
+
+        # Filter out mandatory/auto-generated
+        prev_optional = [c for c in prev_cols if c not in MANDATORY_COLUMNS and c not in AUTO_GENERATED_COLUMNS]
+        curr_optional = [c for c in curr_cols if c not in MANDATORY_COLUMNS and c not in AUTO_GENERATED_COLUMNS]
+
+        # ----- PREVIOUS COLUMNS LIST -----
         tk.Label(
-            mandatory_inner,
-            text=f" {col}",
-            font=("Arial", 9),
+            prev_list_container,
+            text=f"From PREVIOUS ({len(prev_optional)} optional)",
+            font=("Arial", 10, "bold"),
             bg=bg_color,
-            fg="#666666"
-        ).grid(row=row, column=col_idx, sticky="w", padx=5, pady=2)
+            fg=PREV_COLOR
+        ).pack(anchor=tk.W, pady=(0, 5))
+
+        if prev_optional:
+            prev_btn_row = tk.Frame(prev_list_container, bg=bg_color)
+            prev_btn_row.pack(fill=tk.X, pady=(0, 5))
+
+            def select_all_prev():
+                for v in prev_vars.values():
+                    v.set(True)
+
+            def deselect_all_prev():
+                for v in prev_vars.values():
+                    v.set(False)
+
+            tk.Button(prev_btn_row, text="All", font=("Arial", 8), bg="#4CAF50", fg="white",
+                      command=select_all_prev, width=6).pack(side=tk.LEFT, padx=2)
+            tk.Button(prev_btn_row, text="None", font=("Arial", 8), bg="#f44336", fg="white",
+                      command=deselect_all_prev, width=6).pack(side=tk.LEFT, padx=2)
+
+            prev_columns_frame = tk.Frame(prev_list_container, bg=CARD_BG, relief=tk.SUNKEN, bd=1)
+            prev_columns_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+
+            for col in prev_optional:
+                display_name = f"Previous_{col}" if col in duplicates else col
+                var = tk.BooleanVar(value=display_name in selected or col in selected or not selected)
+                prev_vars[display_name] = var
+
+                cb = tk.Checkbutton(
+                    prev_columns_frame,
+                    text=display_name,
+                    variable=var,
+                    font=("Arial", 9),
+                    bg=CARD_BG,
+                    activebackground=CARD_BG,
+                    anchor="w"
+                )
+                cb.pack(fill=tk.X, padx=10, pady=1)
+        else:
+            tk.Label(
+                prev_list_container,
+                text="No columns (upload PREVIOUS file)",
+                font=("Arial", 9, "italic"),
+                bg=bg_color,
+                fg="#999999"
+            ).pack(anchor=tk.W)
+
+        # ----- CURRENT COLUMNS LIST -----
+        tk.Label(
+            curr_list_container,
+            text=f"From CURRENT ({len(curr_optional)} optional)",
+            font=("Arial", 10, "bold"),
+            bg=bg_color,
+            fg=CURR_COLOR
+        ).pack(anchor=tk.W, pady=(0, 5))
+
+        if curr_optional:
+            curr_btn_row = tk.Frame(curr_list_container, bg=bg_color)
+            curr_btn_row.pack(fill=tk.X, pady=(0, 5))
+
+            def select_all_curr():
+                for v in curr_vars.values():
+                    v.set(True)
+
+            def deselect_all_curr():
+                for v in curr_vars.values():
+                    v.set(False)
+
+            tk.Button(curr_btn_row, text="All", font=("Arial", 8), bg="#4CAF50", fg="white",
+                      command=select_all_curr, width=6).pack(side=tk.LEFT, padx=2)
+            tk.Button(curr_btn_row, text="None", font=("Arial", 8), bg="#f44336", fg="white",
+                      command=deselect_all_curr, width=6).pack(side=tk.LEFT, padx=2)
+
+            curr_columns_frame = tk.Frame(curr_list_container, bg=CARD_BG, relief=tk.SUNKEN, bd=1)
+            curr_columns_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+
+            for col in curr_optional:
+                display_name = f"Current_{col}" if col in duplicates else col
+                # Skip if already added from PREVIOUS (non-duplicate)
+                if col not in duplicates and col in [c.replace("Previous_", "") for c in prev_vars.keys()]:
+                    continue
+                var = tk.BooleanVar(value=display_name in selected or col in selected or not selected)
+                curr_vars[display_name] = var
+
+                cb = tk.Checkbutton(
+                    curr_columns_frame,
+                    text=display_name,
+                    variable=var,
+                    font=("Arial", 9),
+                    bg=CARD_BG,
+                    activebackground=CARD_BG,
+                    anchor="w"
+                )
+                cb.pack(fill=tk.X, padx=10, pady=1)
+        else:
+            tk.Label(
+                curr_list_container,
+                text="No columns (upload CURRENT file)",
+                font=("Arial", 9, "italic"),
+                bg=bg_color,
+                fg="#999999"
+            ).pack(anchor=tk.W)
+
+    # Initialize column lists
+    refresh_column_lists()
 
     # ===== AUTO-GENERATED COLUMNS =====
     auto_frame = tk.LabelFrame(
         scrollable_frame,
         text=" AUTO-GENERATED COLUMNS (Created by VRS Logic) ",
-        font=("Arial", 10, "bold"),
+        font=("Arial", 11, "bold"),
         bg=bg_color,
         fg="#333333",
         padx=15,
-        pady=10
+        pady=15
     )
-    auto_frame.pack(fill=tk.X, padx=15, pady=10)
+    auto_frame.pack(fill=tk.X, padx=10, pady=10)
 
     col_settings = get_column_settings()
     auto_vars = {}
 
     for col in AUTO_GENERATED_COLUMNS:
         row_frame = tk.Frame(auto_frame, bg=bg_color)
-        row_frame.pack(fill=tk.X, pady=2)
+        row_frame.pack(fill=tk.X, pady=3)
 
         enabled = col_settings.get("auto_generated", {}).get(col, {}).get("enabled", True)
         var = tk.BooleanVar(value=enabled)
@@ -851,7 +994,7 @@ def show_column_settings_dialog_v2(parent):
             font=("Arial", 10),
             bg=bg_color,
             activebackground=bg_color,
-            width=22,
+            width=24,
             anchor="w"
         )
         cb.pack(side=tk.LEFT)
@@ -860,16 +1003,13 @@ def show_column_settings_dialog_v2(parent):
         if help_text:
             tk.Label(
                 row_frame,
-                text=f" {help_text}",
-                font=("Arial", 8),
+                text=f"  {help_text}",
+                font=("Arial", 9),
                 bg=bg_color,
                 fg="#888888"
-            ).pack(side=tk.LEFT, padx=5)
+            ).pack(side=tk.LEFT)
 
-    # Initialize optional columns if already analyzed
-    refresh_optional_columns()
-
-    # Pack canvas and scrollbar inside canvas_frame
+    # Pack canvas and scrollbar
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -881,25 +1021,23 @@ def show_column_settings_dialog_v2(parent):
 
     # ===== BUTTON FRAME =====
     button_frame = tk.Frame(dialog, bg=bg_color)
-    button_frame.pack(pady=15)
-
-    def reset_to_defaults():
-        """Reset all settings to defaults."""
-        for var in auto_vars.values():
-            var.set(True)
-        for var in optional_vars.values():
-            var.set(True)
+    button_frame.pack(pady=20)
 
     def save_and_close():
         """Save settings and close dialog."""
+        # Combine all selected columns
+        all_selected = []
+        for col, var in prev_vars.items():
+            if var.get():
+                all_selected.append(col)
+        for col, var in curr_vars.items():
+            if var.get():
+                all_selected.append(col)
+
+        set_selected_optional_columns(all_selected)
+
         # Save auto-generated settings
         new_auto = {col: {"enabled": var.get()} for col, var in auto_vars.items()}
-
-        # Save optional column selections
-        selected_optional = [col for col, var in optional_vars.items() if var.get()]
-        set_selected_optional_columns(selected_optional)
-
-        # Update column settings
         settings = get_column_settings()
         settings["auto_generated"] = new_auto
         set_column_settings(settings)
@@ -916,35 +1054,24 @@ def show_column_settings_dialog_v2(parent):
     tk.Button(
         button_frame,
         text="Back",
-        font=("Arial", 10),
+        font=("Arial", 11),
         bg="#757575",
-        fg="white",
-        width=10,
-        cursor="hand2",
-        command=back_to_settings
-    ).pack(side=tk.LEFT, padx=5)
-
-    tk.Button(
-        button_frame,
-        text="Reset Defaults",
-        font=("Arial", 10),
-        bg="#FF9800",
         fg="white",
         width=12,
         cursor="hand2",
-        command=reset_to_defaults
-    ).pack(side=tk.LEFT, padx=5)
+        command=back_to_settings
+    ).pack(side=tk.LEFT, padx=10)
 
     tk.Button(
         button_frame,
         text="Apply & Save",
-        font=("Arial", 10, "bold"),
+        font=("Arial", 11, "bold"),
         bg="#4CAF50",
         fg="white",
-        width=12,
+        width=14,
         cursor="hand2",
         command=save_and_close
-    ).pack(side=tk.LEFT, padx=5)
+    ).pack(side=tk.LEFT, padx=10)
 
 
 def create_gui():

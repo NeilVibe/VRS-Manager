@@ -172,6 +172,16 @@ C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
 - **Proper state**: Selection not saved until Save clicked
 - **Larger buttons**: width=12, font size 11
 
+### Column Settings Dialog V3 (DUAL-FILE)
+- **Size**: 950x800 with minsize(900, 700)
+- **Dual upload**: Separate PREVIOUS and CURRENT file uploads
+- **Side-by-side layout**: Blue card for PREVIOUS, Green card for CURRENT
+- **Auto prefixing**: Duplicate columns get "Previous_" or "Current_" prefix
+- **Two column lists**: Select from each file independently
+- **All/None buttons**: Quick select/deselect for each list
+- **Clear buttons**: Clear uploaded file and start fresh
+- **New settings functions**: get_previous_file_columns(), get_current_file_columns(), etc.
+
 ### Testing Notes
 - Main window screenshot captured successfully
 - Automated clicking from WSL doesn't work (tkinter/UIPI limitation)
