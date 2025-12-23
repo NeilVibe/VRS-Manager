@@ -8,7 +8,7 @@ including the Priority Change display toggle and column customization.
 import json
 import os
 
-from src.config import AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS, MANDATORY_COLUMNS
+from src.config import AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS, MANDATORY_COLUMNS, VRS_CONDITIONAL_COLUMNS
 
 # Settings file path (in user's home directory for persistence)
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".vrsmanager_settings.json")
@@ -160,6 +160,18 @@ def get_enabled_columns():
     return enabled_auto, enabled_optional
 
 
+def get_vrs_conditional_columns():
+    """
+    Get VRS conditional columns (always from CURRENT, always enabled).
+
+    These columns are used in VRS change detection logic and cannot be disabled.
+
+    Returns:
+        list: List of VRS conditional column names
+    """
+    return VRS_CONDITIONAL_COLUMNS.copy()
+
+
 def reset_column_settings():
     """Reset column settings to defaults (all ON)."""
     settings = load_settings()
@@ -224,11 +236,14 @@ def set_selected_optional_columns(columns):
         settings["output_columns"] = {"auto_generated": {}, "optional": {}}
 
     # Set all analyzed columns, enabled if in columns list
+    # Exclude MANDATORY, AUTO_GENERATED, and VRS_CONDITIONAL (those are not optional)
     analyzed = settings.get("analyzed_columns", [])
     settings["output_columns"]["optional"] = {
         col: {"enabled": col in columns}
         for col in analyzed
-        if col not in MANDATORY_COLUMNS and col not in AUTO_GENERATED_COLUMNS
+        if col not in MANDATORY_COLUMNS
+        and col not in AUTO_GENERATED_COLUMNS
+        and col not in VRS_CONDITIONAL_COLUMNS
     }
     save_settings(settings)
 

@@ -72,23 +72,31 @@ OUTPUT_COLUMNS = [
 # ===========================================================================
 # COLUMN CLASSIFICATION (for customizable output)
 # ===========================================================================
-# Mandatory: Always present, cannot disable
+# Mandatory: Always present, cannot disable - core identification columns
 MANDATORY_COLUMNS = [
     "SequenceName", "EventName", "StrOrigin", "CharacterKey", "CharacterName",
     "CastingKey", "DialogVoice", "Text", "STATUS", "CHANGES"
 ]
 
-# Auto-generated: Created by VRS logic, user can toggle
+# VRS Conditional: Used in change detection logic, always from CURRENT, cannot disable
+# These columns are checked by detect_field_changes() for priority labeling
+VRS_CONDITIONAL_COLUMNS = [
+    "Desc", "DialogType", "Group",           # Core metadata checked in change detection
+    "StartFrame", "EndFrame",                 # TimeFrame detection
+    "Tribe", "Age", "Gender", "Job", "Region" # CharacterGroup detection (CHAR_GROUP_COLS)
+]
+
+# Auto-generated: Created by VRS comparison logic, user can toggle ON/OFF
 AUTO_GENERATED_COLUMNS = [
     "PreviousData", "PreviousText", "PreviousEventName", "DETAILED_CHANGES",
     "Previous StrOrigin", "Mainline Translation"
 ]
 
-# Optional: From source files, user can toggle + choose source
+# Optional: Truly extra columns NOT used in VRS logic, user can toggle + choose source
+# These are metadata fields that some files have, others don't
 OPTIONAL_COLUMNS = [
-    "Desc", "FREEMEMO", "SubTimelineName", "StartFrame", "EndFrame",
-    "DialogType", "Group", "UpdateTime", "Tribe", "Age", "Gender", "Job",
-    "Region", "HasAudio", "UseSubtitle", "Record", "isNew"
+    "FREEMEMO", "SubTimelineName", "UpdateTime",
+    "HasAudio", "UseSubtitle", "Record", "isNew"
 ]
 
 OUTPUT_COLUMNS_RAW = [

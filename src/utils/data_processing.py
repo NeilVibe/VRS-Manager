@@ -6,7 +6,7 @@ including status normalization, column filtering, and dataframe cleaning.
 """
 
 import pandas as pd
-from src.config import OUTPUT_COLUMNS, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS
+from src.config import OUTPUT_COLUMNS, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS, VRS_CONDITIONAL_COLUMNS
 from src.utils.helpers import safe_str
 from src.settings import get_enabled_columns, get_selected_optional_columns, get_analyzed_columns
 
@@ -86,6 +86,7 @@ def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
 
     # Build list of columns to include
     enabled_columns = set(MANDATORY_COLUMNS)  # Always include mandatory
+    enabled_columns.update(VRS_CONDITIONAL_COLUMNS)  # Always include VRS conditional (change detection columns)
     enabled_columns.update(enabled_auto)  # Add enabled auto-generated
     enabled_columns.update(enabled_optional.keys())  # Add enabled optional (from old V1 settings)
 
