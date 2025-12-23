@@ -1,6 +1,6 @@
 # TASK-002: Customizable Output Columns + HasAudio
 
-**Created:** 2025-12-22 | **Status:** V2.1 COMPLETE | **Priority:** High
+**Created:** 2025-12-22 | **Status:** V4 COMPLETE | **Priority:** High
 
 ---
 
@@ -11,6 +11,38 @@ Two requests from colleague:
 2. Allow users to customize which optional columns appear in output
 
 **Scope:** MAIN TAB only (within WORKING processor). Other tabs in WORKING processor not affected.
+
+---
+
+## V4 IMPLEMENTATION COMPLETE (2025-12-23)
+
+### 4-Tier Column Classification System
+
+| Category | Count | Behavior |
+|----------|-------|----------|
+| **MANDATORY** | 10 | Always included, cannot disable |
+| **VRS_CONDITIONAL** | 10 | Used in change detection, always from CURRENT |
+| **AUTO_GENERATED** | 6 | Created by VRS logic, toggleable |
+| **OPTIONAL** | 7 | Extra metadata only, toggleable |
+
+### Key Changes
+- Removed dual-file upload (columns now predefined)
+- Column Settings dialog: 1000x900, spacious 4-section layout
+- Priority Mode dialog: 600x550 (Back/Save visible)
+- VRS logic columns (Group, Desc, Age, etc.) now VRS_CONDITIONAL, not optional
+- 15 new tests for column classification
+
+### Files Modified
+```
+src/config.py                # VRS_CONDITIONAL_COLUMNS added
+src/settings.py              # get_vrs_conditional_columns()
+src/ui/main_window.py        # 4-section dialog
+src/utils/data_processing.py # Always include VRS_CONDITIONAL
+tests/test_column_classification.py  # 15 new tests
+```
+
+### Build Status
+✅ V4 Column Classification System - Success (2m24s)
 
 ---
 

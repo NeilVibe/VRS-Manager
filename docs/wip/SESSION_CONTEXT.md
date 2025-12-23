@@ -213,13 +213,20 @@ C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
 ## Next Steps
 
 1. ✅ **V4 Commits done** - 4-tier column system + tests
-2. **Trigger build** - Push and build new installer
+2. ✅ **Build complete** - V4 Column Classification System (success, 2m24s)
 3. **Manual Windows test** - Verify Column Settings dialog shows:
    - MANDATORY section (green ✓, 10 columns)
    - VRS_CONDITIONAL section (blue ✓, 10 columns)
    - AUTO-GENERATED section (purple checkboxes, 6 columns)
    - OPTIONAL section (orange checkboxes, 7 columns)
 4. **Verify Priority Mode dialog** - Back/Save buttons visible
+
+## Key Clarifications (This Session)
+
+- **Row matching**: By KEY (SequenceName + EventName + StrOrigin + CharacterKey), NOT by index
+- **Column matching**: By column NAME, not index
+- **Column values**: All from CURRENT except AUTO_GENERATED (comparison data from PREVIOUS)
+- **Simplified UI**: Removed dual-file upload, columns now predefined categories
 
 ---
 
