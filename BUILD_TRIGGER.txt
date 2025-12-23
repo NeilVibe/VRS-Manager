@@ -156,3 +156,4 @@ Build LIGHT v12231045
 Build LIGHT (TASK-002 V2 Column Settings)
 Build LIGHT (TASK-002 V2.1 UI Fixes)
 Build LIGHT (Priority Mode Dialog Redesign)
+Build LIGHT (Column Settings V3 Dual-File)
