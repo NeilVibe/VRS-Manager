@@ -262,13 +262,19 @@ def show_priority_mode_dialog(parent):
     """
     Show Priority Change Mode settings dialog.
 
+    Redesigned UI with clear ON/OFF toggle buttons:
+    - Click ON or OFF to select (highlighted in green)
+    - Save button saves the selection
+    - Current saved state shown on open
+
     Args:
         parent: Parent window for the dialog
     """
     dialog = tk.Toplevel(parent)
     dialog.title("Priority Change Mode")
-    dialog.geometry("500x300")
-    dialog.resizable(False, False)
+    dialog.geometry("600x450")  # Larger, more spacious
+    dialog.minsize(550, 400)
+    dialog.resizable(True, True)
     dialog.transient(parent)
     dialog.grab_set()
 
@@ -278,80 +284,189 @@ def show_priority_mode_dialog(parent):
     y = parent.winfo_y() + (parent.winfo_height() // 2) - (dialog.winfo_height() // 2)
     dialog.geometry(f"+{x}+{y}")
 
-    bg_color = "#f0f0f0"
+    bg_color = "#f5f5f5"
     dialog.configure(bg=bg_color)
 
+    # Current selection state (not saved until Save clicked)
+    current_selection = tk.BooleanVar(value=get_use_priority_change())
+
+    # Store frame references for updating
+    on_frame = None
+    off_frame = None
+    on_widgets = []
+    off_widgets = []
+
+    # Colors
+    SELECTED_BG = "#e8f5e9"      # Light green background
+    SELECTED_BORDER = "#4CAF50"  # Green border
+    SELECTED_TEXT = "#2e7d32"    # Dark green text
+    UNSELECTED_BG = "#fafafa"    # Light gray background
+    UNSELECTED_BORDER = "#e0e0e0"  # Gray border
+    UNSELECTED_TEXT = "#757575"  # Gray text
+
+    def update_selection_visuals():
+        """Update visual highlighting based on current selection."""
+        is_on = current_selection.get()
+
+        # Update ON frame
+        if is_on:
+            on_frame.config(bg=SELECTED_BG, highlightbackground=SELECTED_BORDER, highlightthickness=3)
+            for widget in on_widgets:
+                widget.config(bg=SELECTED_BG)
+        else:
+            on_frame.config(bg=UNSELECTED_BG, highlightbackground=UNSELECTED_BORDER, highlightthickness=1)
+            for widget in on_widgets:
+                widget.config(bg=UNSELECTED_BG)
+
+        # Update OFF frame
+        if not is_on:
+            off_frame.config(bg=SELECTED_BG, highlightbackground=SELECTED_BORDER, highlightthickness=3)
+            for widget in off_widgets:
+                widget.config(bg=SELECTED_BG)
+        else:
+            off_frame.config(bg=UNSELECTED_BG, highlightbackground=UNSELECTED_BORDER, highlightthickness=1)
+            for widget in off_widgets:
+                widget.config(bg=UNSELECTED_BG)
+
+    def select_on():
+        """Select ON option."""
+        current_selection.set(True)
+        update_selection_visuals()
+
+    def select_off():
+        """Select OFF option."""
+        current_selection.set(False)
+        update_selection_visuals()
+
     # Title
-    title_label = tk.Label(
+    tk.Label(
         dialog,
         text="Priority Change Mode",
-        font=("Arial", 14, "bold"),
+        font=("Arial", 16, "bold"),
         bg=bg_color,
         fg="#333333"
-    )
-    title_label.pack(pady=(20, 15))
+    ).pack(pady=(25, 10))
 
-    # Content frame
-    content_frame = tk.Frame(dialog, bg=bg_color)
-    content_frame.pack(pady=10, padx=30, fill=tk.BOTH, expand=True)
-
-    # Variable for checkbox
-    use_priority_var = tk.BooleanVar(value=get_use_priority_change())
-
-    # Checkbox
-    priority_checkbox = tk.Checkbutton(
-        content_frame,
-        text="Use Priority Change Mode",
-        variable=use_priority_var,
-        font=("Arial", 12, "bold"),
-        bg=bg_color,
-        activebackground=bg_color
-    )
-    priority_checkbox.pack(anchor=tk.W, pady=(0, 10))
-
-    # ON description
-    on_frame = tk.Frame(content_frame, bg="#e8f5e9", relief=tk.GROOVE, bd=1)
-    on_frame.pack(fill=tk.X, pady=5)
+    # Subtitle
     tk.Label(
-        on_frame,
-        text="ON: CHANGES shows priority-based label (recommended)",
-        font=("Arial", 10, "bold"),
-        bg="#e8f5e9",
-        fg="#2e7d32"
-    ).pack(anchor=tk.W, padx=10, pady=5)
-    tk.Label(
-        on_frame,
-        text='Example: "StrOrigin Change" instead of full composite',
-        font=("Arial", 9),
-        bg="#e8f5e9",
-        fg="#666666"
-    ).pack(anchor=tk.W, padx=10, pady=(0, 5))
-
-    # OFF description
-    off_frame = tk.Frame(content_frame, bg="#fafafa", relief=tk.GROOVE, bd=1)
-    off_frame.pack(fill=tk.X, pady=5)
-    tk.Label(
-        off_frame,
-        text="OFF: CHANGES shows full composite label (legacy)",
+        dialog,
+        text="Choose how the CHANGES column displays change types",
         font=("Arial", 10),
-        bg="#fafafa",
+        bg=bg_color,
         fg="#666666"
-    ).pack(anchor=tk.W, padx=10, pady=5)
-    tk.Label(
+    ).pack(pady=(0, 20))
+
+    # Options container
+    options_frame = tk.Frame(dialog, bg=bg_color)
+    options_frame.pack(pady=10, padx=40, fill=tk.BOTH, expand=True)
+
+    # ===== ON Option (clickable card) =====
+    on_frame = tk.Frame(
+        options_frame,
+        bg=UNSELECTED_BG,
+        highlightbackground=UNSELECTED_BORDER,
+        highlightthickness=1,
+        cursor="hand2"
+    )
+    on_frame.pack(fill=tk.X, pady=10, ipady=10)
+
+    on_header = tk.Label(
+        on_frame,
+        text="ON - Priority Labels (Recommended)",
+        font=("Arial", 12, "bold"),
+        bg=UNSELECTED_BG,
+        fg=SELECTED_TEXT,
+        cursor="hand2"
+    )
+    on_header.pack(anchor=tk.W, padx=20, pady=(15, 5))
+    on_widgets.append(on_header)
+
+    on_desc = tk.Label(
+        on_frame,
+        text="Shows the most important change type only",
+        font=("Arial", 10),
+        bg=UNSELECTED_BG,
+        fg="#666666",
+        cursor="hand2"
+    )
+    on_desc.pack(anchor=tk.W, padx=20, pady=2)
+    on_widgets.append(on_desc)
+
+    on_example = tk.Label(
+        on_frame,
+        text='Example: "StrOrigin Change" or "Text Change"',
+        font=("Arial", 9, "italic"),
+        bg=UNSELECTED_BG,
+        fg="#888888",
+        cursor="hand2"
+    )
+    on_example.pack(anchor=tk.W, padx=20, pady=(2, 15))
+    on_widgets.append(on_example)
+
+    # Bind click to entire ON frame and children
+    on_frame.bind("<Button-1>", lambda e: select_on())
+    for widget in on_widgets:
+        widget.bind("<Button-1>", lambda e: select_on())
+
+    # ===== OFF Option (clickable card) =====
+    off_frame = tk.Frame(
+        options_frame,
+        bg=UNSELECTED_BG,
+        highlightbackground=UNSELECTED_BORDER,
+        highlightthickness=1,
+        cursor="hand2"
+    )
+    off_frame.pack(fill=tk.X, pady=10, ipady=10)
+
+    off_header = tk.Label(
+        off_frame,
+        text="OFF - Full Composite Labels",
+        font=("Arial", 12, "bold"),
+        bg=UNSELECTED_BG,
+        fg=UNSELECTED_TEXT,
+        cursor="hand2"
+    )
+    off_header.pack(anchor=tk.W, padx=20, pady=(15, 5))
+    off_widgets.append(off_header)
+
+    off_desc = tk.Label(
+        off_frame,
+        text="Shows all change types combined (legacy mode)",
+        font=("Arial", 10),
+        bg=UNSELECTED_BG,
+        fg="#666666",
+        cursor="hand2"
+    )
+    off_desc.pack(anchor=tk.W, padx=20, pady=2)
+    off_widgets.append(off_desc)
+
+    off_example = tk.Label(
         off_frame,
         text='Example: "StrOrigin+EventName+TimeFrame Change"',
-        font=("Arial", 9),
-        bg="#fafafa",
-        fg="#999999"
-    ).pack(anchor=tk.W, padx=10, pady=(0, 5))
+        font=("Arial", 9, "italic"),
+        bg=UNSELECTED_BG,
+        fg="#888888",
+        cursor="hand2"
+    )
+    off_example.pack(anchor=tk.W, padx=20, pady=(2, 15))
+    off_widgets.append(off_example)
 
-    # Button frame
+    # Bind click to entire OFF frame and children
+    off_frame.bind("<Button-1>", lambda e: select_off())
+    for widget in off_widgets:
+        widget.bind("<Button-1>", lambda e: select_off())
+
+    # Set initial visual state
+    update_selection_visuals()
+
+    # ===== Button frame =====
     button_frame = tk.Frame(dialog, bg=bg_color)
-    button_frame.pack(pady=15)
+    button_frame.pack(pady=25)
 
     def save_and_close():
-        set_use_priority_change(use_priority_var.get())
-        messagebox.showinfo("Saved", "Priority Change Mode saved!")
+        set_use_priority_change(current_selection.get())
+        status = "ON" if current_selection.get() else "OFF"
+        messagebox.showinfo("Saved", f"Priority Change Mode set to {status}")
         dialog.destroy()
 
     def back_to_settings():
@@ -361,24 +476,30 @@ def show_priority_mode_dialog(parent):
     tk.Button(
         button_frame,
         text="Back",
-        font=("Arial", 10),
+        font=("Arial", 11),
         bg="#757575",
         fg="white",
-        width=10,
+        width=12,
+        height=1,
         cursor="hand2",
+        relief=tk.RAISED,
+        bd=2,
         command=back_to_settings
-    ).pack(side=tk.LEFT, padx=5)
+    ).pack(side=tk.LEFT, padx=10)
 
     tk.Button(
         button_frame,
         text="Save",
-        font=("Arial", 10, "bold"),
+        font=("Arial", 11, "bold"),
         bg="#4CAF50",
         fg="white",
-        width=10,
+        width=12,
+        height=1,
         cursor="hand2",
+        relief=tk.RAISED,
+        bd=2,
         command=save_and_close
-    ).pack(side=tk.LEFT, padx=5)
+    ).pack(side=tk.LEFT, padx=10)
 
 
 # Auto-generated column help texts (shortened for UI fit)

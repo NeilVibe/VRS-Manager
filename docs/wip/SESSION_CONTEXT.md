@@ -157,12 +157,20 @@ C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
 
 ## V2.1 UI Fixes (DONE)
 
-Fixed all reported UI issues:
+### Column Settings Dialog
 - **Wider dialog**: 700x750 → 880x800
 - **Resizable**: Now fully resizable with minsize(800, 600)
 - **Shortened help text**: Prevents text cut-off
 - **Threading**: File analysis runs in background (no UI freeze)
 - **Dynamic width**: Scrollable area expands with window
+
+### Priority Change Mode Dialog (NEW)
+- **Larger dialog**: 500x300 → 600x450 (+50% bigger)
+- **Resizable**: True with minsize(550, 400)
+- **Removed checkbox**: Replaced with clickable ON/OFF cards
+- **Clear visual**: Green highlight on selected option only
+- **Proper state**: Selection not saved until Save clicked
+- **Larger buttons**: width=12, font size 11
 
 ### Testing Notes
 - Main window screenshot captured successfully

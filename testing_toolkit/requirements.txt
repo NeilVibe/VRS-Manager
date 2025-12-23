@@ -1,0 +1,7 @@
+# VRS Manager Testing Toolkit Dependencies
+# Install: pip install -r requirements.txt
+
+pyautogui>=0.9.54      # GUI automation (clicks, screenshots, typing)
+pillow>=10.0.0         # Image processing and screenshots
+pygetwindow>=0.0.9     # Window management
+pywinauto>=0.6.8       # Windows UI Automation (alternative)
