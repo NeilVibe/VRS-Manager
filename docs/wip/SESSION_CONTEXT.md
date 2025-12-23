@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-23
 **Version:** v12231045 (production)
-**Status:** TASK-002 V3 COMPLETE - Dual-file + Mandatory columns info
+**Status:** TASK-002 V4 COMPLETE - 4-tier column classification
 
 ---
 
@@ -11,34 +11,44 @@
 | Item | Status |
 |------|--------|
 | Production | Stable (v12231045) |
-| Git | V3 commits pushed, build pending |
-| TASK-002 | V3 COMPLETE - dual-file upload, mandatory columns info section |
+| Git | V4 commits ready, build pending |
+| TASK-002 | V4 COMPLETE - 4-tier column system, clean UI, 15 new tests |
 
 ---
 
-## TASK-002: V3 Implementation COMPLETE
+## TASK-002: V4 Implementation COMPLETE
 
-### What V3 Does
-1. **Nested Settings UI**: Settings button → submenu (Priority Mode / Column Settings)
-2. **Dual-File Upload**: Upload BOTH PREVIOUS and CURRENT files separately
-3. **Auto Prefixing**: Duplicate column names get "Previous_" or "Current_" prefix
-4. **Mandatory Columns Info**: Shows mandatory columns (always included, cannot disable)
-5. **Graceful Fallback**: Skip missing columns without crashing
+### 4-Tier Column Classification System
 
-### Column Hierarchy (Clarified)
-| Type | Behavior | UI |
-|------|----------|-----|
-| **MANDATORY** | Always included, no toggle | Info section with green ✓ |
-| **AUTO-GENERATED** | Toggleable ON/OFF | Checkboxes |
-| **OPTIONAL** | From analyzed files, toggleable | Checkboxes per file |
+| Category | Count | Behavior | UI |
+|----------|-------|----------|-----|
+| **MANDATORY** | 10 | Always included, cannot disable | Green ✓ info section |
+| **VRS_CONDITIONAL** | 10 | Used in change detection, always from CURRENT | Blue ✓ info section |
+| **AUTO-GENERATED** | 6 | Created by VRS logic, toggleable | Purple checkboxes |
+| **OPTIONAL** | 7 | Extra metadata only, toggleable | Orange checkboxes |
 
-**Note:** Mandatory columns are ALWAYS applied regardless of UI settings. The processing logic in `data_processing.py` always includes them.
+### Column Details
+
+**MANDATORY (10):** SequenceName, EventName, StrOrigin, CharacterKey, CharacterName, CastingKey, DialogVoice, Text, STATUS, CHANGES
+
+**VRS_CONDITIONAL (10):** Desc, DialogType, Group, StartFrame, EndFrame, Tribe, Age, Gender, Job, Region
+- These are checked by `detect_field_changes()` in change_detection.py
+- Always extracted from CURRENT file
+- Cannot be disabled (essential for VRS processing)
+
+**AUTO-GENERATED (6):** PreviousData, PreviousText, PreviousEventName, DETAILED_CHANGES, Previous StrOrigin, Mainline Translation
+
+**OPTIONAL (7):** FREEMEMO, SubTimelineName, UpdateTime, HasAudio, UseSubtitle, Record, isNew
+- Truly extra metadata NOT used in VRS logic
+- Safe to toggle ON/OFF
 
 ### Files Modified (All Committed)
 ```
-src/settings.py              # V3 dual-file functions + combined columns
-src/ui/main_window.py        # V3 dual-file dialog (950x800) + mandatory info
-src/utils/data_processing.py # V2 filter_output_columns()
+src/config.py                # V4: Added VRS_CONDITIONAL_COLUMNS, updated OPTIONAL
+src/settings.py              # V4: get_vrs_conditional_columns(), filter VRS from optional
+src/ui/main_window.py        # V4: 4-section dialog (1000x900), Priority dialog (600x550)
+src/utils/data_processing.py # V4: Always include VRS_CONDITIONAL in output
+tests/test_column_classification.py  # NEW: 15 tests for column system
 ```
 
 ### Bug Fixed (This Session)
@@ -202,12 +212,14 @@ C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
 
 ## Next Steps
 
-1. ✅ **Commits done** - V3 dual-file + mandatory columns info
+1. ✅ **V4 Commits done** - 4-tier column system + tests
 2. **Trigger build** - Push and build new installer
 3. **Manual Windows test** - Verify Column Settings dialog shows:
-   - Mandatory columns info section (green checkmarks)
-   - Dual-file upload (PREVIOUS / CURRENT cards)
-   - Auto prefixing for duplicate columns
+   - MANDATORY section (green ✓, 10 columns)
+   - VRS_CONDITIONAL section (blue ✓, 10 columns)
+   - AUTO-GENERATED section (purple checkboxes, 6 columns)
+   - OPTIONAL section (orange checkboxes, 7 columns)
+4. **Verify Priority Mode dialog** - Back/Save buttons visible
 
 ---
 
