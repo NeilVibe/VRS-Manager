@@ -457,5 +457,17 @@ git push origin main
 
 ---
 
-**Last Updated:** 2025-12-02 (v12021800)
+**Last Updated:** 2025-12-23 (v12231045)
 **Build System Version:** Modular with Safety Checks (LIGHT/FULL/BOTH selection)
+
+---
+
+## IMPORTANT: LIGHT IS THE OFFICIAL BUILD
+
+**Effective: 2025-12-23**
+
+From now on, **LIGHT version is the official distribution**. Only build LIGHT until further notice.
+
+- FULL version (with BERT) is deprecated for regular builds
+- Use LIGHT for all releases and testing
+- FULL may be built only upon explicit request
