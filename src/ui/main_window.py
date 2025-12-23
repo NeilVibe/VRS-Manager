@@ -964,6 +964,41 @@ def show_column_settings_dialog_v2(parent):
     # Initialize column lists
     refresh_column_lists()
 
+    # ===== MANDATORY COLUMNS (Info Only) =====
+    mandatory_frame = tk.LabelFrame(
+        scrollable_frame,
+        text=" MANDATORY COLUMNS (Always Included - Cannot Disable) ",
+        font=("Arial", 11, "bold"),
+        bg=bg_color,
+        fg="#333333",
+        padx=15,
+        pady=10
+    )
+    mandatory_frame.pack(fill=tk.X, padx=10, pady=10)
+
+    tk.Label(
+        mandatory_frame,
+        text="These columns are required for VRS processing and are always included:",
+        font=("Arial", 9, "italic"),
+        bg=bg_color,
+        fg="#666666"
+    ).pack(anchor=tk.W, pady=(0, 8))
+
+    # Display mandatory columns in a grid (3 columns)
+    mandatory_grid = tk.Frame(mandatory_frame, bg=bg_color)
+    mandatory_grid.pack(fill=tk.X)
+
+    for i, col in enumerate(MANDATORY_COLUMNS):
+        row = i // 3
+        col_idx = i % 3
+        tk.Label(
+            mandatory_grid,
+            text=f"✓ {col}",
+            font=("Arial", 9),
+            bg=bg_color,
+            fg="#2E7D32"
+        ).grid(row=row, column=col_idx, sticky="w", padx=10, pady=2)
+
     # ===== AUTO-GENERATED COLUMNS =====
     auto_frame = tk.LabelFrame(
         scrollable_frame,
