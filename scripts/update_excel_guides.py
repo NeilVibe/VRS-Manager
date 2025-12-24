@@ -13,8 +13,8 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # CONFIGURATION - EDIT THIS SECTION FOR EACH UPDATE
 # ============================================================================
 
-VERSION = "12231045"
-VERSION_TEXT_EN = "Version 12231045 (Smarter Change Detection + Enhanced Tracking)"
+VERSION = "12242254"
+VERSION_TEXT_EN = "Version 12242254 (Smarter Change Detection + Enhanced Tracking)"
 VERSION_TEXT_KR = "버전 12231045 (스마트 변경 감지 + 향상된 추적)"
 
 # English content to add

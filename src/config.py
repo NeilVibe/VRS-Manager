@@ -132,5 +132,5 @@ ALLLANG_HISTORY_FILE = "alllang_update_history.json"
 # ===========================================================================
 # VERSION INFORMATION
 # ===========================================================================
-VERSION = "12231045"
-VERSION_FOOTER = "ver. 12231045 | Customizable Output Columns + HasAudio"
+VERSION = "12242254"
+VERSION_FOOTER = "ver. 12242254 | Customizable Output Columns + HasAudio"

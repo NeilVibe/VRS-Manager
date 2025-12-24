@@ -1,6 +1,6 @@
 # VRS Manager - User Guide
 
-**Version:** 12231045 | **Status:** Production Ready | **Date:** November 2025
+**Version:** 12242254 | **Status:** Production Ready | **Date:** November 2025
 
 ---
 
@@ -538,7 +538,7 @@ Shows the **previous Text/Translation** for all matched rows.
 
 ## Version Information
 
-**Current Version**: 12231045 (Production Ready - Smart Change Classification)
+**Current Version**: 12242254 (Production Ready - Smart Change Classification)
 
 **Key Features**:
 - ✅ **Smart Change Classification** (v12231045) - Priority-based CHANGES column
@@ -590,4 +590,4 @@ For questions or issues, contact the development team or check the project docum
 
 ---
 
-*Last Updated: December 5, 2025 | Version 12231045*
+*Last Updated: December 5, 2025 | Version 12242254*
