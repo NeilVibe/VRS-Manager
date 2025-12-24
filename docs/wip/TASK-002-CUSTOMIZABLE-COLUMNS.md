@@ -1,6 +1,6 @@
 # TASK-002: Customizable Output Columns + HasAudio
 
-**Created:** 2025-12-22 | **Status:** V4 COMPLETE | **Priority:** High
+**Created:** 2025-12-22 | **Status:** V5 IMPLEMENTED | **Priority:** High
 
 ---
 
@@ -11,6 +11,113 @@ Two requests from colleague:
 2. Allow users to customize which optional columns appear in output
 
 **Scope:** MAIN TAB only (within WORKING processor). Other tabs in WORKING processor not affected.
+
+---
+
+## V5 IMPLEMENTATION (COMPLETE - 2025-12-24)
+
+### What Was Implemented
+
+1. **Backend: KEY-based PREVIOUS Column Extraction** ✅
+   - `src/core/working_comparison.py`: Added V5 PREVIOUS column extraction
+   - Uses existing 10-KEY matching system (SequenceName+EventName+StrOrigin+CastingKey)
+   - For each CURRENT row, extracts selected columns from matched PREVIOUS row
+   - New rows (no KEY match) get empty PREVIOUS values
+
+2. **Data Processing: V5 Column Filtering** ✅
+   - `src/utils/data_processing.py`: Updated `filter_output_columns()`
+   - Includes V5 auto-generated, current, and previous columns in output
+
+3. **UI: Dual File Upload** ✅ (Already existed)
+   - `src/ui/main_window.py`: V5 dual upload boxes
+   - CURRENT file box (green) and PREVIOUS file box (blue)
+   - Previous_ prefix added to PREVIOUS columns in display
+
+4. **Settings: V5 Schema** ✅ (Already existed)
+   - `src/settings.py`: V5 functions
+   - `get_v5_column_settings()`, `set_v5_current_file()`, `set_v5_previous_file()`
+   - `get_v5_enabled_columns()` returns Previous_ prefixed columns
+
+5. **Tests: V5 Test Suite** ✅
+   - `tests/test_column_classification.py`: 6 new V5 tests (21 total)
+   - All tests pass
+
+### Key Technical Details
+
+```python
+# In working_comparison.py:
+# Get V5 settings once (outside loop for performance)
+v5_cols = get_v5_enabled_columns()
+selected_previous_cols = v5_cols.get("previous", [])  # e.g., ["Previous_FREEMEMO"]
+
+# For each row in the processing loop:
+for prefixed_col in selected_previous_cols:
+    if prefixed_col.startswith("Previous_"):
+        original_col = prefixed_col[9:]  # "FREEMEMO"
+        if prev_row_dict and change_type != "New Row":
+            # KEY-matched: extract from matched PREVIOUS row
+            curr_dict[prefixed_col] = safe_str(prev_row_dict.get(original_col, ""))
+        else:
+            curr_dict[prefixed_col] = ""  # New Row - no match
+```
+
+### V5 UI Design
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ COLUMN SETTINGS                                               [X]          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ FIXED COLUMNS (Always Included)                                            │
+│ ┌────────────────────────────────────────────────────────────────────────┐ │
+│ │ ✓ MANDATORY (10): SequenceName, EventName, StrOrigin, CharacterKey... │ │
+│ │ ✓ VRS CONDITIONAL (10): Desc, DialogType, Group, StartFrame...        │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│ AUTO-GENERATED (Toggle ON/OFF)                                             │
+│ ☑ PreviousData  ☑ PreviousText  ☑ DETAILED_CHANGES  ☐ Mainline...        │
+│                                                                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│ OPTIONAL COLUMNS                                          [RESET ALL]      │
+│                                                                            │
+│  ┌─── FROM CURRENT FILE ───────┐    ┌─── FROM PREVIOUS FILE ──────┐       │
+│  │ myfile_v2.xlsx ✓            │    │ myfile_v1.xlsx ✓            │       │
+│  │                             │    │                             │       │
+│  │ ☑ FREEMEMO                  │    │ ☐ Previous_FREEMEMO         │       │
+│  │ ☑ HasAudio                  │    │ ☐ Previous_HasAudio         │       │
+│  │ ☐ Record                    │    │ ☐ Previous_Record           │       │
+│  │                             │    │                             │       │
+│  │ [Upload] [All] [None]       │    │ [Upload] [All] [None]       │       │
+│  └─────────────────────────────┘    └─────────────────────────────┘       │
+│                                                                            │
+│ ℹ️ PREVIOUS columns matched by KEY (Seq+Event+StrOrigin+CastingKey).       │
+│   New Rows will have empty PREVIOUS values.                                │
+│                                                                            │
+│                                              [Back]    [Save]              │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### V5 Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Dual upload** | Separate CURRENT and PREVIOUS file upload buttons |
+| **Empty by default** | No example/hardcoded columns - boxes empty until file uploaded |
+| **Auto-prefix** | PREVIOUS columns automatically get "Previous_" prefix |
+| **Single RESET** | One button clears both uploads and all selections |
+| **Compact FIXED** | MANDATORY + VRS_CONDITIONAL condensed to 2 lines |
+| **KEY-based matching** | PREVIOUS columns pulled from matched row, not by index |
+| **Clear visual separation** | Two distinct boxes for CURRENT vs PREVIOUS |
+
+### Implementation Tasks
+
+1. [x] Update UI with dual upload boxes (empty by default)
+2. [x] Add RESET ALL button
+3. [x] Compact the FIXED columns section
+4. [x] Implement PREVIOUS column extraction during processing
+5. [x] Add "Previous_" prefix to PREVIOUS columns in output
+6. [x] Update settings save/load for V5 schema
+7. [x] Add tests for KEY-based PREVIOUS column matching
 
 ---
 

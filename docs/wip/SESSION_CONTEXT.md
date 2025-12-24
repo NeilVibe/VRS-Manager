@@ -1,8 +1,8 @@
 # Session Context - Claude Handoff Document
 
-**Last Updated:** 2025-12-23
+**Last Updated:** 2025-12-24
 **Version:** v12231045 (production)
-**Status:** TASK-002 V4 COMPLETE - 4-tier column classification
+**Status:** TASK-002 V5 IMPLEMENTED - KEY-based PREVIOUS column extraction
 
 ---
 
@@ -11,12 +11,105 @@
 | Item | Status |
 |------|--------|
 | Production | Stable (v12231045) |
-| Git | V4 commits ready, build pending |
-| TASK-002 | V4 COMPLETE - 4-tier column system, clean UI, 15 new tests |
+| Git | V4 commits done, V5 code ready |
+| TASK-002 | V5 IMPLEMENTED - Ready for testing |
 
 ---
 
-## TASK-002: V4 Implementation COMPLETE
+## TASK-002: V5 Implementation (COMPLETE)
+
+### What Was Implemented
+
+1. **Backend: KEY-based PREVIOUS Column Extraction**
+   - `src/core/working_comparison.py`: Added V5 PREVIOUS column extraction in the processing loop
+   - Uses existing KEY-matching (SequenceName+EventName+StrOrigin+CastingKey)
+   - For each CURRENT row, extracts selected columns from matched PREVIOUS row
+   - New rows (no KEY match) get empty PREVIOUS values
+
+2. **Data Processing: V5 Column Filtering**
+   - `src/utils/data_processing.py`: Updated `filter_output_columns()` to include V5 columns
+   - Includes V5 auto-generated, current, and previous columns in output
+
+3. **UI: Dual File Upload (Already Existed)**
+   - `src/ui/main_window.py`: Already had V5 dual upload boxes implemented
+   - CURRENT file box (green) and PREVIOUS file box (blue)
+   - Previous_ prefix added to PREVIOUS columns in display
+
+4. **Settings: V5 Schema (Already Existed)**
+   - `src/settings.py`: Already had V5 functions
+   - `get_v5_column_settings()`, `set_v5_current_file()`, `set_v5_previous_file()`
+   - `get_v5_enabled_columns()` returns Previous_ prefixed columns
+
+5. **Tests: V5 Test Suite**
+   - `tests/test_column_classification.py`: Added 6 new V5 tests
+   - All 21 tests pass
+
+### Key Technical Details
+
+```python
+# In working_comparison.py (simplified):
+v5_cols = get_v5_enabled_columns()
+selected_previous_cols = v5_cols.get("previous", [])  # e.g., ["Previous_FREEMEMO"]
+
+for prefixed_col in selected_previous_cols:
+    if prefixed_col.startswith("Previous_"):
+        original_col = prefixed_col[9:]  # "FREEMEMO"
+        if prev_row_dict and change_type != "New Row":
+            # KEY-matched: extract from matched PREVIOUS row
+            curr_dict[prefixed_col] = safe_str(prev_row_dict.get(original_col, ""))
+        else:
+            curr_dict[prefixed_col] = ""  # New Row
+```
+
+### Files Modified (This Session)
+
+```
+src/core/working_comparison.py   # V5: PREVIOUS column KEY-based extraction
+src/utils/data_processing.py     # V5: filter_output_columns includes V5 columns
+tests/test_column_classification.py  # V5: 6 new tests (21 total)
+```
+
+---
+
+## V5 UI Design (Reference)
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ COLUMN SETTINGS                                               [X]          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ FIXED COLUMNS (Always Included)                                            │
+│ ┌────────────────────────────────────────────────────────────────────────┐ │
+│ │ ✓ MANDATORY (10): SequenceName, EventName, StrOrigin, CharacterKey... │ │
+│ │ ✓ VRS CONDITIONAL (10): Desc, DialogType, Group, StartFrame...        │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│ AUTO-GENERATED (Toggle ON/OFF)                                             │
+│ ☑ PreviousData  ☑ PreviousText  ☑ DETAILED_CHANGES  ☐ Mainline...        │
+│                                                                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│ OPTIONAL COLUMNS                                          [RESET ALL]      │
+│                                                                            │
+│  ┌─── FROM CURRENT FILE ───────┐    ┌─── FROM PREVIOUS FILE ──────┐       │
+│  │ myfile_v2.xlsx ✓            │    │ myfile_v1.xlsx ✓            │       │
+│  │                             │    │                             │       │
+│  │ ☑ FREEMEMO                  │    │ ☐ Previous_FREEMEMO         │       │
+│  │ ☑ HasAudio                  │    │ ☐ Previous_HasAudio         │       │
+│  │ ☐ Record                    │    │ ☐ Previous_Record           │       │
+│  │                             │    │                             │       │
+│  │ [Upload] [All] [None]       │    │ [Upload] [All] [None]       │       │
+│  └─────────────────────────────┘    └─────────────────────────────┘       │
+│                                                                            │
+│ ℹ️ PREVIOUS columns matched by KEY (Seq+Event+StrOrigin+CastingKey).       │
+│   New Rows will have empty PREVIOUS values.                                │
+│                                                                            │
+│                                              [Back]    [Save]              │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## V4 Implementation (COMPLETE - Reference)
 
 ### 4-Tier Column Classification System
 
@@ -32,201 +125,46 @@
 **MANDATORY (10):** SequenceName, EventName, StrOrigin, CharacterKey, CharacterName, CastingKey, DialogVoice, Text, STATUS, CHANGES
 
 **VRS_CONDITIONAL (10):** Desc, DialogType, Group, StartFrame, EndFrame, Tribe, Age, Gender, Job, Region
-- These are checked by `detect_field_changes()` in change_detection.py
-- Always extracted from CURRENT file
-- Cannot be disabled (essential for VRS processing)
 
 **AUTO-GENERATED (6):** PreviousData, PreviousText, PreviousEventName, DETAILED_CHANGES, Previous StrOrigin, Mainline Translation
 
 **OPTIONAL (7):** FREEMEMO, SubTimelineName, UpdateTime, HasAudio, UseSubtitle, Record, isNew
-- Truly extra metadata NOT used in VRS logic
-- Safe to toggle ON/OFF
-
-### Files Modified (All Committed)
-```
-src/config.py                # V4: Added VRS_CONDITIONAL_COLUMNS, updated OPTIONAL
-src/settings.py              # V4: get_vrs_conditional_columns(), filter VRS from optional
-src/ui/main_window.py        # V4: 4-section dialog (1000x900), Priority dialog (600x550)
-src/utils/data_processing.py # V4: Always include VRS_CONDITIONAL in output
-tests/test_column_classification.py  # NEW: 15 tests for column system
-```
-
-### Bug Fixed (This Session)
-**Issue:** V1 `OPTIONAL_COLUMNS` were being merged into V2 settings via `load_settings()`, polluting the column list with hardcoded defaults.
-
-**Fix:** Added check in `load_settings()` to only merge V1 defaults when `analyzed_columns` is empty:
-```python
-# Only merge V1 defaults if V2 not active
-if not settings.get("analyzed_columns"):
-    for col in OPTIONAL_COLUMNS:
-        ...
-```
-
-### Tests
-- All 518 tests pass
-- V2 logic tested: file analysis, column selection, filtering all work correctly
 
 ---
 
-## Testing Insights (from LocalizationTools)
-
-Explored `/home/neil1988/LocalizationTools` for testing patterns. Key findings:
-
-### Patterns to Adopt
-
-| Pattern | Description | Priority |
-|---------|-------------|----------|
-| **conftest.py fixtures** | Self-healing, reusable test setup (637 lines of value) | HIGH |
-| **Test markers** | `@pytest.mark.unit/e2e/gui/slow` for selective running | HIGH |
-| **pytest.ini** | Proper config with coverage thresholds | MEDIUM |
-| **E2E tests** | Full workflow: load → process → verify | MEDIUM |
-| **CI/CD validation** | Tests + security audit + coverage in pipeline | MEDIUM |
-
-### Recommended Test Structure
-```
-tests/
-├── conftest.py          # Shared fixtures (CRITICAL)
-├── unit/                # Fast isolated tests
-├── integration/         # Component interaction
-├── e2e/                 # Full workflow tests
-└── pytest.ini           # Test configuration
-```
-
-### Key Fixture Ideas
-```python
-@pytest.fixture
-def temp_processing_dir():
-    """Temp directory with cleanup"""
-
-@pytest.fixture
-def sample_vrs_file():
-    """Generate test Excel file"""
-
-@pytest.fixture
-def mock_settings():
-    """Isolated settings (no ~/.vrsmanager_settings.json)"""
-```
-
-### CI/CD Improvements
-```yaml
-# Add to .github/workflows
-- name: Run Tests with Coverage
-  run: pytest --cov=src --cov-fail-under=80
-
-- name: Security Audit
-  run: pip-audit
-```
-
----
-
-## Column Classification Summary
-
-**MANDATORY (10):** SequenceName, EventName, StrOrigin, CharacterKey, CharacterName, CastingKey, DialogVoice, Text, STATUS, CHANGES
-
-**AUTO-GENERATED (6):** PreviousData, PreviousText, PreviousEventName, DETAILED_CHANGES, Previous StrOrigin, Mainline Translation
-
-**OPTIONAL (V2):** Dynamic - from analyzed file columns
-
----
-
-## Quick Commands
+## Testing
 
 ```bash
-# Run tests
+# Run unified tests (518 tests)
 python3 tests/test_unified_change_detection.py
+
+# Run column classification tests (21 tests including V5)
+python3 tests/test_column_classification.py
 
 # Check version
 python3 scripts/check_version_unified.py
-
-# Git status
-git status
-
-# Test V2 settings (without GUI)
-python3 -c "from src.settings import *; print(get_analyzed_columns())"
 ```
 
----
-
-## Testing Infrastructure Created (2025-12-23)
-
-### Why Not CDP?
-VRS Manager uses **tkinter** (native Python GUI), NOT Electron.
-CDP (Chrome DevTools Protocol) does NOT work with tkinter.
-
-### Solution: pyautogui + PIL
-Created autonomous testing toolkit using Python GUI automation.
-
-### Files Created
-```
-testing_toolkit/
-├── VRS_MANAGER_TEST_PROTOCOL.md    # Full protocol doc
-├── requirements.txt                 # pyautogui, pillow, pygetwindow
-├── scripts/
-│   ├── launch_and_test.py          # Main test runner
-│   ├── playground_install.ps1      # Windows installer
-│   └── playground_install.sh       # WSL wrapper
-└── screenshots/                     # Test output
-```
-
-### Playground Path
-```
-C:\NEIL_PROJECTS_WINDOWSBUILD\VRSManagerProject\Playground\VRSManager
-```
-
----
-
-## V2.1 UI Fixes (DONE)
-
-### Column Settings Dialog
-- **Wider dialog**: 700x750 → 880x800
-- **Resizable**: Now fully resizable with minsize(800, 600)
-- **Shortened help text**: Prevents text cut-off
-- **Threading**: File analysis runs in background (no UI freeze)
-- **Dynamic width**: Scrollable area expands with window
-
-### Priority Change Mode Dialog (NEW)
-- **Larger dialog**: 500x300 → 600x450 (+50% bigger)
-- **Resizable**: True with minsize(550, 400)
-- **Removed checkbox**: Replaced with clickable ON/OFF cards
-- **Clear visual**: Green highlight on selected option only
-- **Proper state**: Selection not saved until Save clicked
-- **Larger buttons**: width=12, font size 11
-
-### Column Settings Dialog V3 (DUAL-FILE)
-- **Size**: 950x800 with minsize(900, 700)
-- **Dual upload**: Separate PREVIOUS and CURRENT file uploads
-- **Side-by-side layout**: Blue card for PREVIOUS, Green card for CURRENT
-- **Auto prefixing**: Duplicate columns get "Previous_" or "Current_" prefix
-- **Two column lists**: Select from each file independently
-- **All/None buttons**: Quick select/deselect for each list
-- **Clear buttons**: Clear uploaded file and start fresh
-- **New settings functions**: get_previous_file_columns(), get_current_file_columns(), etc.
-
-### Testing Notes
-- Main window screenshot captured successfully
-- Automated clicking from WSL doesn't work (tkinter/UIPI limitation)
-- Code verified via git diff - all fixes present
-- Manual Windows testing recommended for Column Settings dialog
+All tests pass:
+- 518/518 unified tests
+- 21/21 column classification tests (including 6 new V5 tests)
 
 ---
 
 ## Next Steps
 
-1. ✅ **V4 Commits done** - 4-tier column system + tests
-2. ✅ **Build complete** - V4 Column Classification System (success, 2m24s)
-3. **Manual Windows test** - Verify Column Settings dialog shows:
-   - MANDATORY section (green ✓, 10 columns)
-   - VRS_CONDITIONAL section (blue ✓, 10 columns)
-   - AUTO-GENERATED section (purple checkboxes, 6 columns)
-   - OPTIONAL section (orange checkboxes, 7 columns)
-4. **Verify Priority Mode dialog** - Back/Save buttons visible
+1. **Manual Windows test** - Verify Column Settings dialog with dual upload
+2. **Build and deploy** - Create new build with V5 functionality
+3. **User testing** - Test with real PREVIOUS/CURRENT file pairs
 
-## Key Clarifications (This Session)
+---
 
-- **Row matching**: By KEY (SequenceName + EventName + StrOrigin + CharacterKey), NOT by index
-- **Column matching**: By column NAME, not index
-- **Column values**: All from CURRENT except AUTO_GENERATED (comparison data from PREVIOUS)
-- **Simplified UI**: Removed dual-file upload, columns now predefined categories
+## Key Clarifications
+
+- **CURRENT columns**: Extracted by NAME from CURRENT file (simple, direct)
+- **PREVIOUS columns**: Extracted by KEY-matching from PREVIOUS file (robust)
+- **New Rows**: PREVIOUS columns are empty (no KEY match)
+- **Matched Rows**: PREVIOUS columns contain value from matched PREVIOUS row
 
 ---
 

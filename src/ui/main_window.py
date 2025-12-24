@@ -23,7 +23,10 @@ from src.settings import (
     get_selected_optional_columns, set_selected_optional_columns,
     # V3: Dual-file column analysis
     get_previous_file_columns, get_current_file_columns,
-    set_file_info, get_dual_file_status, clear_file_columns
+    set_file_info, get_dual_file_status, clear_file_columns,
+    # V5: Dual-file column selection
+    get_v5_column_settings, set_v5_auto_generated,
+    set_v5_current_file, set_v5_previous_file, reset_v5_all
 )
 from src.io.excel_reader import safe_read_excel
 
@@ -518,21 +521,20 @@ AUTO_GENERATED_HELP = {
 
 def show_column_settings_dialog_v2(parent):
     """
-    Show Column Settings dialog with 4-section layout.
+    Show Column Settings dialog with V5 layout.
 
     Sections:
-    1. MANDATORY - Always included, cannot disable
-    2. VRS CONDITIONAL - Used in change detection, always from CURRENT
-    3. AUTO-GENERATED - Created by VRS logic, can toggle ON/OFF
-    4. OPTIONAL - Extra metadata columns, can toggle ON/OFF
+    1. FIXED COLUMNS - Compact display of MANDATORY + VRS_CONDITIONAL
+    2. AUTO-GENERATED - Horizontal checkboxes, toggleable
+    3. OPTIONAL - Dual upload boxes for CURRENT and PREVIOUS files
 
     Args:
         parent: Parent window for the dialog
     """
     dialog = tk.Toplevel(parent)
     dialog.title("Column Settings")
-    dialog.geometry("1000x900")  # Big and spacious
-    dialog.minsize(900, 800)
+    dialog.geometry("950x750")
+    dialog.minsize(850, 650)
     dialog.resizable(True, True)
     dialog.transient(parent)
     dialog.grab_set()
@@ -547,264 +549,528 @@ def show_column_settings_dialog_v2(parent):
     dialog.configure(bg=bg_color)
 
     # Colors
-    MANDATORY_COLOR = "#1B5E20"    # Dark green
-    VRS_COND_COLOR = "#1565C0"     # Blue
-    AUTO_GEN_COLOR = "#7B1FA2"     # Purple
-    OPTIONAL_COLOR = "#E65100"     # Orange
+    FIXED_COLOR = "#37474F"       # Dark gray
+    AUTO_GEN_COLOR = "#7B1FA2"    # Purple
+    CURRENT_COLOR = "#2E7D32"     # Green
+    PREVIOUS_COLOR = "#1565C0"    # Blue
+
+    # Load V5 settings
+    v5_settings = get_v5_column_settings()
 
     # ===== TITLE =====
     tk.Label(
         dialog,
         text="Column Settings",
-        font=("Arial", 18, "bold"),
+        font=("Arial", 16, "bold"),
         bg=bg_color,
         fg="#333333"
-    ).pack(pady=(25, 8))
+    ).pack(pady=(15, 5))
 
     tk.Label(
         dialog,
         text="Configure which columns appear in WORKING process output",
-        font=("Arial", 11),
+        font=("Arial", 10),
         bg=bg_color,
         fg="#666666"
-    ).pack(pady=(0, 15))
+    ).pack(pady=(0, 10))
 
-    # ===== SCROLLABLE CONTENT =====
-    canvas_frame = tk.Frame(dialog, bg=bg_color)
-    canvas_frame.pack(fill=tk.BOTH, expand=True, padx=25, pady=10)
-
-    canvas = tk.Canvas(canvas_frame, bg=bg_color, highlightthickness=0)
-    scrollbar = tk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
-    scrollable_frame = tk.Frame(canvas, bg=bg_color)
-
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-    )
-
-    def update_canvas_width(event=None):
-        canvas.itemconfig(canvas_window, width=canvas.winfo_width() - 20)
-
-    canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.bind("<Configure>", update_canvas_width)
-
-    # Load current settings
-    col_settings = get_column_settings()
-    auto_gen_settings = col_settings.get("auto_generated", {})
-    optional_settings = col_settings.get("optional", {})
-
-    # ===== SECTION 1: MANDATORY COLUMNS (Info Only) =====
-    mandatory_frame = tk.LabelFrame(
-        scrollable_frame,
-        text=" MANDATORY COLUMNS (Always Included) ",
-        font=("Arial", 12, "bold"),
+    # ===== SECTION 1: FIXED COLUMNS (Compact) =====
+    fixed_frame = tk.LabelFrame(
+        dialog,
+        text=" FIXED COLUMNS (Always Included) ",
+        font=("Arial", 11, "bold"),
         bg=bg_color,
-        fg=MANDATORY_COLOR,
-        padx=20,
-        pady=15
+        fg=FIXED_COLOR,
+        padx=15,
+        pady=8
     )
-    mandatory_frame.pack(fill=tk.X, padx=15, pady=(10, 15))
+    fixed_frame.pack(fill=tk.X, padx=20, pady=(5, 10))
+
+    # Compact display - just category + count + abbreviated list
+    mandatory_text = ", ".join(MANDATORY_COLUMNS[:4]) + f"... ({len(MANDATORY_COLUMNS)} total)"
+    vrs_cond_text = ", ".join(VRS_CONDITIONAL_COLUMNS[:4]) + f"... ({len(VRS_CONDITIONAL_COLUMNS)} total)"
 
     tk.Label(
-        mandatory_frame,
-        text="These columns are required for VRS processing and are always included in output.\nThey cannot be disabled.",
-        font=("Arial", 10),
+        fixed_frame,
+        text=f"✓ MANDATORY: {mandatory_text}",
+        font=("Arial", 9),
         bg=bg_color,
-        fg="#555555",
-        justify=tk.LEFT
-    ).pack(anchor=tk.W, pady=(0, 15))
-
-    # Display mandatory columns in a grid (4 columns)
-    mandatory_grid = tk.Frame(mandatory_frame, bg=bg_color)
-    mandatory_grid.pack(fill=tk.X, pady=5)
-
-    for i, col in enumerate(MANDATORY_COLUMNS):
-        row = i // 4
-        col_idx = i % 4
-        tk.Label(
-            mandatory_grid,
-            text=f"✓ {col}",
-            font=("Arial", 10),
-            bg=bg_color,
-            fg=MANDATORY_COLOR
-        ).grid(row=row, column=col_idx, sticky="w", padx=15, pady=4)
-
-    # ===== SECTION 2: VRS CONDITIONAL COLUMNS (Info Only) =====
-    vrs_cond_frame = tk.LabelFrame(
-        scrollable_frame,
-        text=" VRS CONDITIONAL COLUMNS (Change Detection) ",
-        font=("Arial", 12, "bold"),
-        bg=bg_color,
-        fg=VRS_COND_COLOR,
-        padx=20,
-        pady=15
-    )
-    vrs_cond_frame.pack(fill=tk.X, padx=15, pady=15)
+        fg="#1B5E20"
+    ).pack(anchor=tk.W, pady=2)
 
     tk.Label(
-        vrs_cond_frame,
-        text="These columns are used in VRS change detection logic.\nAlways extracted from CURRENT file. Cannot be disabled.",
-        font=("Arial", 10),
+        fixed_frame,
+        text=f"✓ VRS CONDITIONAL: {vrs_cond_text}",
+        font=("Arial", 9),
         bg=bg_color,
-        fg="#555555",
-        justify=tk.LEFT
-    ).pack(anchor=tk.W, pady=(0, 15))
+        fg="#1565C0"
+    ).pack(anchor=tk.W, pady=2)
 
-    # Display VRS conditional columns in a grid (4 columns)
-    vrs_grid = tk.Frame(vrs_cond_frame, bg=bg_color)
-    vrs_grid.pack(fill=tk.X, pady=5)
-
-    for i, col in enumerate(VRS_CONDITIONAL_COLUMNS):
-        row = i // 4
-        col_idx = i % 4
-        tk.Label(
-            vrs_grid,
-            text=f"✓ {col}",
-            font=("Arial", 10),
-            bg=bg_color,
-            fg=VRS_COND_COLOR
-        ).grid(row=row, column=col_idx, sticky="w", padx=15, pady=4)
-
-    # ===== SECTION 3: AUTO-GENERATED COLUMNS (Toggleable) =====
+    # ===== SECTION 2: AUTO-GENERATED COLUMNS (Horizontal) =====
     auto_gen_vars = {}
 
     auto_frame = tk.LabelFrame(
-        scrollable_frame,
+        dialog,
         text=" AUTO-GENERATED COLUMNS (Toggle ON/OFF) ",
-        font=("Arial", 12, "bold"),
+        font=("Arial", 11, "bold"),
         bg=bg_color,
         fg=AUTO_GEN_COLOR,
-        padx=20,
-        pady=15
+        padx=15,
+        pady=8
     )
-    auto_frame.pack(fill=tk.X, padx=15, pady=15)
+    auto_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
 
-    tk.Label(
-        auto_frame,
-        text="These columns are created by VRS comparison logic.\nToggle to include or exclude from output.",
-        font=("Arial", 10),
-        bg=bg_color,
-        fg="#555555",
-        justify=tk.LEFT
-    ).pack(anchor=tk.W, pady=(0, 15))
+    # Horizontal row of checkboxes
+    auto_row = tk.Frame(auto_frame, bg=bg_color)
+    auto_row.pack(fill=tk.X, pady=5)
 
-    # Create checkboxes for auto-generated columns (2 per row for more space)
-    auto_grid = tk.Frame(auto_frame, bg=bg_color)
-    auto_grid.pack(fill=tk.X, pady=5)
-
-    for i, col in enumerate(AUTO_GENERATED_COLUMNS):
-        row = i // 2
-        col_idx = i % 2
-
-        is_enabled = auto_gen_settings.get(col, {}).get("enabled", True)
+    for col in AUTO_GENERATED_COLUMNS:
+        is_enabled = v5_settings["auto_generated"].get(col, True)
         var = tk.BooleanVar(value=is_enabled)
         auto_gen_vars[col] = var
 
-        help_text = AUTO_GENERATED_HELP.get(col, "")
-
-        frame = tk.Frame(auto_grid, bg=bg_color)
-        frame.grid(row=row, column=col_idx, sticky="w", padx=15, pady=6)
-
         cb = tk.Checkbutton(
-            frame,
+            auto_row,
             text=col,
             variable=var,
-            font=("Arial", 10, "bold"),
+            font=("Arial", 9),
             bg=bg_color,
             activebackground=bg_color,
             selectcolor="white"
         )
-        cb.pack(side=tk.LEFT)
+        cb.pack(side=tk.LEFT, padx=8)
 
-        if help_text:
-            tk.Label(
-                frame,
-                text=f"({help_text})",
-                font=("Arial", 9),
-                bg=bg_color,
-                fg="#888888"
-            ).pack(side=tk.LEFT, padx=(5, 0))
-
-    # ===== SECTION 4: OPTIONAL COLUMNS (Toggleable) =====
-    optional_vars = {}
-
+    # ===== SECTION 3: OPTIONAL COLUMNS (Dual Upload) =====
     optional_frame = tk.LabelFrame(
-        scrollable_frame,
-        text=" OPTIONAL COLUMNS (Extra Metadata) ",
-        font=("Arial", 12, "bold"),
+        dialog,
+        text=" OPTIONAL COLUMNS ",
+        font=("Arial", 11, "bold"),
         bg=bg_color,
-        fg=OPTIONAL_COLOR,
-        padx=20,
-        pady=15
+        fg="#E65100",
+        padx=15,
+        pady=10
     )
-    optional_frame.pack(fill=tk.X, padx=15, pady=15)
+    optional_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 10))
+
+    # RESET ALL button at top right
+    reset_row = tk.Frame(optional_frame, bg=bg_color)
+    reset_row.pack(fill=tk.X, pady=(0, 10))
+
+    def do_reset_all():
+        if messagebox.askyesno("Reset All", "Reset all column settings?\n\nThis will clear uploaded files and reset auto-generated columns to defaults."):
+            reset_v5_all()
+            dialog.destroy()
+            show_column_settings_dialog_v2(parent)
+
+    tk.Button(
+        reset_row,
+        text="RESET ALL",
+        font=("Arial", 9, "bold"),
+        bg="#FF5722",
+        fg="white",
+        cursor="hand2",
+        command=do_reset_all
+    ).pack(side=tk.RIGHT)
 
     tk.Label(
-        optional_frame,
-        text="These are extra metadata columns not used in VRS processing logic.\nToggle to include or exclude from output (if present in source files).",
-        font=("Arial", 10),
+        reset_row,
+        text="Upload files to see available columns",
+        font=("Arial", 9),
         bg=bg_color,
-        fg="#555555",
-        justify=tk.LEFT
-    ).pack(anchor=tk.W, pady=(0, 15))
+        fg="#666666"
+    ).pack(side=tk.LEFT)
 
-    # Create checkboxes for optional columns (3 per row)
-    optional_grid = tk.Frame(optional_frame, bg=bg_color)
-    optional_grid.pack(fill=tk.X, pady=5)
+    # ===== DUAL UPLOAD BOXES =====
+    boxes_frame = tk.Frame(optional_frame, bg=bg_color)
+    boxes_frame.pack(fill=tk.BOTH, expand=True)
 
-    for i, col in enumerate(OPTIONAL_COLUMNS):
-        row = i // 3
-        col_idx = i % 3
+    # Configure grid weights for equal sizing
+    boxes_frame.columnconfigure(0, weight=1)
+    boxes_frame.columnconfigure(1, weight=1)
+    boxes_frame.rowconfigure(0, weight=1)
 
-        is_enabled = optional_settings.get(col, {}).get("enabled", True)
-        var = tk.BooleanVar(value=is_enabled)
-        optional_vars[col] = var
+    # Track checkbox variables
+    current_vars = {}
+    previous_vars = {}
 
-        cb = tk.Checkbutton(
-            optional_grid,
-            text=col,
-            variable=var,
-            font=("Arial", 10),
-            bg=bg_color,
-            activebackground=bg_color,
-            selectcolor="white"
+    # === CURRENT FILE BOX ===
+    current_box = tk.LabelFrame(
+        boxes_frame,
+        text=" FROM CURRENT FILE ",
+        font=("Arial", 10, "bold"),
+        bg="#E8F5E9",  # Light green
+        fg=CURRENT_COLOR,
+        padx=10,
+        pady=10
+    )
+    current_box.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=5)
+
+    current_content = tk.Frame(current_box, bg="#E8F5E9")
+    current_content.pack(fill=tk.BOTH, expand=True)
+
+    # Current file status label
+    current_status = tk.Label(
+        current_content,
+        text="",
+        font=("Arial", 9),
+        bg="#E8F5E9",
+        fg=CURRENT_COLOR
+    )
+    current_status.pack(anchor=tk.W, pady=(0, 5))
+
+    # Current scrollable area for checkboxes
+    current_canvas = tk.Canvas(current_content, bg="#E8F5E9", highlightthickness=0, height=200)
+    current_scrollbar = tk.Scrollbar(current_content, orient="vertical", command=current_canvas.yview)
+    current_checkbox_frame = tk.Frame(current_canvas, bg="#E8F5E9")
+
+    current_checkbox_frame.bind(
+        "<Configure>",
+        lambda e: current_canvas.configure(scrollregion=current_canvas.bbox("all"))
+    )
+
+    current_canvas.create_window((0, 0), window=current_checkbox_frame, anchor="nw")
+    current_canvas.configure(yscrollcommand=current_scrollbar.set)
+
+    # Current buttons frame
+    current_buttons = tk.Frame(current_content, bg="#E8F5E9")
+    current_buttons.pack(fill=tk.X, pady=(5, 0))
+
+    def populate_current_checkboxes(columns, selected):
+        """Populate current file checkboxes."""
+        for widget in current_checkbox_frame.winfo_children():
+            widget.destroy()
+        current_vars.clear()
+
+        if not columns:
+            tk.Label(
+                current_checkbox_frame,
+                text="Upload a file to see columns",
+                font=("Arial", 9, "italic"),
+                bg="#E8F5E9",
+                fg="#666666"
+            ).pack(pady=20)
+            return
+
+        for col in sorted(columns):
+            var = tk.BooleanVar(value=col in selected)
+            current_vars[col] = var
+            cb = tk.Checkbutton(
+                current_checkbox_frame,
+                text=col,
+                variable=var,
+                font=("Arial", 9),
+                bg="#E8F5E9",
+                activebackground="#E8F5E9",
+                selectcolor="white"
+            )
+            cb.pack(anchor=tk.W, pady=1)
+
+    def upload_current_file():
+        """Handle current file upload."""
+        file_path = filedialog.askopenfilename(
+            title="Select CURRENT Excel File",
+            filetypes=[("Excel files", "*.xlsx *.xls")]
         )
-        cb.grid(row=row, column=col_idx, sticky="w", padx=15, pady=6)
+        if file_path:
+            columns, filename, error = analyze_excel_columns(file_path)
+            if error:
+                messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                return
 
-    # Pack scrollbar and canvas
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            # Filter to only optional columns (exclude MANDATORY, VRS_CONDITIONAL, AUTO_GENERATED)
+            excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
+            optional_cols = [c for c in columns if c not in excluded]
 
-    # Enable mouse wheel scrolling
-    def on_mousewheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            current_status.config(text=f"✓ {filename} ({len(optional_cols)} optional columns)")
+            populate_current_checkboxes(optional_cols, optional_cols)  # All selected by default
 
-    canvas.bind_all("<MouseWheel>", on_mousewheel)
+            # Show canvas and scrollbar
+            current_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            current_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Store in temp for saving later
+            dialog.current_file_data = {"filename": filename, "columns": optional_cols}
+
+    def select_all_current():
+        for var in current_vars.values():
+            var.set(True)
+
+    def select_none_current():
+        for var in current_vars.values():
+            var.set(False)
+
+    # Initial state - show upload button or loaded data
+    current_file_info = v5_settings["current_file"]
+    if current_file_info.get("filename"):
+        current_status.config(text=f"✓ {current_file_info['filename']} ({len(current_file_info['columns'])} optional columns)")
+        populate_current_checkboxes(current_file_info["columns"], current_file_info.get("selected", []))
+        current_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        current_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        dialog.current_file_data = current_file_info
+    else:
+        # Empty state - just upload button
+        tk.Label(
+            current_checkbox_frame,
+            text="",
+            bg="#E8F5E9"
+        ).pack(pady=30)
+
+        upload_btn_current = tk.Button(
+            current_checkbox_frame,
+            text="📂 Upload File",
+            font=("Arial", 10),
+            bg=CURRENT_COLOR,
+            fg="white",
+            cursor="hand2",
+            command=upload_current_file
+        )
+        upload_btn_current.pack(pady=10)
+
+        tk.Label(
+            current_checkbox_frame,
+            text="Upload to see available columns",
+            font=("Arial", 9, "italic"),
+            bg="#E8F5E9",
+            fg="#666666"
+        ).pack()
+
+        current_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        dialog.current_file_data = None
+
+    # Current action buttons
+    tk.Button(
+        current_buttons,
+        text="Upload",
+        font=("Arial", 9),
+        bg=CURRENT_COLOR,
+        fg="white",
+        cursor="hand2",
+        command=upload_current_file
+    ).pack(side=tk.LEFT, padx=2)
+
+    tk.Button(
+        current_buttons,
+        text="All",
+        font=("Arial", 9),
+        cursor="hand2",
+        command=select_all_current
+    ).pack(side=tk.LEFT, padx=2)
+
+    tk.Button(
+        current_buttons,
+        text="None",
+        font=("Arial", 9),
+        cursor="hand2",
+        command=select_none_current
+    ).pack(side=tk.LEFT, padx=2)
+
+    # === PREVIOUS FILE BOX ===
+    previous_box = tk.LabelFrame(
+        boxes_frame,
+        text=" FROM PREVIOUS FILE ",
+        font=("Arial", 10, "bold"),
+        bg="#E3F2FD",  # Light blue
+        fg=PREVIOUS_COLOR,
+        padx=10,
+        pady=10
+    )
+    previous_box.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=5)
+
+    previous_content = tk.Frame(previous_box, bg="#E3F2FD")
+    previous_content.pack(fill=tk.BOTH, expand=True)
+
+    # Previous file status label
+    previous_status = tk.Label(
+        previous_content,
+        text="",
+        font=("Arial", 9),
+        bg="#E3F2FD",
+        fg=PREVIOUS_COLOR
+    )
+    previous_status.pack(anchor=tk.W, pady=(0, 5))
+
+    # Previous scrollable area for checkboxes
+    previous_canvas = tk.Canvas(previous_content, bg="#E3F2FD", highlightthickness=0, height=200)
+    previous_scrollbar = tk.Scrollbar(previous_content, orient="vertical", command=previous_canvas.yview)
+    previous_checkbox_frame = tk.Frame(previous_canvas, bg="#E3F2FD")
+
+    previous_checkbox_frame.bind(
+        "<Configure>",
+        lambda e: previous_canvas.configure(scrollregion=previous_canvas.bbox("all"))
+    )
+
+    previous_canvas.create_window((0, 0), window=previous_checkbox_frame, anchor="nw")
+    previous_canvas.configure(yscrollcommand=previous_scrollbar.set)
+
+    # Previous buttons frame
+    previous_buttons = tk.Frame(previous_content, bg="#E3F2FD")
+    previous_buttons.pack(fill=tk.X, pady=(5, 0))
+
+    def populate_previous_checkboxes(columns, selected):
+        """Populate previous file checkboxes with Previous_ prefix."""
+        for widget in previous_checkbox_frame.winfo_children():
+            widget.destroy()
+        previous_vars.clear()
+
+        if not columns:
+            tk.Label(
+                previous_checkbox_frame,
+                text="Upload a file to see columns",
+                font=("Arial", 9, "italic"),
+                bg="#E3F2FD",
+                fg="#666666"
+            ).pack(pady=20)
+            return
+
+        for col in sorted(columns):
+            var = tk.BooleanVar(value=col in selected)
+            previous_vars[col] = var
+            cb = tk.Checkbutton(
+                previous_checkbox_frame,
+                text=f"Previous_{col}",
+                variable=var,
+                font=("Arial", 9),
+                bg="#E3F2FD",
+                activebackground="#E3F2FD",
+                selectcolor="white"
+            )
+            cb.pack(anchor=tk.W, pady=1)
+
+    def upload_previous_file():
+        """Handle previous file upload."""
+        file_path = filedialog.askopenfilename(
+            title="Select PREVIOUS Excel File",
+            filetypes=[("Excel files", "*.xlsx *.xls")]
+        )
+        if file_path:
+            columns, filename, error = analyze_excel_columns(file_path)
+            if error:
+                messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                return
+
+            # Filter to only optional columns
+            excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
+            optional_cols = [c for c in columns if c not in excluded]
+
+            previous_status.config(text=f"✓ {filename} ({len(optional_cols)} optional columns)")
+            populate_previous_checkboxes(optional_cols, [])  # None selected by default
+
+            # Show canvas and scrollbar
+            previous_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            previous_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Store in temp for saving later
+            dialog.previous_file_data = {"filename": filename, "columns": optional_cols}
+
+    def select_all_previous():
+        for var in previous_vars.values():
+            var.set(True)
+
+    def select_none_previous():
+        for var in previous_vars.values():
+            var.set(False)
+
+    # Initial state - show upload button or loaded data
+    previous_file_info = v5_settings["previous_file"]
+    if previous_file_info.get("filename"):
+        previous_status.config(text=f"✓ {previous_file_info['filename']} ({len(previous_file_info['columns'])} optional columns)")
+        populate_previous_checkboxes(previous_file_info["columns"], previous_file_info.get("selected", []))
+        previous_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        previous_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        dialog.previous_file_data = previous_file_info
+    else:
+        # Empty state - just upload button
+        tk.Label(
+            previous_checkbox_frame,
+            text="",
+            bg="#E3F2FD"
+        ).pack(pady=30)
+
+        upload_btn_previous = tk.Button(
+            previous_checkbox_frame,
+            text="📂 Upload File",
+            font=("Arial", 10),
+            bg=PREVIOUS_COLOR,
+            fg="white",
+            cursor="hand2",
+            command=upload_previous_file
+        )
+        upload_btn_previous.pack(pady=10)
+
+        tk.Label(
+            previous_checkbox_frame,
+            text="Upload to see available columns",
+            font=("Arial", 9, "italic"),
+            bg="#E3F2FD",
+            fg="#666666"
+        ).pack()
+
+        previous_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        dialog.previous_file_data = None
+
+    # Previous action buttons
+    tk.Button(
+        previous_buttons,
+        text="Upload",
+        font=("Arial", 9),
+        bg=PREVIOUS_COLOR,
+        fg="white",
+        cursor="hand2",
+        command=upload_previous_file
+    ).pack(side=tk.LEFT, padx=2)
+
+    tk.Button(
+        previous_buttons,
+        text="All",
+        font=("Arial", 9),
+        cursor="hand2",
+        command=select_all_previous
+    ).pack(side=tk.LEFT, padx=2)
+
+    tk.Button(
+        previous_buttons,
+        text="None",
+        font=("Arial", 9),
+        cursor="hand2",
+        command=select_none_previous
+    ).pack(side=tk.LEFT, padx=2)
+
+    # ===== INFO NOTE =====
+    tk.Label(
+        optional_frame,
+        text="ℹ️ PREVIOUS columns are matched by KEY (SequenceName+EventName+StrOrigin+CastingKey). New Rows will have empty PREVIOUS values.",
+        font=("Arial", 9),
+        bg=bg_color,
+        fg="#666666",
+        wraplength=850
+    ).pack(anchor=tk.W, pady=(10, 0))
 
     # ===== BUTTONS =====
     button_frame = tk.Frame(dialog, bg=bg_color)
-    button_frame.pack(pady=(20, 30))
+    button_frame.pack(pady=(15, 20))
 
     def save_and_close():
         # Save auto-generated settings
-        new_auto_settings = {
-            col: {"enabled": var.get()}
-            for col, var in auto_gen_vars.items()
-        }
+        new_auto_gen = {col: var.get() for col, var in auto_gen_vars.items()}
+        set_v5_auto_generated(new_auto_gen)
 
-        # Save optional settings
-        new_optional_settings = {
-            col: {"enabled": var.get()}
-            for col, var in optional_vars.items()
-        }
+        # Save current file settings
+        if hasattr(dialog, 'current_file_data') and dialog.current_file_data:
+            selected_current = [col for col, var in current_vars.items() if var.get()]
+            set_v5_current_file(
+                dialog.current_file_data["filename"],
+                dialog.current_file_data["columns"],
+                selected_current
+            )
 
-        # Update settings
-        new_settings = {
-            "auto_generated": new_auto_settings,
-            "optional": new_optional_settings
-        }
-        set_column_settings(new_settings)
+        # Save previous file settings
+        if hasattr(dialog, 'previous_file_data') and dialog.previous_file_data:
+            selected_previous = [col for col, var in previous_vars.items() if var.get()]
+            set_v5_previous_file(
+                dialog.previous_file_data["filename"],
+                dialog.previous_file_data["columns"],
+                selected_previous
+            )
 
         messagebox.showinfo("Saved", "Column settings saved successfully!")
         dialog.destroy()
@@ -813,47 +1079,27 @@ def show_column_settings_dialog_v2(parent):
         dialog.destroy()
         show_settings_dialog(parent)
 
-    def reset_defaults():
-        if messagebox.askyesno("Reset", "Reset all column settings to defaults?"):
-            reset_column_settings()
-            dialog.destroy()
-            show_column_settings_dialog_v2(parent)
-
     tk.Button(
         button_frame,
         text="Back",
-        font=("Arial", 11),
+        font=("Arial", 10),
         bg="#757575",
         fg="white",
-        width=12,
-        height=1,
+        width=10,
         cursor="hand2",
         command=back_to_settings
-    ).pack(side=tk.LEFT, padx=10)
-
-    tk.Button(
-        button_frame,
-        text="Reset Defaults",
-        font=("Arial", 11),
-        bg="#FF5722",
-        fg="white",
-        width=14,
-        height=1,
-        cursor="hand2",
-        command=reset_defaults
-    ).pack(side=tk.LEFT, padx=10)
+    ).pack(side=tk.LEFT, padx=8)
 
     tk.Button(
         button_frame,
         text="Save",
-        font=("Arial", 11, "bold"),
+        font=("Arial", 10, "bold"),
         bg="#4CAF50",
         fg="white",
-        width=12,
-        height=1,
+        width=10,
         cursor="hand2",
         command=save_and_close
-    ).pack(side=tk.LEFT, padx=10)
+    ).pack(side=tk.LEFT, padx=8)
 
 
 

@@ -18,7 +18,7 @@ from src.utils.progress import print_progress, finalize_progress
 from src.core.casting import generate_casting_key
 from src.core.import_logic import apply_import_logic
 from src.core.change_detection import detect_all_field_changes, get_changed_char_cols, get_priority_change
-from src.settings import get_use_priority_change
+from src.settings import get_use_priority_change, get_v5_enabled_columns
 
 
 def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so, prev_lookup_sc,
@@ -328,6 +328,12 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
     counter = {}
     previous_strorigins = []
 
+    # V5: Get user-selected PREVIOUS columns once (outside loop for performance)
+    v5_cols = get_v5_enabled_columns()
+    selected_previous_cols = v5_cols.get("previous", [])  # Already has Previous_ prefix
+    if selected_previous_cols:
+        log(f"V5: Extracting {len(selected_previous_cols)} PREVIOUS columns via KEY-matching")
+
     for curr_idx, curr_row in df_curr.iterrows():
         curr_dict = curr_row.to_dict()
 
@@ -391,6 +397,19 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
             curr_dict[COL_PREVIOUS_TEXT] = safe_str(prev_row_dict.get(COL_TEXT, ""))
         else:
             curr_dict[COL_PREVIOUS_TEXT] = ""
+
+        # V5: Extract user-selected PREVIOUS columns using KEY-based matching
+        # These columns are pulled from the matched PREVIOUS row (not by index)
+        for prefixed_col in selected_previous_cols:
+            # Remove "Previous_" prefix to get original column name
+            if prefixed_col.startswith("Previous_"):
+                original_col = prefixed_col[9:]  # len("Previous_") = 9
+                if prev_row_dict and change_type != "New Row":
+                    # KEY-based: extract from matched PREVIOUS row
+                    curr_dict[prefixed_col] = safe_str(prev_row_dict.get(original_col, ""))
+                else:
+                    # New Row: no match in PREVIOUS, leave empty
+                    curr_dict[prefixed_col] = ""
 
         results.append(curr_dict)
         counter[change_type] = counter.get(change_type, 0) + 1

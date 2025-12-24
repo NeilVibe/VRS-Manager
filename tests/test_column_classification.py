@@ -175,6 +175,131 @@ class TestSettingsIntegration(unittest.TestCase):
                              f"VRS_CONDITIONAL column {col} should not be selectable as optional")
 
 
+class TestV5PreviousColumnMatching(unittest.TestCase):
+    """Test V5 KEY-based PREVIOUS column matching."""
+
+    def test_v5_settings_structure(self):
+        """V5 settings should have correct structure."""
+        from src.settings import get_v5_column_settings
+
+        v5 = get_v5_column_settings()
+
+        self.assertIn("auto_generated", v5)
+        self.assertIn("current_file", v5)
+        self.assertIn("previous_file", v5)
+
+        # Check current_file structure
+        self.assertIn("filename", v5["current_file"])
+        self.assertIn("columns", v5["current_file"])
+        self.assertIn("selected", v5["current_file"])
+
+        # Check previous_file structure
+        self.assertIn("filename", v5["previous_file"])
+        self.assertIn("columns", v5["previous_file"])
+        self.assertIn("selected", v5["previous_file"])
+
+    def test_v5_enabled_columns_previous_prefix(self):
+        """V5 enabled PREVIOUS columns should have Previous_ prefix."""
+        from src.settings import get_v5_enabled_columns, set_v5_previous_file
+
+        # Set some previous columns
+        set_v5_previous_file("test.xlsx", ["FREEMEMO", "HasAudio"], ["FREEMEMO"])
+
+        v5_cols = get_v5_enabled_columns()
+        previous_cols = v5_cols.get("previous", [])
+
+        # Should have Previous_ prefix
+        for col in previous_cols:
+            self.assertTrue(col.startswith("Previous_"),
+                            f"PREVIOUS column {col} should have Previous_ prefix")
+
+        # Clean up
+        set_v5_previous_file("", [], [])
+
+    def test_v5_current_columns_no_prefix(self):
+        """V5 enabled CURRENT columns should NOT have prefix."""
+        from src.settings import get_v5_enabled_columns, set_v5_current_file
+
+        # Set some current columns
+        set_v5_current_file("test.xlsx", ["FREEMEMO", "HasAudio"], ["FREEMEMO"])
+
+        v5_cols = get_v5_enabled_columns()
+        current_cols = v5_cols.get("current", [])
+
+        # Should NOT have Previous_ prefix
+        for col in current_cols:
+            self.assertFalse(col.startswith("Previous_"),
+                             f"CURRENT column {col} should NOT have prefix")
+
+        # Clean up
+        set_v5_current_file("", [], [])
+
+    def test_filter_includes_v5_previous_columns(self):
+        """filter_output_columns should include V5 PREVIOUS columns."""
+        from src.utils.data_processing import filter_output_columns
+        from src.settings import set_v5_previous_file
+        import pandas as pd
+
+        # Set PREVIOUS column selection
+        set_v5_previous_file("test.xlsx", ["FREEMEMO"], ["FREEMEMO"])
+
+        # Create test DataFrame with Previous_FREEMEMO column
+        test_data = {col: ["test"] for col in MANDATORY_COLUMNS}
+        test_data["Previous_FREEMEMO"] = ["prev_memo"]
+        df = pd.DataFrame(test_data)
+
+        result = filter_output_columns(df, use_settings=True)
+
+        self.assertIn("Previous_FREEMEMO", result.columns,
+                      "V5 PREVIOUS column should be in output")
+
+        # Clean up
+        set_v5_previous_file("", [], [])
+
+    def test_filter_includes_v5_current_columns(self):
+        """filter_output_columns should include V5 CURRENT columns."""
+        from src.utils.data_processing import filter_output_columns
+        from src.settings import set_v5_current_file
+        import pandas as pd
+
+        # Set CURRENT column selection
+        set_v5_current_file("test.xlsx", ["FREEMEMO"], ["FREEMEMO"])
+
+        # Create test DataFrame with FREEMEMO column
+        test_data = {col: ["test"] for col in MANDATORY_COLUMNS}
+        test_data["FREEMEMO"] = ["memo"]
+        df = pd.DataFrame(test_data)
+
+        result = filter_output_columns(df, use_settings=True)
+
+        self.assertIn("FREEMEMO", result.columns,
+                      "V5 CURRENT column should be in output")
+
+        # Clean up
+        set_v5_current_file("", [], [])
+
+    def test_v5_reset_clears_all(self):
+        """reset_v5_all should clear all V5 settings."""
+        from src.settings import (
+            set_v5_current_file, set_v5_previous_file,
+            set_v5_auto_generated, reset_v5_all, get_v5_column_settings
+        )
+
+        # Set some values
+        set_v5_current_file("current.xlsx", ["A", "B"], ["A"])
+        set_v5_previous_file("previous.xlsx", ["C", "D"], ["C"])
+        set_v5_auto_generated({"PreviousData": False})
+
+        # Reset all
+        reset_v5_all()
+
+        # Check reset
+        v5 = get_v5_column_settings()
+        self.assertEqual(v5["current_file"]["filename"], "")
+        self.assertEqual(v5["previous_file"]["filename"], "")
+        self.assertTrue(v5["auto_generated"]["PreviousData"])  # Should be True after reset
+
+
 if __name__ == "__main__":
     print("=" * 70)
     print("COLUMN CLASSIFICATION TESTS")
@@ -189,6 +314,7 @@ if __name__ == "__main__":
     suite.addTests(loader.loadTestsFromTestCase(TestColumnCounts))
     suite.addTests(loader.loadTestsFromTestCase(TestDataProcessingInclusion))
     suite.addTests(loader.loadTestsFromTestCase(TestSettingsIntegration))
+    suite.addTests(loader.loadTestsFromTestCase(TestV5PreviousColumnMatching))
 
     # Run with verbosity
     runner = unittest.TextTestRunner(verbosity=2)

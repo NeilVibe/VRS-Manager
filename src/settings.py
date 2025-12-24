@@ -381,3 +381,112 @@ def clear_file_columns(file_type):
 
     save_settings(settings)
     _update_combined_columns()
+
+
+# ===========================================================================
+# V5: DUAL-FILE COLUMN SELECTION (CURRENT + PREVIOUS with KEY matching)
+# ===========================================================================
+
+def get_v5_column_settings():
+    """
+    Get V5 column settings.
+
+    Returns:
+        dict: {
+            "auto_generated": {col: bool, ...},
+            "current_file": {"filename": str, "columns": [], "selected": []},
+            "previous_file": {"filename": str, "columns": [], "selected": []}
+        }
+    """
+    settings = load_settings()
+    return {
+        "auto_generated": settings.get("v5_auto_generated", {col: True for col in AUTO_GENERATED_COLUMNS}),
+        "current_file": settings.get("v5_current_file", {"filename": "", "columns": [], "selected": []}),
+        "previous_file": settings.get("v5_previous_file", {"filename": "", "columns": [], "selected": []})
+    }
+
+
+def set_v5_auto_generated(auto_gen_settings):
+    """
+    Set V5 auto-generated column settings.
+
+    Args:
+        auto_gen_settings: Dict of {column_name: enabled_bool}
+    """
+    settings = load_settings()
+    settings["v5_auto_generated"] = auto_gen_settings
+    save_settings(settings)
+
+
+def set_v5_current_file(filename, columns, selected):
+    """
+    Set V5 current file info.
+
+    Args:
+        filename: Name of the uploaded file
+        columns: List of all optional column names found
+        selected: List of selected column names
+    """
+    settings = load_settings()
+    settings["v5_current_file"] = {
+        "filename": filename,
+        "columns": columns,
+        "selected": selected
+    }
+    save_settings(settings)
+
+
+def set_v5_previous_file(filename, columns, selected):
+    """
+    Set V5 previous file info.
+
+    Args:
+        filename: Name of the uploaded file
+        columns: List of all optional column names found
+        selected: List of selected column names
+    """
+    settings = load_settings()
+    settings["v5_previous_file"] = {
+        "filename": filename,
+        "columns": columns,
+        "selected": selected
+    }
+    save_settings(settings)
+
+
+def reset_v5_all():
+    """Reset all V5 settings (auto-generated, current file, previous file)."""
+    settings = load_settings()
+
+    # Reset auto-generated to all ON
+    settings["v5_auto_generated"] = {col: True for col in AUTO_GENERATED_COLUMNS}
+
+    # Clear file uploads
+    settings["v5_current_file"] = {"filename": "", "columns": [], "selected": []}
+    settings["v5_previous_file"] = {"filename": "", "columns": [], "selected": []}
+
+    save_settings(settings)
+
+
+def get_v5_enabled_columns():
+    """
+    Get all enabled columns for V5.
+
+    Returns:
+        dict: {
+            "auto_generated": [list of enabled auto-gen column names],
+            "current": [list of selected current file columns],
+            "previous": [list of selected previous file columns with Previous_ prefix]
+        }
+    """
+    v5 = get_v5_column_settings()
+
+    enabled_auto = [col for col, enabled in v5["auto_generated"].items() if enabled]
+    enabled_current = v5["current_file"].get("selected", [])
+    enabled_previous = [f"Previous_{col}" for col in v5["previous_file"].get("selected", [])]
+
+    return {
+        "auto_generated": enabled_auto,
+        "current": enabled_current,
+        "previous": enabled_previous
+    }

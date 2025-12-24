@@ -8,7 +8,7 @@ including status normalization, column filtering, and dataframe cleaning.
 import pandas as pd
 from src.config import OUTPUT_COLUMNS, MANDATORY_COLUMNS, AUTO_GENERATED_COLUMNS, OPTIONAL_COLUMNS, VRS_CONDITIONAL_COLUMNS
 from src.utils.helpers import safe_str
-from src.settings import get_enabled_columns, get_selected_optional_columns, get_analyzed_columns
+from src.settings import get_enabled_columns, get_selected_optional_columns, get_analyzed_columns, get_v5_enabled_columns
 
 
 def find_status_column(columns):
@@ -66,6 +66,7 @@ def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
     Filter DataFrame to only include columns based on settings and column list.
 
     V2: Now supports dynamic column selection from file analysis.
+    V5: Supports dual-file column selection (CURRENT + PREVIOUS with KEY matching).
     Gracefully skips columns that don't exist in the DataFrame.
 
     Args:
@@ -94,10 +95,33 @@ def filter_output_columns(df, column_list=OUTPUT_COLUMNS, use_settings=True):
     selected_optional = get_selected_optional_columns()
     enabled_columns.update(selected_optional)
 
-    # V2: Build extended column list including analyzed columns
+    # V5: Include columns from dual-file selection (CURRENT + PREVIOUS)
+    v5_cols = get_v5_enabled_columns()
+    v5_auto_generated = v5_cols.get("auto_generated", [])
+    v5_current = v5_cols.get("current", [])
+    v5_previous = v5_cols.get("previous", [])  # Already has Previous_ prefix
+
+    # Add V5 columns to enabled set
+    enabled_columns.update(v5_auto_generated)
+    enabled_columns.update(v5_current)
+    enabled_columns.update(v5_previous)
+
+    # V2/V5: Build extended column list including analyzed columns
     analyzed_cols = get_analyzed_columns()
     extended_column_list = list(column_list)
+
+    # Add analyzed columns (V2)
     for col in analyzed_cols:
+        if col not in extended_column_list:
+            extended_column_list.append(col)
+
+    # Add V5 CURRENT columns (maintain order)
+    for col in v5_current:
+        if col not in extended_column_list:
+            extended_column_list.append(col)
+
+    # Add V5 PREVIOUS columns at the end (they have Previous_ prefix)
+    for col in v5_previous:
         if col not in extended_column_list:
             extended_column_list.append(col)
 
