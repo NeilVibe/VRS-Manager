@@ -1,6 +1,6 @@
 # VRS Manager - Roadmap
 
-**Version:** v12242254 | **Status:** Production | **Tasks:** TASK-002 COMPLETE
+**Version:** v12242254 | **Status:** Production | **Auto-Versioned by CI**
 
 ---
 
@@ -8,11 +8,32 @@
 
 | ID | Task | Status | File |
 |----|------|--------|------|
+| AUTO-VERSION | CI Executive Auto-Versioning | **COMPLETE** | [docs/BUILD.md](docs/BUILD.md) |
 | TASK-002 | Customizable Output Columns + HasAudio | **COMPLETE** | [docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md](docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md) |
 | TASK-001 | StringOrigin & Mainline Logic | COMPLETED | [docs/wip/TASK-001_STRORIGIN_MAINLINE.md](docs/wip/TASK-001_STRORIGIN_MAINLINE.md) |
 
 **Session context:** [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md)
 **Issue tracking:** [docs/wip/ISSUELIST.md](docs/wip/ISSUELIST.md)
+
+---
+
+## Auto-Versioning Summary (COMPLETE - 2025-12-24)
+
+**CI now has EXECUTIVE POWER over version numbers!**
+
+### What It Does
+1. Generates version in `vMMDDHHMM` format (KST timezone)
+2. Updates ALL 12 version files automatically
+3. Commits changes back to main: `build: Auto-version vXXXX [skip ci]`
+4. Installer filename matches: `VRSManager_vXXXX_Light_Setup.exe`
+
+### Key Rule
+**DO NOT manually update version numbers!** CI handles everything.
+
+### Files Modified
+- `.github/workflows/build-installers.yml` - Added commit step
+- `docs/BUILD.md` - New Auto-Versioning section
+- `CLAUDE.md` - New Versioning section
 
 ---
 
