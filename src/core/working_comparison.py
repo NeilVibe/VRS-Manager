@@ -400,16 +400,23 @@ def process_working_comparison(df_curr, df_prev, prev_lookup_se, prev_lookup_so,
 
         # V5: Extract user-selected PREVIOUS columns using KEY-based matching
         # These columns are pulled from the matched PREVIOUS row (not by index)
-        for prefixed_col in selected_previous_cols:
-            # Remove "Previous_" prefix to get original column name
-            if prefixed_col.startswith("Previous_"):
-                original_col = prefixed_col[9:]  # len("Previous_") = 9
+        # Note: Prefix is only added for CONFLICTS (same column in both files)
+        for col in selected_previous_cols:
+            if col.startswith("Previous_"):
+                # CONFLICT case: column selected from BOTH files
+                # Output column has prefix, extract from original column name
+                original_col = col[9:]  # len("Previous_") = 9
                 if prev_row_dict and change_type != "New Row":
-                    # KEY-based: extract from matched PREVIOUS row
-                    curr_dict[prefixed_col] = safe_str(prev_row_dict.get(original_col, ""))
+                    curr_dict[col] = safe_str(prev_row_dict.get(original_col, ""))
                 else:
-                    # New Row: no match in PREVIOUS, leave empty
-                    curr_dict[prefixed_col] = ""
+                    curr_dict[col] = ""
+            else:
+                # NO CONFLICT case: column only from PREVIOUS file
+                # Output column has same name, extract directly
+                if prev_row_dict and change_type != "New Row":
+                    curr_dict[col] = safe_str(prev_row_dict.get(col, ""))
+                else:
+                    curr_dict[col] = ""
 
         results.append(curr_dict)
         counter[change_type] = counter.get(change_type, 0) + 1

@@ -198,23 +198,31 @@ class TestV5PreviousColumnMatching(unittest.TestCase):
         self.assertIn("columns", v5["previous_file"])
         self.assertIn("selected", v5["previous_file"])
 
-    def test_v5_enabled_columns_previous_prefix(self):
-        """V5 enabled PREVIOUS columns should have Previous_ prefix."""
-        from src.settings import get_v5_enabled_columns, set_v5_previous_file
+    def test_v5_enabled_columns_previous_prefix_only_on_conflict(self):
+        """V5 PREVIOUS columns should only have Previous_ prefix when conflicting with CURRENT."""
+        from src.settings import get_v5_enabled_columns, set_v5_previous_file, set_v5_current_file
 
-        # Set some previous columns
-        set_v5_previous_file("test.xlsx", ["FREEMEMO", "HasAudio"], ["FREEMEMO"])
+        # Set CURRENT with FREEMEMO selected
+        set_v5_current_file("current.xlsx", ["FREEMEMO", "HasAudio"], ["FREEMEMO"])
+        # Set PREVIOUS with FREEMEMO and Record selected
+        set_v5_previous_file("previous.xlsx", ["FREEMEMO", "Record"], ["FREEMEMO", "Record"])
 
         v5_cols = get_v5_enabled_columns()
         previous_cols = v5_cols.get("previous", [])
 
-        # Should have Previous_ prefix
-        for col in previous_cols:
-            self.assertTrue(col.startswith("Previous_"),
-                            f"PREVIOUS column {col} should have Previous_ prefix")
+        # FREEMEMO is in BOTH files (conflict) - should have prefix
+        self.assertIn("Previous_FREEMEMO", previous_cols,
+                      "Conflicting column should have Previous_ prefix")
+
+        # Record is only in PREVIOUS (no conflict) - should NOT have prefix
+        self.assertIn("Record", previous_cols,
+                      "Non-conflicting column should NOT have prefix")
+        self.assertNotIn("Previous_Record", previous_cols,
+                         "Non-conflicting column should NOT have Previous_ prefix")
 
         # Clean up
         set_v5_previous_file("", [], [])
+        set_v5_current_file("", [], [])
 
     def test_v5_current_columns_no_prefix(self):
         """V5 enabled CURRENT columns should NOT have prefix."""
@@ -234,27 +242,29 @@ class TestV5PreviousColumnMatching(unittest.TestCase):
         # Clean up
         set_v5_current_file("", [], [])
 
-    def test_filter_includes_v5_previous_columns(self):
-        """filter_output_columns should include V5 PREVIOUS columns."""
+    def test_filter_includes_v5_previous_columns_no_conflict(self):
+        """filter_output_columns should include V5 PREVIOUS columns (no prefix when no conflict)."""
         from src.utils.data_processing import filter_output_columns
-        from src.settings import set_v5_previous_file
+        from src.settings import set_v5_previous_file, set_v5_current_file
         import pandas as pd
 
-        # Set PREVIOUS column selection
+        # Set PREVIOUS column selection (no CURRENT selection = no conflict)
+        set_v5_current_file("", [], [])
         set_v5_previous_file("test.xlsx", ["FREEMEMO"], ["FREEMEMO"])
 
-        # Create test DataFrame with Previous_FREEMEMO column
+        # Create test DataFrame with FREEMEMO column (no prefix since no conflict)
         test_data = {col: ["test"] for col in MANDATORY_COLUMNS}
-        test_data["Previous_FREEMEMO"] = ["prev_memo"]
+        test_data["FREEMEMO"] = ["prev_memo"]
         df = pd.DataFrame(test_data)
 
         result = filter_output_columns(df, use_settings=True)
 
-        self.assertIn("Previous_FREEMEMO", result.columns,
-                      "V5 PREVIOUS column should be in output")
+        self.assertIn("FREEMEMO", result.columns,
+                      "V5 PREVIOUS column (no conflict) should be in output without prefix")
 
         # Clean up
         set_v5_previous_file("", [], [])
+        set_v5_current_file("", [], [])
 
     def test_filter_includes_v5_current_columns(self):
         """filter_output_columns should include V5 CURRENT columns."""

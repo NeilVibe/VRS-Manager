@@ -472,21 +472,37 @@ def get_v5_enabled_columns():
     """
     Get all enabled columns for V5.
 
+    Previous_ prefix is ONLY added when there's a CONFLICT:
+    - Same column selected from BOTH CURRENT and PREVIOUS files
+    - Prefix differentiates the two values in output
+
+    If a column is only selected from PREVIOUS (not CURRENT), no prefix needed.
+
     Returns:
         dict: {
             "auto_generated": [list of enabled auto-gen column names],
             "current": [list of selected current file columns],
-            "previous": [list of selected previous file columns with Previous_ prefix]
+            "previous": [list of previous columns - prefixed only if conflict with current]
         }
     """
     v5 = get_v5_column_settings()
 
     enabled_auto = [col for col, enabled in v5["auto_generated"].items() if enabled]
-    enabled_current = v5["current_file"].get("selected", [])
-    enabled_previous = [f"Previous_{col}" for col in v5["previous_file"].get("selected", [])]
+    enabled_current = set(v5["current_file"].get("selected", []))
+    selected_previous = v5["previous_file"].get("selected", [])
+
+    # Only add Previous_ prefix if column is ALSO selected from CURRENT (conflict)
+    enabled_previous = []
+    for col in selected_previous:
+        if col in enabled_current:
+            # CONFLICT: same column selected from both files - add prefix
+            enabled_previous.append(f"Previous_{col}")
+        else:
+            # NO CONFLICT: column only from PREVIOUS - no prefix needed
+            enabled_previous.append(col)
 
     return {
         "auto_generated": enabled_auto,
-        "current": enabled_current,
+        "current": list(enabled_current),
         "previous": enabled_previous
     }

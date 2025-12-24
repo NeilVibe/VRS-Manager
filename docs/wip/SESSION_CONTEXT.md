@@ -49,10 +49,26 @@
 4. Next time open dialog → previous selections remembered
 5. Want to change? → RESET ALL + REUPLOAD
 
-### Previous_ Prefix Handling
-- **UI checkboxes**: User sees original column name ("FREEMEMO")
-- **Output processing**: `get_v5_enabled_columns()` adds "Previous_" prefix
-- **Result**: Output has "Previous_FREEMEMO" column with KEY-matched values
+### Previous_ Prefix Handling (CONFLICT RESOLUTION)
+
+The prefix is ONLY added when there's a CONFLICT (same column selected from BOTH files):
+
+| Scenario | Output Column Name |
+|----------|-------------------|
+| FREEMEMO only in PREVIOUS | `FREEMEMO` (no prefix) |
+| FREEMEMO only in CURRENT | `FREEMEMO` (no prefix) |
+| FREEMEMO in BOTH (conflict) | `FREEMEMO` (CURRENT) + `Previous_FREEMEMO` (PREVIOUS) |
+
+**Logic in `get_v5_enabled_columns()`:**
+```python
+for col in selected_previous:
+    if col in enabled_current:
+        # CONFLICT: add prefix
+        enabled_previous.append(f"Previous_{col}")
+    else:
+        # NO CONFLICT: no prefix
+        enabled_previous.append(col)
+```
 
 ---
 
