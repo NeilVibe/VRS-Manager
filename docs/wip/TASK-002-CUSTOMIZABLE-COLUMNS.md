@@ -1,6 +1,7 @@
 # TASK-002: Customizable Output Columns + HasAudio
 
-**Created:** 2025-12-22 | **Status:** V5 IMPLEMENTED + UI FIXES | **Priority:** High
+**Created:** 2025-12-22 | **Status:** COMPLETE | **Priority:** High
+**Completed:** 2025-12-24
 
 ---
 
@@ -123,28 +124,49 @@ for prefixed_col in selected_previous_cols:
 
 ## V5 UI FIXES (2025-12-24)
 
-### Issues Fixed
+### All 6 Issues Fixed
 
 | Issue | Problem | Fix |
 |-------|---------|-----|
-| **V5-001** | FIXED columns truncated ("SequenceName, EventName... (10 total)") | Show full comma-separated list with text wrapping |
-| **V5-002** | PREVIOUS checkboxes showed "Previous_FREEMEMO" prefix | Removed prefix - user sees original column name, prefix only in output |
-| **V5-003** | Info text "New Rows will have empty PREVIOUS values" unclear | Clarified: "Rows that only exist in CURRENT (no match in PREVIOUS) will have empty values" |
+| **V5-001** | FIXED columns truncated ("...10 total") | Show full comma-separated list with text wrapping |
+| **V5-002** | PREVIOUS checkboxes showed "Previous_FREEMEMO" | Removed prefix - user sees original column name |
+| **V5-003** | Info text "New Rows..." unclear | Clarified: "Rows that only exist in CURRENT..." |
+| **V5-004** | Previous_ prefix on ALL PREVIOUS columns | Only add prefix on CONFLICT (same column in both files) |
+| **V5-005** | Dialog too small, buttons compressed | Increased to 950x850 / minsize 850x750 |
+| **V5-006** | Upload freezes UI | Threading + progress feedback |
 
-### Code Changes
+### Key Code Changes
 
 ```python
 # Fix 1: Full column list (main_window.py)
 mandatory_text = ", ".join(MANDATORY_COLUMNS)  # Was [:4] + "..."
-# Added wraplength=880, justify=tk.LEFT
 
 # Fix 2: No prefix in checkbox (main_window.py)
 text=col,  # Was f"Previous_{col}"
 
-# Fix 3: Clearer info text (main_window.py)
-"Output will show as 'Previous_ColumnName'. Rows that only exist in CURRENT
-(no match in PREVIOUS) will have empty values."
+# Fix 4: Prefix only on CONFLICT (settings.py)
+for col in selected_previous:
+    if col in enabled_current:
+        enabled_previous.append(f"Previous_{col}")  # CONFLICT
+    else:
+        enabled_previous.append(col)  # NO CONFLICT
+
+# Fix 5: Larger dialog (main_window.py)
+dialog.geometry("950x850")
+dialog.minsize(850, 750)
+
+# Fix 6: Threaded upload (main_window.py)
+def upload_current_file():
+    current_status.config(text=f"⏳ Analyzing {filename}...", fg="#FF9800")
+    thread = threading.Thread(target=analyze_in_thread, daemon=True)
+    thread.start()
 ```
+
+### Column Selection Persistence
+- Settings saved to `~/.vrsmanager_settings.json`
+- Analyzed file is for DISCOVERY only
+- Settings apply to ALL future WORKING processor runs
+- RESET ALL + REUPLOAD to change configuration
 
 ---
 

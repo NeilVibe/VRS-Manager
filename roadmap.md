@@ -1,6 +1,6 @@
 # VRS Manager - Roadmap
 
-**Version:** v12231045 | **Status:** Production | **Tasks:** 1 active
+**Version:** v12231045 | **Status:** Production | **Tasks:** TASK-002 COMPLETE
 
 ---
 
@@ -8,27 +8,42 @@
 
 | ID | Task | Status | File |
 |----|------|--------|------|
-| TASK-002 | Customizable Output Columns + HasAudio | PLANNING | [docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md](docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md) |
+| TASK-002 | Customizable Output Columns + HasAudio | **COMPLETE** | [docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md](docs/wip/TASK-002-CUSTOMIZABLE-COLUMNS.md) |
 | TASK-001 | StringOrigin & Mainline Logic | COMPLETED | [docs/wip/TASK-001_STRORIGIN_MAINLINE.md](docs/wip/TASK-001_STRORIGIN_MAINLINE.md) |
 
 **Session context:** [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md)
+**Issue tracking:** [docs/wip/ISSUELIST.md](docs/wip/ISSUELIST.md)
 
 ---
 
-## TASK-002 Summary (Current)
+## TASK-002 Summary (COMPLETE - 2025-12-24)
 
 **Requester:** Colleague via Neil (2025-12-22)
 
-### Feature 1: HasAudio Column
-- Add `HasAudio` to WORK output
-- Source: Already in CURRENT file
-- Place next to Mainline Translation
+### Features Delivered
 
-### Feature 2: Customizable Columns
-- Mandatory columns (always shown, cannot disable)
-- Auto-generated columns (VRS creates, user can toggle)
-- Optional columns (from source files, user can toggle)
-- Persist settings to JSON
+1. **HasAudio Column** - Now available in output
+2. **Customizable Columns** - Full V5 implementation:
+   - 4-tier classification (MANDATORY, VRS_CONDITIONAL, AUTO_GENERATED, OPTIONAL)
+   - Dual file upload (CURRENT + PREVIOUS)
+   - KEY-based PREVIOUS column matching
+   - Previous_ prefix only on CONFLICT
+   - Settings persist to JSON
+   - Threaded uploads with progress feedback
+
+### V5 Issues Fixed (6 total)
+
+| Issue | Problem | Fix |
+|-------|---------|-----|
+| V5-001 | FIXED columns truncated | Full list with wrapping |
+| V5-002 | Previous_ prefix in checkboxes | Removed - original names shown |
+| V5-003 | Info text unclear | Clarified wording |
+| V5-004 | Prefix on ALL columns | Only on CONFLICT |
+| V5-005 | Dialog too small | 950x850 / minsize 850x750 |
+| V5-006 | Upload freezes UI | Threading + progress |
+
+### Tests
+- **539 tests pass** (518 unified + 21 column classification)
 
 ---
 
@@ -54,6 +69,7 @@
 
 ```bash
 python3 tests/test_unified_change_detection.py  # 518 tests
+python3 tests/test_column_classification.py     # 21 tests
 python3 scripts/check_version_unified.py        # Version check
 ```
 
@@ -64,6 +80,7 @@ python3 scripts/check_version_unified.py        # Version check
 | Need | Go To |
 |------|-------|
 | **Session state?** | [docs/wip/SESSION_CONTEXT.md](docs/wip/SESSION_CONTEXT.md) |
+| **Issue tracking?** | [docs/wip/ISSUELIST.md](docs/wip/ISSUELIST.md) |
 | **WIP tasks?** | [docs/wip/](docs/wip/) |
 | **History?** | [history/](history/) |
 
@@ -76,4 +93,4 @@ python3 scripts/check_version_unified.py        # Version check
 
 ---
 
-*Last updated: 2025-12-22*
+*Last updated: 2025-12-24*
