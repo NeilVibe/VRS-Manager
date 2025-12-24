@@ -17,11 +17,58 @@ You can now choose **what to build**:
 
 ---
 
+## 🔢 Auto-Versioning (Executive Power)
+
+**The CI pipeline has EXECUTIVE POWER over version numbers!**
+
+### How It Works
+
+When you trigger a build:
+1. CI auto-generates version in `MMDDHHMM` format (KST timezone)
+2. CI injects version into ALL 12 files automatically
+3. CI commits version updates back to `main` branch
+4. Build proceeds with unified version
+
+### What Gets Auto-Updated
+
+| File | Field Updated |
+|------|---------------|
+| `src/config.py` | `VERSION = "MMDDHHMM"` |
+| `main.py` | `Version: MMDDHHMM` |
+| `README.md` | `**Version:** MMDDHHMM` |
+| `README_KR.md` | `**버전:** MMDDHHMM` |
+| `CLAUDE.md` | `**Version:** vMMDDHHMM` |
+| `roadmap.md` | `**Version:** vMMDDHHMM` |
+| `docs/WIKI_CONFLUENCE.md` | Version references |
+| `installer/*.iss` | `#define MyAppVersion` |
+| `scripts/update_excel_guides.py` | `VERSION` constant |
+| `src/processors/master_processor.py` | Version string |
+
+### Key Benefits
+
+- **No manual version updates** - CI handles everything
+- **Always synchronized** - All 12 files match automatically
+- **Audit trail** - Git commit shows exact version timestamp
+- **Zero human error** - No version mismatches possible
+
+### Example Flow
+
+```
+1. Developer triggers: "Build LIGHT (feature X)"
+2. CI generates: v12242215 (Dec 24, 22:15 KST)
+3. CI updates all 12 files with v12242215
+4. CI commits: "build: Auto-version v12242215 [skip ci]"
+5. CI runs tests, builds installer
+6. Release created with v12242215
+```
+
+---
+
 ## 🚀 How to Trigger Builds
 
 ### Prerequisites
-1. ✅ Version unified across all 12 files
-2. ✅ Version check passed: `python3 check_version_unified.py`
+1. ~~✅ Version unified across all 12 files~~ **(Now automatic!)**
+2. ~~✅ Version check passed~~ **(CI handles this)**
 3. ✅ All changes committed and pushed to main
 
 ### Build Commands
@@ -250,17 +297,24 @@ ls -lh dist_full/VRSManager/VRSManager.exe
 
 Before triggering builds, ensure:
 
-- [ ] **Version unified** across all 12 files
-- [ ] **Version check passed**: `python3 scripts/check_version_unified.py`
-- [ ] **All tests passing** (now checked automatically in CI!):
-  - `python3 tests/test_unified_change_detection.py` (518 cases)
-  - `python3 tests/test_phase4_comprehensive.py` (48 cases)
+- [x] ~~**Version unified** across all 12 files~~ **AUTO (Executive Power)**
+- [x] ~~**Version check passed**~~ **AUTO (CI Safety Check)**
+- [x] ~~**All tests passing**~~ **AUTO (CI Safety Check)**
 - [ ] **Excel guides updated** (if needed): `python3 scripts/update_excel_guides.py`
 - [ ] **Roadmap updated** with latest changes
 - [ ] **All changes committed and pushed** to main
 - [ ] **Decided which to build**: LIGHT, FULL, or BOTH
 
-**Note:** Safety checks now run automatically in CI - if any fail, build is blocked!
+**Note:** Version updates, tests, and safety checks run automatically in CI!
+
+### What CI Does Automatically
+
+1. **Generates version** - `MMDDHHMM` format in KST
+2. **Updates all 12 files** - Injects version everywhere
+3. **Commits back to main** - `build: Auto-version vXXXXXXXX [skip ci]`
+4. **Runs all tests** - 518 + 48 test cases
+5. **Builds installer** - Filename matches version: `VRSManager_vXXXXXXXX_Light_Setup.exe`
+6. **Creates release** - Tagged with version
 
 ---
 
@@ -457,8 +511,9 @@ git push origin main
 
 ---
 
-**Last Updated:** 2025-12-23 (v12231045)
-**Build System Version:** Modular with Safety Checks (LIGHT/FULL/BOTH selection)
+**Last Updated:** 2025-12-24
+**Build System Version:** Modular with **Executive Auto-Versioning** (LIGHT/FULL/BOTH selection)
+**Versioning:** CI auto-generates `vMMDDHHMM` and commits to main
 
 ---
 

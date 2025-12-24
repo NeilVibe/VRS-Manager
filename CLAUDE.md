@@ -1,6 +1,6 @@
 # CLAUDE.md - VRS Manager Navigation Hub
 
-**Version:** v12231045 | **Status:** Production | **Tasks:** 1 active
+**Version:** v12242210 | **Status:** Production | **Tasks:** 1 active
 
 > **KEEP THIS FILE COMPACT.** Details in linked docs.
 
@@ -49,13 +49,26 @@ src/settings.py ........... User settings
 
 ---
 
+## Versioning (Executive Power)
+
+**CI auto-generates version on every build - DO NOT manually update!**
+
+- Format: `vMMDDHHMM` (KST timezone)
+- CI updates all 12 files automatically
+- CI commits: `build: Auto-version vXXXX [skip ci]`
+- Installer filename matches: `VRSManager_vXXXX_Light_Setup.exe`
+
+See [docs/BUILD.md](docs/BUILD.md) for details.
+
+---
+
 ## Quick Commands
 
 ```bash
 # Run tests (518 tests)
 python3 tests/test_unified_change_detection.py
 
-# Check version
+# Check version (informational only - CI handles this)
 python3 scripts/check_version_unified.py
 ```
 
@@ -88,4 +101,4 @@ value = row[COL_NAME]                     # NEVER - dict errors
 
 ---
 
-*Last updated: 2025-12-18 | Hub file - details in linked docs*
+*Last updated: 2025-12-24 | Hub file - details in linked docs*

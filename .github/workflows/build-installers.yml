@@ -124,6 +124,32 @@ jobs:
           echo "[OK] All files updated to version: $VERSION"
           grep "VERSION" src/config.py | head -2
 
+      # ============================================================
+      # COMMIT VERSION BACK TO REPO (Executive Power Persistence)
+      # ============================================================
+      - name: Commit Version Updates
+        run: |
+          VERSION="${{ needs.check-build-type.outputs.version }}"
+          echo "=== PERSISTING VERSION TO REPOSITORY ==="
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage all version-related files
+          git add src/config.py main.py README.md README_KR.md \
+                  installer/vrsmanager_light.iss installer/vrsmanager_full.iss \
+                  scripts/update_excel_guides.py src/processors/master_processor.py \
+                  CLAUDE.md roadmap.md docs/WIKI_CONFLUENCE.md
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No version changes to commit (already up to date)"
+          else
+            git commit -m "build: Auto-version v$VERSION [skip ci]"
+            git push origin main
+            echo "[OK] Version v$VERSION committed and pushed to main"
+          fi
+
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
