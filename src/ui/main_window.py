@@ -533,8 +533,8 @@ def show_column_settings_dialog_v2(parent):
     """
     dialog = tk.Toplevel(parent)
     dialog.title("Column Settings")
-    dialog.geometry("950x750")
-    dialog.minsize(850, 650)
+    dialog.geometry("950x850")
+    dialog.minsize(850, 750)
     dialog.resizable(True, True)
     dialog.transient(parent)
     dialog.grab_set()
@@ -770,30 +770,52 @@ def show_column_settings_dialog_v2(parent):
             cb.pack(anchor=tk.W, pady=1)
 
     def upload_current_file():
-        """Handle current file upload."""
+        """Handle current file upload with threading (no UI freeze)."""
         file_path = filedialog.askopenfilename(
             title="Select CURRENT Excel File",
             filetypes=[("Excel files", "*.xlsx *.xls")]
         )
-        if file_path:
-            columns, filename, error = analyze_excel_columns(file_path)
-            if error:
-                messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
-                return
+        if not file_path:
+            return
 
-            # Filter to only optional columns (exclude MANDATORY, VRS_CONDITIONAL, AUTO_GENERATED)
-            excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
-            optional_cols = [c for c in columns if c not in excluded]
+        # Show progress in status label
+        filename = os.path.basename(file_path)
+        current_status.config(text=f"⏳ Analyzing {filename}...", fg="#FF9800")
+        dialog.update()
 
-            current_status.config(text=f"✓ {filename} ({len(optional_cols)} optional columns)")
-            populate_current_checkboxes(optional_cols, optional_cols)  # All selected by default
+        def analyze_in_thread():
+            """Run analysis in background thread."""
+            columns, fname, error = analyze_excel_columns(file_path)
 
-            # Show canvas and scrollbar
-            current_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            current_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            # Schedule UI update on main thread
+            def update_ui():
+                if error:
+                    current_status.config(text=f"❌ Error: {error[:30]}...", fg="#F44336")
+                    messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                    return
 
-            # Store in temp for saving later
-            dialog.current_file_data = {"filename": filename, "columns": optional_cols}
+                # Filter to only optional columns
+                excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
+                optional_cols = [c for c in columns if c not in excluded]
+
+                current_status.config(
+                    text=f"✓ {fname} ({len(optional_cols)} optional columns)",
+                    fg=CURRENT_COLOR
+                )
+                populate_current_checkboxes(optional_cols, optional_cols)  # All selected by default
+
+                # Show canvas and scrollbar
+                current_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                current_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+                # Store in temp for saving later
+                dialog.current_file_data = {"filename": fname, "columns": optional_cols}
+
+            dialog.after(0, update_ui)
+
+        # Run in background thread
+        thread = threading.Thread(target=analyze_in_thread, daemon=True)
+        thread.start()
 
     def select_all_current():
         for var in current_vars.values():
@@ -941,30 +963,52 @@ def show_column_settings_dialog_v2(parent):
             cb.pack(anchor=tk.W, pady=1)
 
     def upload_previous_file():
-        """Handle previous file upload."""
+        """Handle previous file upload with threading (no UI freeze)."""
         file_path = filedialog.askopenfilename(
             title="Select PREVIOUS Excel File",
             filetypes=[("Excel files", "*.xlsx *.xls")]
         )
-        if file_path:
-            columns, filename, error = analyze_excel_columns(file_path)
-            if error:
-                messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
-                return
+        if not file_path:
+            return
 
-            # Filter to only optional columns
-            excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
-            optional_cols = [c for c in columns if c not in excluded]
+        # Show progress in status label
+        filename = os.path.basename(file_path)
+        previous_status.config(text=f"⏳ Analyzing {filename}...", fg="#FF9800")
+        dialog.update()
 
-            previous_status.config(text=f"✓ {filename} ({len(optional_cols)} optional columns)")
-            populate_previous_checkboxes(optional_cols, [])  # None selected by default
+        def analyze_in_thread():
+            """Run analysis in background thread."""
+            columns, fname, error = analyze_excel_columns(file_path)
 
-            # Show canvas and scrollbar
-            previous_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            previous_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            # Schedule UI update on main thread
+            def update_ui():
+                if error:
+                    previous_status.config(text=f"❌ Error: {error[:30]}...", fg="#F44336")
+                    messagebox.showerror("Error", f"Failed to analyze file:\n{error}")
+                    return
 
-            # Store in temp for saving later
-            dialog.previous_file_data = {"filename": filename, "columns": optional_cols}
+                # Filter to only optional columns
+                excluded = set(MANDATORY_COLUMNS) | set(VRS_CONDITIONAL_COLUMNS) | set(AUTO_GENERATED_COLUMNS)
+                optional_cols = [c for c in columns if c not in excluded]
+
+                previous_status.config(
+                    text=f"✓ {fname} ({len(optional_cols)} optional columns)",
+                    fg=PREVIOUS_COLOR
+                )
+                populate_previous_checkboxes(optional_cols, [])  # None selected by default
+
+                # Show canvas and scrollbar
+                previous_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                previous_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+                # Store in temp for saving later
+                dialog.previous_file_data = {"filename": fname, "columns": optional_cols}
+
+            dialog.after(0, update_ui)
+
+        # Run in background thread
+        thread = threading.Thread(target=analyze_in_thread, daemon=True)
+        thread.start()
 
     def select_all_previous():
         for var in previous_vars.values():

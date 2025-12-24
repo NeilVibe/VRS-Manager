@@ -25,10 +25,21 @@
 | **V5-001** | FIXED columns truncated ("...10 total") | Show full comma-separated list with wraplength |
 | **V5-002** | Previous_ prefix shown in checkboxes | Removed - user sees original column name |
 | **V5-003** | "New Rows" text unclear | Clarified: "Rows that only exist in CURRENT..." |
+| **V5-004** | Previous_ prefix on ALL columns | Only add prefix on CONFLICT (both files) |
+| **V5-005** | Dialog too small, buttons compressed | Increased to 950x850 / minsize 850x750 |
+| **V5-006** | Upload freezes UI | Threading + progress feedback |
 
 ### Files Modified
-- `src/ui/main_window.py` - All 3 UI fixes
-- `docs/wip/ISSUELIST.md` - Created issue tracking
+- `src/ui/main_window.py` - UI fixes + threading
+- `src/settings.py` - Prefix conflict logic
+- `src/core/working_comparison.py` - Handle prefixed/non-prefixed
+- `docs/wip/ISSUELIST.md` - Issue tracking
+
+### Column Selection Persistence
+Settings apply to ALL future WORKING processor runs:
+- Analyzed file is for DISCOVERY only
+- Settings persist in `~/.vrsmanager_settings.json`
+- Any future file processed will try to find configured columns
 
 ---
 

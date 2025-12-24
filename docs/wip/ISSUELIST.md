@@ -6,6 +6,33 @@
 
 ## Resolved Issues
 
+### V5-006: Upload freezes UI - needs threading (RESOLVED)
+**Reported:** 2025-12-24
+**Status:** FIXED
+
+**Problem:** When uploading a file for column analysis, the UI freezes until the file is fully analyzed.
+
+**Fix:** Added threading to both upload functions:
+- `upload_current_file()` - runs `analyze_excel_columns()` in background thread
+- `upload_previous_file()` - same treatment
+- Progress feedback: Shows "⏳ Analyzing filename..." with orange color
+- Success: Shows "✓ filename (N optional columns)" with green/blue color
+- Error: Shows "❌ Error: ..." with red color
+
+---
+
+### V5-005: Dialog height too small - buttons compressed (RESOLVED)
+**Reported:** 2025-12-24
+**Status:** FIXED
+
+**Problem:** Save/Back buttons at bottom of Column Settings dialog were compressed and almost invisible.
+
+**Fix:** Increased dialog size:
+- Before: `geometry("950x750")` / `minsize(850, 650)`
+- After: `geometry("950x850")` / `minsize(850, 750)`
+
+---
+
 ### V5-004: Previous_ prefix added blindly to all PREVIOUS columns (RESOLVED)
 **Reported:** 2025-12-24
 **Status:** FIXED
