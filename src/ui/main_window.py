@@ -586,24 +586,28 @@ def show_column_settings_dialog_v2(parent):
     )
     fixed_frame.pack(fill=tk.X, padx=20, pady=(5, 10))
 
-    # Compact display - just category + count + abbreviated list
-    mandatory_text = ", ".join(MANDATORY_COLUMNS[:4]) + f"... ({len(MANDATORY_COLUMNS)} total)"
-    vrs_cond_text = ", ".join(VRS_CONDITIONAL_COLUMNS[:4]) + f"... ({len(VRS_CONDITIONAL_COLUMNS)} total)"
+    # Full column list display
+    mandatory_text = ", ".join(MANDATORY_COLUMNS)
+    vrs_cond_text = ", ".join(VRS_CONDITIONAL_COLUMNS)
 
     tk.Label(
         fixed_frame,
-        text=f"✓ MANDATORY: {mandatory_text}",
+        text=f"✓ MANDATORY ({len(MANDATORY_COLUMNS)}): {mandatory_text}",
         font=("Arial", 9),
         bg=bg_color,
-        fg="#1B5E20"
+        fg="#1B5E20",
+        wraplength=880,
+        justify=tk.LEFT
     ).pack(anchor=tk.W, pady=2)
 
     tk.Label(
         fixed_frame,
-        text=f"✓ VRS CONDITIONAL: {vrs_cond_text}",
+        text=f"✓ VRS CONDITIONAL ({len(VRS_CONDITIONAL_COLUMNS)}): {vrs_cond_text}",
         font=("Arial", 9),
         bg=bg_color,
-        fg="#1565C0"
+        fg="#1565C0",
+        wraplength=880,
+        justify=tk.LEFT
     ).pack(anchor=tk.W, pady=2)
 
     # ===== SECTION 2: AUTO-GENERATED COLUMNS (Horizontal) =====
@@ -907,7 +911,7 @@ def show_column_settings_dialog_v2(parent):
     previous_buttons.pack(fill=tk.X, pady=(5, 0))
 
     def populate_previous_checkboxes(columns, selected):
-        """Populate previous file checkboxes with Previous_ prefix."""
+        """Populate previous file checkboxes (no prefix - just column names)."""
         for widget in previous_checkbox_frame.winfo_children():
             widget.destroy()
         previous_vars.clear()
@@ -927,7 +931,7 @@ def show_column_settings_dialog_v2(parent):
             previous_vars[col] = var
             cb = tk.Checkbutton(
                 previous_checkbox_frame,
-                text=f"Previous_{col}",
+                text=col,  # No prefix - user sees original column name
                 variable=var,
                 font=("Arial", 9),
                 bg="#E3F2FD",
@@ -1038,7 +1042,7 @@ def show_column_settings_dialog_v2(parent):
     # ===== INFO NOTE =====
     tk.Label(
         optional_frame,
-        text="ℹ️ PREVIOUS columns are matched by KEY (SequenceName+EventName+StrOrigin+CastingKey). New Rows will have empty PREVIOUS values.",
+        text="ℹ️ PREVIOUS file columns are matched by KEY (Seq+Event+StrOrigin+CastingKey). Output will show as 'Previous_ColumnName'. Rows that only exist in CURRENT (no match in PREVIOUS) will have empty values.",
         font=("Arial", 9),
         bg=bg_color,
         fg="#666666",

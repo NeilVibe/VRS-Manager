@@ -1,6 +1,6 @@
 # TASK-002: Customizable Output Columns + HasAudio
 
-**Created:** 2025-12-22 | **Status:** V5 IMPLEMENTED | **Priority:** High
+**Created:** 2025-12-22 | **Status:** V5 IMPLEMENTED + UI FIXES | **Priority:** High
 
 ---
 
@@ -118,6 +118,33 @@ for prefixed_col in selected_previous_cols:
 5. [x] Add "Previous_" prefix to PREVIOUS columns in output
 6. [x] Update settings save/load for V5 schema
 7. [x] Add tests for KEY-based PREVIOUS column matching
+
+---
+
+## V5 UI FIXES (2025-12-24)
+
+### Issues Fixed
+
+| Issue | Problem | Fix |
+|-------|---------|-----|
+| **V5-001** | FIXED columns truncated ("SequenceName, EventName... (10 total)") | Show full comma-separated list with text wrapping |
+| **V5-002** | PREVIOUS checkboxes showed "Previous_FREEMEMO" prefix | Removed prefix - user sees original column name, prefix only in output |
+| **V5-003** | Info text "New Rows will have empty PREVIOUS values" unclear | Clarified: "Rows that only exist in CURRENT (no match in PREVIOUS) will have empty values" |
+
+### Code Changes
+
+```python
+# Fix 1: Full column list (main_window.py)
+mandatory_text = ", ".join(MANDATORY_COLUMNS)  # Was [:4] + "..."
+# Added wraplength=880, justify=tk.LEFT
+
+# Fix 2: No prefix in checkbox (main_window.py)
+text=col,  # Was f"Previous_{col}"
+
+# Fix 3: Clearer info text (main_window.py)
+"Output will show as 'Previous_ColumnName'. Rows that only exist in CURRENT
+(no match in PREVIOUS) will have empty values."
+```
 
 ---
 

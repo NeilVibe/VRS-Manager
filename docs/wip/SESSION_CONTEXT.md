@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-24
 **Version:** v12231045 (production)
-**Status:** TASK-002 V5 IMPLEMENTED - KEY-based PREVIOUS column extraction
+**Status:** TASK-002 V5 IMPLEMENTED + UI fixes
 
 ---
 
@@ -11,8 +11,48 @@
 | Item | Status |
 |------|--------|
 | Production | Stable (v12231045) |
-| Git | V4 commits done, V5 code ready |
-| TASK-002 | V5 IMPLEMENTED - Ready for testing |
+| Git | V5 committed, UI fixes pending commit |
+| TASK-002 | V5 IMPLEMENTED + 3 UI fixes done |
+
+---
+
+## V5 UI Fixes (This Session)
+
+### Issues Fixed
+
+| Issue | Problem | Fix |
+|-------|---------|-----|
+| **V5-001** | FIXED columns truncated ("...10 total") | Show full comma-separated list with wraplength |
+| **V5-002** | Previous_ prefix shown in checkboxes | Removed - user sees original column name |
+| **V5-003** | "New Rows" text unclear | Clarified: "Rows that only exist in CURRENT..." |
+
+### Files Modified
+- `src/ui/main_window.py` - All 3 UI fixes
+- `docs/wip/ISSUELIST.md` - Created issue tracking
+
+---
+
+## Config Persistence (Already Implemented)
+
+### How It Works
+
+| Action | Result |
+|--------|--------|
+| **SAVE** | Saves to `~/.vrsmanager_settings.json` |
+| **Open Dialog** | Loads saved selections, pre-populates checkboxes |
+| **RESET ALL** | Clears JSON config, shows empty upload boxes |
+
+### User Flow
+1. Upload CURRENT file → select columns
+2. Upload PREVIOUS file → select columns
+3. Click SAVE → selections persisted to JSON
+4. Next time open dialog → previous selections remembered
+5. Want to change? → RESET ALL + REUPLOAD
+
+### Previous_ Prefix Handling
+- **UI checkboxes**: User sees original column name ("FREEMEMO")
+- **Output processing**: `get_v5_enabled_columns()` adds "Previous_" prefix
+- **Result**: Output has "Previous_FREEMEMO" column with KEY-matched values
 
 ---
 
